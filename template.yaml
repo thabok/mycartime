@@ -1,0 +1,705 @@
+- !!entities.Person
+  name: Mareike
+  initials: Ul
+  partTime: false
+  tall: false
+  car: {
+    noSeats: 5,
+    small: false
+  }
+  schedule:
+    timingInfoPerDay:
+      MONDAY: {
+        firstLesson: 3,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: true,
+        lastLesson: 4
+      }
+      TUESDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      WEDNESDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 8
+      }
+      THURSDAY: {
+        firstLesson: 3,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 4
+      }
+      FRIDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 7
+      }
+      
+- !!entities.Person
+  name: Sara
+  initials: MV
+  partTime: false
+  tall: false
+  car: {
+    noSeats: 5,
+    small: false
+  }
+  schedule:
+    timingInfoPerDay:
+      MONDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      TUESDAY: {
+        firstLesson: 5,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 8
+      }
+      WEDNESDAY: {
+        firstLesson: 5,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 8
+      }
+      THURSDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 8
+      }
+      FRIDAY: {
+        firstLesson: 3,
+        hasDutyAfterLastLesson: true,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 8
+      }
+ 
+- !!entities.Person
+  name: Josie
+  initials: Di
+  partTime: false
+  tall: false
+  car: {
+    noSeats: 4,
+    small: true
+  }
+  schedule:
+    timingInfoPerDay:
+      MONDAY: {
+        firstLesson: 3,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 5
+      }
+      TUESDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 8
+      }
+      WEDNESDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      THURSDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      FRIDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: true,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+
+- !!entities.Person
+  name: Benjamin
+  initials: Kl
+  partTime: false
+  tall: true
+  car: {
+    noSeats: 5,
+    small: false
+  }
+  schedule:
+    timingInfoPerDay:
+      MONDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      TUESDAY: {
+        firstLesson: 3,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 8
+      }
+      WEDNESDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 7
+      }
+      THURSDAY: {
+        firstLesson: 3,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 8
+      }
+      FRIDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 4
+      }
+
+- !!entities.Person
+  name: Lina  
+  initials: Sc
+  partTime: false
+  tall: false
+  car: {
+    noSeats: 5,
+    small: false
+  }
+  schedule:
+    timingInfoPerDay:
+      MONDAY: {
+        firstLesson: 5,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 8
+      }
+      TUESDAY: {
+        firstLesson: 3,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 7
+      }
+      WEDNESDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 7
+      }
+      THURSDAY: {
+        firstLesson: 3,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      FRIDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+
+- !!entities.Person
+  name: Stephi  
+  initials: Ne
+  partTime: false
+  tall: false
+  car: {
+    noSeats: 5,
+    small: false
+  }
+  schedule:
+    timingInfoPerDay:
+      MONDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: true,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 4
+      }
+      TUESDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 4
+      }
+      WEDNESDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      THURSDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 8
+      }
+      FRIDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+
+- !!entities.Person
+  name: Bea
+  initials: Bo
+  partTime: false
+  tall: false
+  car: {
+    noSeats: 5,
+    small: false
+  }
+  schedule:
+    timingInfoPerDay:
+      MONDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 8
+      }
+      TUESDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      WEDNESDAY: {
+        firstLesson: 3,
+        hasDutyAfterLastLesson: true,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      THURSDAY: {
+        firstLesson: 3,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 8
+      }
+      FRIDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+
+- !!entities.Person
+  name: René
+  initials: Lf
+  partTime: false
+  tall: true
+  car: {
+    noSeats: 2,
+    small: false
+  }
+  schedule:
+    timingInfoPerDay:
+      MONDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 8
+      }
+      TUESDAY: {
+        firstLesson: 3,
+        hasDutyAfterLastLesson: true,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      WEDNESDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      THURSDAY: {
+        firstLesson: 3,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 8
+      }
+      FRIDAY: {
+        firstLesson: 3,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+
+- !!entities.Person
+  name: Christian
+  initials: Kt
+  partTime: false
+  tall: true
+  car: {
+    noSeats: 5,
+    small: true
+  }
+  schedule:
+    timingInfoPerDay:
+      MONDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      TUESDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      WEDNESDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      THURSDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      FRIDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      
+- !!entities.Person
+  name: Tim
+  initials: Ki
+  partTime: false
+  tall: true
+  car: {
+    noSeats: 5,
+    small: false
+  }
+  schedule:
+    timingInfoPerDay:
+      MONDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 10
+      }
+      TUESDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: true,
+        lastLesson: 2
+      }
+      WEDNESDAY: {
+        firstLesson: 3,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 8
+      }
+      THURSDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: true,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      FRIDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 4
+      }
+
+- !!entities.Person
+  name: Anna-Lena  
+  initials: We
+  partTime: false
+  tall: false
+  car: {
+    noSeats: 5,
+    small: false
+  }
+  schedule:
+    timingInfoPerDay:
+      MONDAY: {
+        firstLesson: 3,
+        hasDutyAfterLastLesson: true,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 4
+      }
+      TUESDAY: {
+        firstLesson: 3,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      WEDNESDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 7
+      }
+      THURSDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 4
+      }
+      FRIDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 4
+      }
+
+- !!entities.Person
+  name: Arne  
+  initials: Wg
+  partTime: false
+  tall: false
+  car: {
+    noSeats: 5,
+    small: true
+  }
+  schedule:
+    timingInfoPerDay:
+      MONDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: true,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 4
+      }
+      TUESDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      WEDNESDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      THURSDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      FRIDAY: {
+        firstLesson: 3,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+
+- !!entities.Person
+  name: Anna  
+  initials: Si
+  partTime: false
+  tall: true
+  car: {
+    noSeats: 5,
+    small: false
+  }
+  schedule:
+    timingInfoPerDay:
+      MONDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      TUESDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 8
+      }
+      WEDNESDAY: {
+        firstLesson: 3,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      THURSDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      FRIDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: true,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+
+- !!entities.Person
+  name: Laura G.
+  initials: Gz
+  partTime: false
+  tall: false
+  car: {
+    noSeats: 5,
+    small: true
+  }
+  schedule:
+    timingInfoPerDay:
+      MONDAY: {
+        firstLesson: 7,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 8
+      }
+      TUESDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      WEDNESDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 4
+      }
+      THURSDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      FRIDAY: {
+        firstLesson: 3,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+
+- !!entities.Person
+  name: Sebastian
+  partTime: false
+  tall: true
+  car: {
+    noSeats: 5,
+    small: false
+  }
+  schedule:
+    timingInfoPerDay:
+      MONDAY: {
+        firstLesson: 3,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 8
+      }
+      TUESDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      WEDNESDAY: {
+        firstLesson: 5,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      THURSDAY: {
+        firstLesson: 3,
+        hasDutyAfterLastLesson: true,
+        hasDutyBeforeFirstLesson: true,
+        lastLesson: 6
+      }
+      FRIDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+
+- !!entities.Person
+  name: Lena
+  partTime: true
+  tall: false
+  car: {
+    noSeats: 3,
+    small: true
+  }
+  schedule:
+    timingInfoPerDay:
+      MONDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      TUESDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: true,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 4
+      }
+      THURSDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: true,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 4
+      }
+      FRIDAY: {
+        firstLesson: 3,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+
+- !!entities.Person
+  name: Volker  
+  initials: Su
+  partTime: false
+  tall: true
+  car: {
+    noSeats: 5,
+    small: false
+  }
+  schedule:
+    timingInfoPerDay:
+      MONDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: true,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      TUESDAY: {
+        firstLesson: 3,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 4
+      }
+      WEDNESDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
+      THURSDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: true,
+        lastLesson: 2
+      }
+      FRIDAY: {
+        firstLesson: 1,
+        hasDutyAfterLastLesson: false,
+        hasDutyBeforeFirstLesson: false,
+        lastLesson: 6
+      }
