@@ -1,4 +1,4 @@
-package entities;
+package com.thabok.entities;
 
 import java.util.List;
 import java.util.Map;

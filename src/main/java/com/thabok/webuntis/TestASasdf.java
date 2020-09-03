@@ -1,4 +1,4 @@
-package webuntis;
+package com.thabok.webuntis;
 
 import java.util.Map;
 import java.util.Map.Entry;
@@ -9,7 +9,7 @@ public class TestASasdf {
 //		String sessionId = WebUntisAdapter.login("", "");
 //		System.out.println(sessionId);
 		
-//		WebUntisAdapter.sessionId = "";
+		WebUntisAdapter.sessionId = "";
 		String teacherInitials = "";
 		Map<Integer, TimetableItem> timetable = WebUntisAdapter.getTimetable(teacherInitials);
 		System.out.println("Timetable for " + teacherInitials + ":\n");

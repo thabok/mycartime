@@ -1,9 +1,8 @@
-package main;
+package com.thabok.main;
 
 import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -11,14 +10,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import entities.DayPlan;
-import entities.DayPlanInput;
-import entities.Party;
-import entities.PartyTouple;
-import entities.Person;
-import entities.Rule;
-import entities.TimingInfo;
-import entities.WeekPlan;
+import com.thabok.entities.DayPlan;
+import com.thabok.entities.DayPlanInput;
+import com.thabok.entities.Party;
+import com.thabok.entities.PartyTouple;
+import com.thabok.entities.Person;
+import com.thabok.entities.Rule;
+import com.thabok.entities.TimingInfo;
+import com.thabok.entities.WeekPlan;
 
 public class Controller {
 

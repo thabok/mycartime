@@ -1,4 +1,4 @@
-package webuntis;
+package com.thabok.webuntis;
 
 import java.util.List;
 

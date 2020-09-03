@@ -1,4 +1,4 @@
-package webuntis;
+package com.thabok.webuntis;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -6,15 +6,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.ParseException;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.http.HttpEntity;
+import org.apache.http.ParseException;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 
 import com.google.gson.Gson;
 
@@ -28,7 +28,10 @@ public class WebUntisAdapter {
 
 	public static String sessionId = null;
 	
-	public static Map<Integer, TimetableItem>  getTimetable(String teacherInitials) {
+	public static Map<Integer, TimetableItem>  getTimetable(String teacherInitials) throws Exception {
+		if (teacherInitials == null || teacherInitials.isEmpty()) {
+			throw new Exception("No teacher initials specified.");
+		}
 		Map<String, Object> params = new HashMap<>();
 		Map<String, Object> options = new HashMap<>();
 		Map<String, Object> teacher = new HashMap<>();

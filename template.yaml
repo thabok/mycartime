@@ -1,4 +1,4 @@
-- !!entities.Person
+- !!com.thabok.entities.Person
   name: Mareike
   initials: Ul
   partTime: false
@@ -40,7 +40,7 @@
         lastLesson: 7
       }
       
-- !!entities.Person
+- !!com.thabok.entities.Person
   name: Sara
   initials: MV
   partTime: false
@@ -82,7 +82,7 @@
         lastLesson: 8
       }
  
-- !!entities.Person
+- !!com.thabok.entities.Person
   name: Josie
   initials: Di
   partTime: false
@@ -124,7 +124,7 @@
         lastLesson: 6
       }
 
-- !!entities.Person
+- !!com.thabok.entities.Person
   name: Benjamin
   initials: Kl
   partTime: false
@@ -166,7 +166,7 @@
         lastLesson: 4
       }
 
-- !!entities.Person
+- !!com.thabok.entities.Person
   name: Lina  
   initials: Sc
   partTime: false
@@ -208,7 +208,7 @@
         lastLesson: 6
       }
 
-- !!entities.Person
+- !!com.thabok.entities.Person
   name: Stephi  
   initials: Ne
   partTime: false
@@ -250,7 +250,7 @@
         lastLesson: 6
       }
 
-- !!entities.Person
+- !!com.thabok.entities.Person
   name: Bea
   initials: Bo
   partTime: false
@@ -292,7 +292,7 @@
         lastLesson: 6
       }
 
-- !!entities.Person
+- !!com.thabok.entities.Person
   name: René
   initials: Lf
   partTime: false
@@ -334,7 +334,7 @@
         lastLesson: 6
       }
 
-- !!entities.Person
+- !!com.thabok.entities.Person
   name: Christian
   initials: Kt
   partTime: false
@@ -376,7 +376,7 @@
         lastLesson: 6
       }
       
-- !!entities.Person
+- !!com.thabok.entities.Person
   name: Tim
   initials: Ki
   partTime: false
@@ -418,7 +418,7 @@
         lastLesson: 4
       }
 
-- !!entities.Person
+- !!com.thabok.entities.Person
   name: Anna-Lena  
   initials: We
   partTime: false
@@ -460,7 +460,7 @@
         lastLesson: 4
       }
 
-- !!entities.Person
+- !!com.thabok.entities.Person
   name: Arne  
   initials: Wg
   partTime: false
@@ -502,7 +502,7 @@
         lastLesson: 6
       }
 
-- !!entities.Person
+- !!com.thabok.entities.Person
   name: Anna  
   initials: Si
   partTime: false
@@ -544,7 +544,7 @@
         lastLesson: 6
       }
 
-- !!entities.Person
+- !!com.thabok.entities.Person
   name: Laura G.
   initials: Gz
   partTime: false
@@ -586,7 +586,7 @@
         lastLesson: 6
       }
 
-- !!entities.Person
+- !!com.thabok.entities.Person
   name: Sebastian
   partTime: false
   tall: true
@@ -627,7 +627,7 @@
         lastLesson: 6
       }
 
-- !!entities.Person
+- !!com.thabok.entities.Person
   name: Lena
   partTime: true
   tall: false
@@ -662,7 +662,7 @@
         lastLesson: 6
       }
 
-- !!entities.Person
+- !!com.thabok.entities.Person
   name: Volker  
   initials: Su
   partTime: false

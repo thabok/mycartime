@@ -1,4 +1,4 @@
-package entities;
+package com.thabok.entities;
 
 import java.time.DayOfWeek;
 import java.util.ArrayList;

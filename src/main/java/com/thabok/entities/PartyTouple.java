@@ -1,4 +1,4 @@
-package entities;
+package com.thabok.entities;
 
 import java.util.HashSet;
 import java.util.Set;

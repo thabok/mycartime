@@ -1,12 +1,13 @@
-package main;
+package com.thabok.main;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.List;
 
-import entities.Person;
-import entities.WeekPlan;
-import io.ImportExport;
+import com.thabok.entities.Person;
+import com.thabok.entities.WeekPlan;
+import com.thabok.io.ImportExport;
+
 
 public class CarpoolParty {
 

@@ -1,4 +1,4 @@
-package entities;
+package com.thabok.entities;
 public class Person {
 
 	private String name;
