@@ -63,7 +63,7 @@ class MainPage extends Component {
     }
 
     requestDrivingPlan() {
-        this.setState( { waitingForPlan: true })
+        this.setState( { waitingForPlan: true, carpoolmembersCollapsed: true })
         this.login("login", true)
         this.calculatePlan()
         this.logout()
@@ -83,7 +83,10 @@ class MainPage extends Component {
                 if (response.ok) {
                     // request succeeded
                     toast.show({message: "Successfully calculated a driving plan", intent: "success", icon: "tick"})
-                    response.json().then(drivingPlan => this.setState( { drivingPlan }))
+                    response.json().then(drivingPlan => {
+                        this.setState( { drivingPlan })
+                        console.log(drivingPlan)
+                    })
                 } else {
                     // request failed -> return object's message will contain details
                     try {
@@ -124,7 +127,7 @@ class MainPage extends Component {
                 if (!quiet) {
                     toast.show({message: "Successfully connected to WebUntis with user " + this.state.username, intent: "success", icon: "tick"})
                 }
-                this.setState( { connectionSuccessful: true })
+                this.setState( { connectionSuccessful: true, webuntisCollapsed: true })
             } else {
                 // connection failed -> return object's message will contain details
                 response.json().then(pkg => {
@@ -138,7 +141,7 @@ class MainPage extends Component {
         })
         .catch(error => {
             // connection failed (no connection or exception on server)
-            const msg = "Connection failed: " + error
+            const msg = "An error failed: " + error
             if (!quiet) {
                 toast.show({message: msg, intent: "danger", icon: "error"})
             }
@@ -153,32 +156,39 @@ class MainPage extends Component {
     }
 
     getWebUntisLegend() {
-        let btnIcon, btnIntent
+        let btnIntent
         let btnCaret = this.state.webuntisCollapsed ? "caret-down" : "caret-up"
         if (this.state.connectionSuccessful) {
             btnIntent = "success"
-            btnIcon = "tick"
         } else if (this.state.connectionErrorMessage) {
             btnIntent = "danger"
-            btnIcon = "error"
         } else {
             btnIntent = "none"
-            btnIcon = "help"
         }
         return (
-            <legend style={{ padding: "5px 10px 5px 10px" }}>
-                WebUntis connection&nbsp;&nbsp;
-                <Icon intent={btnIntent}  icon={btnIcon} />
+            <legend style={{ padding: "5px 10px 5px 10px"}}>
+                WebUntis connection
                 &nbsp;&nbsp;
-                <Icon icon={btnCaret} />
+                <Icon icon={btnCaret} onClick={() => this.setState({ webuntisCollapsed: !this.state.webuntisCollapsed })} />
             </legend>
         )
     }
 
     getCarpoolMembersLegend() {
+        let btnCaret = this.state.carpoolmembersCollapsed ? "caret-down" : "caret-up"
         return (
             <legend style={{ padding: "5px 10px 5px 10px" }}>
                 Add Carpool Party Members
+                &nbsp;&nbsp;
+                <Icon icon={btnCaret} onClick={() => this.setState({ carpoolmembersCollapsed: !this.state.carpoolmembersCollapsed })} />
+            </legend>
+        )
+    }
+
+    getDrivingPlanLegend() {
+        return (
+            <legend style={{ padding: "5px 10px 5px 10px" }}>
+                Carpool Party Driving Plan
             </legend>
         )
     }
@@ -265,7 +275,7 @@ class MainPage extends Component {
         }
       }
 
-    getNewPersonDialog() {
+    getPersonDetailsDialog() {
         return (
             <Dialog 
                 className=""
@@ -346,7 +356,6 @@ class MainPage extends Component {
                              }} />
                 </FormGroup>
                 <center>
-
                     <Button
                         style={{width: "100px" }}
                         icon="delete"
@@ -399,35 +408,83 @@ class MainPage extends Component {
         return (
             <fieldset style={cardListStyles}>
                 {this.getCarpoolMembersLegend()}
-                <center>
-                    <DragAndDropFileUpload onDrop={(files) => {
-                            let reader = new FileReader();
-                            reader.onloadend = (e) => {
-                                let persons = JSON.parse(e.target.result);
-                                this.updateState("persons", persons)
-                            }
-                            reader.readAsText(files[0]);
-                        }}
-                    />
-                </center>
-                <div style={cardListStyles}>
-                    {this.state.persons.map((person) => {
-                        return (this.createCard(person))
-                    })}
-                    <Button 
-                        style={cardStyles}
-                        icon="add"
-                        minimal={true}
-                        intent="primary"
-                        onClick={() => this.openDialogForNewPerson()}
+                <Collapse isOpen={!this.state.carpoolmembersCollapsed} >
+                    <center>
+                        <DragAndDropFileUpload onDrop={(files) => {
+                                let reader = new FileReader();
+                                reader.onloadend = (e) => {
+                                    let persons = JSON.parse(e.target.result);
+                                    this.updateState("persons", persons)
+                                }
+                                reader.readAsText(files[0]);
+                            }}
                         />
-                </div>
-                {this.getNewPersonDialog()}
-                <br/>
+                    </center>
+                    <div style={cardListStyles}>
+                        {this.state.persons.map((person) => {
+                            return (this.createCard(person))
+                        })}
+                        <Button 
+                            style={cardStyles}
+                            icon="add"
+                            minimal={true}
+                            intent="primary"
+                            onClick={() => this.openDialogForNewPerson()}
+                            />
+                    </div>
+                    {this.getPersonDetailsDialog()}
+                    <br/>
+                    <center>
+                        <Download file={"carpool-party-members.json"} content={JSON.stringify(this.state.persons, null, 2)}>
+                            <Button icon="download" text="Save to file" style={{float: "right"}} minimal={true} />
+                        </Download>
+                    </center>
+                </Collapse>
+                <Collapse isOpen={this.state.carpoolmembersCollapsed} >
+                    <center>
+                        <Callout style={{ width: "300px" }} intent="success" icon="tick">{this.state.persons.length} members for your carpool party!</Callout>
+                    </center>
+                </Collapse>
+            </fieldset>
+        )
+    }
+
+    getDrivingPlanFieldset() {
+        return (
+            <fieldset style={cardListStyles}>
+                {this.getDrivingPlanLegend()}
                 <center>
-                    <Download file={"carpool-party-members.json"} content={JSON.stringify(this.state.persons, null, 2)}>
-                        <Button icon="download" text="Save to file" style={{float: "right"}} minimal={true} />
-                    </Download>
+                    { (this.state.drivingPlan === undefined)
+                    ? 
+                        <div>
+                            <Button 
+                                text="Calculate Driving Plan"
+                                icon="send-to-map"
+                                intent="primary"
+                                disabled={this.disableConnectionButton()}
+                                loading={this.state.waitingForPlan}
+                                style={{
+                                    width:  "200px",
+                                    height: "100px"
+                                }}
+                                onClick={() => this.requestDrivingPlan()}
+                                />
+                            {this.disableConnectionButton()
+                            ?
+                                <Callout
+                                intent="primary"
+                                icon="info-sign"
+                                style={{width:  "200px"}}>
+                                    Username and password are missing.
+                                </Callout>
+                            :
+                                null
+                            }
+                        </div>
+                     :
+                        // display driving plan
+                        this.state.drivingPlan.summary
+                    }                    
                 </center>
             </fieldset>
         )
@@ -456,8 +513,6 @@ class MainPage extends Component {
                 interactive={true}
                 elevation="zero"
                 onClick={() => this.openDialogForExistingPerson(person.initials)}
-                /*onMouseEnter={() => this.setState({mouseOverId: person.initials})}
-                onMouseLeave={() => this.setState({mouseOverId: undefined})}*/
                 style={cardStyles} >
                 <div style={{ float: "right"}}>
                     <Button icon="delete" minimal={true} onClick={(e) => {this.deletePerson(e, person.initials)}} />
@@ -475,6 +530,7 @@ class MainPage extends Component {
     openDialogForNewPerson() {
         this.setState({
             isDialogOpen: true,
+            memberBeingModified: undefined,
             newMember_firstname: "",
             newMember_lastname: "",
             newMember_initials: "",
@@ -487,8 +543,8 @@ class MainPage extends Component {
         const person = this.getPersonByInitials(initials)
         if (person) {
             this.setState({
-                memberBeingModified: initials,
                 isDialogOpen: true,
+                memberBeingModified: initials,
                 newMember_firstname: person.firstName,
                 newMember_lastname: person.lastName,
                 newMember_initials: person.initials,
@@ -510,43 +566,49 @@ class MainPage extends Component {
             </Tooltip>
             );
         return (
-            <fieldset className="login-form" style={{ padding : "20px" }}>
+            <fieldset className="main-form" style={{ padding : "20px" }}>
                 {this.getWebUntisLegend()}
-                
-                <Callout intent="primary" icon="info-sign">Please enter your initials and password:</Callout>
-                <InputGroup
-                    style={{ width: "300px" }}
-                    value={this.state.username}
-                    id="username"
-                    placeholder="Enter your username (initials)..."
-                    onChange={(e) => this.updateState("username", e.target.value)} />
-                <InputGroup
-                    style={{ width: "300px" }}
-                    value={this.state.password}
-                    id="password"
-                    rightElement={lockButton}
-                    placeholder="Enter your password..."
-                    type={this.state.showPassword ? "text" : "password"}
-                    onChange={(e) => this.setState({ password: e.target.value})}
-                    />
-                <Button
-                    type="submit"
-                    fill={true}
-                    icon="signal-search"
-                    loading={this.state.loggingIn}
-                    text="Test Connection"
-                    disabled={this.disableConnectionButton()}
-                    intent="primary"
-                    onClick={() => {
-                        this.testWebUntisConnection()
-                    }}
-                    />
-                { !this.state.connectionSuccessful && this.state.connectionErrorMessage
-                    ? 
-                    <Callout intent="danger" icon="error">{this.state.connectionErrorMessage}</Callout>
-                    : 
-                    null
-                }
+                <div className="login-form">
+                    <Collapse isOpen={!this.state.webuntisCollapsed} >
+                        <Callout intent="primary" icon="info-sign">Please enter your initials and password:</Callout>
+                        <InputGroup
+                            style={{ width: "300px" }}
+                            value={this.state.username}
+                            id="username"
+                            placeholder="Enter your username (initials)..."
+                            onChange={(e) => this.updateState("username", e.target.value)} />
+                        <InputGroup
+                            style={{ width: "300px" }}
+                            value={this.state.password}
+                            id="password"
+                            rightElement={lockButton}
+                            placeholder="Enter your password..."
+                            type={this.state.showPassword ? "text" : "password"}
+                            onChange={(e) => this.setState({ password: e.target.value})}
+                            />
+                        <Button
+                            type="submit"
+                            fill={true}
+                            icon="signal-search"
+                            loading={this.state.loggingIn}
+                            text="Test Connection"
+                            disabled={this.disableConnectionButton()}
+                            intent="primary"
+                            onClick={() => {
+                                this.testWebUntisConnection()
+                            }}
+                            />
+                        { !this.state.connectionSuccessful && this.state.connectionErrorMessage
+                            ? 
+                            <Callout intent="danger" icon="error">{this.state.connectionErrorMessage}</Callout>
+                            : 
+                            null
+                        }
+                    </Collapse>
+                    <Collapse isOpen={this.state.webuntisCollapsed} >
+                        {this.state.connectionSuccessful ? <Callout intent="success" icon="tick">Connection successfully tested</Callout> : null }
+                    </Collapse>
+                </div>
             </fieldset>
         )
     }
@@ -560,19 +622,7 @@ class MainPage extends Component {
                 <br/>
                 {this.getCarpoolMembersFieldset()}
                 <br/>
-                <center>
-                    <Button 
-                        text="Calculate Driving Plan"
-                        icon="send-to-map"
-                        intent="primary"
-                        loading={this.state.waitingForPlan}
-                        style={{
-                            width:  "200px",
-                            height: "100px"
-                        }}
-                        onClick={() => this.requestDrivingPlan()}
-                    />
-                </center>                
+                {this.getDrivingPlanFieldset()}
             </div>
         );
     }

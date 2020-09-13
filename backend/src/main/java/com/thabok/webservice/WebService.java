@@ -49,7 +49,7 @@ public class WebService {
 	 * @return the week plan
 	 * @throws Exception things can go wrong...
 	 */
-	public WeekPlan calculatePlan(Request req, Response res) throws Exception {
+	public Object calculatePlan(Request req, Response res) throws Exception {
 		Type typeToken = new TypeToken<List<Person>>() {}.getType();
 		List<Person> persons = new Gson().fromJson(req.body(), typeToken);
 		for (Person person : persons) {
@@ -59,6 +59,7 @@ public class WebService {
 		}
 		Controller controller = new Controller(persons);
 		WeekPlan wp = controller.calculateGoodPlan(1000);
+		controller.summarizeNumberOfDrives(wp);
 		WebUntisAdapter.logout();
 		return wp;
 	}
@@ -66,7 +67,6 @@ public class WebService {
 	public WebPkg login(Request req, Response res) {
 		String json = req.body();
 		WebCredentials credentials = new Gson().fromJson(json, WebCredentials.class);
-		
 		WebPkg pkg = new WebPkg();
 		pkg.topic = "login";
 		try {

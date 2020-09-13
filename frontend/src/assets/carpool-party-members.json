@@ -8,28 +8,28 @@
   },
   {
     "firstName": "Sara",
-    "lastName": "Doe",
+    "lastName": "Meyer-Vaske",
     "initials": "MV",
     "numberOfSeats": 5,
     "isCarRoomy": true
   },
   {
     "firstName": "Josie",
-    "lastName": "Doe",
+    "lastName": "Diekhaus",
     "initials": "Di",
     "numberOfSeats": 4,
     "isCarRoomy": false
   },
   {
     "firstName": "Benjamin",
-    "lastName": "Doe",
+    "lastName": "Kleinke",
     "initials": "Kl",
     "numberOfSeats": 5,
     "isCarRoomy": true
   },
   {
     "firstName": "Lina",
-    "lastName": "Doe",
+    "lastName": "Schütte",
     "initials": "Sc",
     "numberOfSeats": 5,
     "isCarRoomy": true
@@ -43,14 +43,14 @@
   },
   {
     "firstName": "René",
-    "lastName": "Doe",
+    "lastName": "Lanfer",
     "initials": "Lf",
     "numberOfSeats": 2,
     "isCarRoomy": true
   },
   {
     "firstName": "Christian",
-    "lastName": "Doe",
+    "lastName": "Klostermann",
     "initials": "Kt",
     "numberOfSeats": 5,
     "isCarRoomy": false
@@ -64,21 +64,21 @@
   },
   {
     "firstName": "Anna-Lena",
-    "lastName": "Doe",
+    "lastName": "Weichert",
     "initials": "We",
     "numberOfSeats": 5,
     "isCarRoomy": true
   },
   {
     "firstName": "Arne",
-    "lastName": "Doe",
+    "lastName": "Wragge",
     "initials": "Wg",
     "numberOfSeats": 5,
     "isCarRoomy": false
   },
   {
     "firstName": "Anna",
-    "lastName": "Doe",
+    "lastName": "Siebolds",
     "initials": "Si",
     "numberOfSeats": 5,
     "isCarRoomy": true
@@ -94,6 +94,20 @@
     "firstName": "Volker",
     "lastName": "Sundermann",
     "initials": "Su",
+    "numberOfSeats": 5,
+    "isCarRoomy": true
+  },
+  {
+    "firstName": "Rabea",
+    "lastName": "Wirth",
+    "initials": "Wi",
+    "numberOfSeats": 5,
+    "isCarRoomy": true
+  },
+  {
+    "firstName": "Laura",
+    "lastName": "Freund",
+    "initials": "Fd",
     "numberOfSeats": 5,
     "isCarRoomy": true
   }

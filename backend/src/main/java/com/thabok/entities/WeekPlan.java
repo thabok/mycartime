@@ -7,6 +7,7 @@ import java.util.TreeMap;
 
 public class WeekPlan {
 
+	public String summary;
 	private Map<DayOfWeek, DayPlan> dayPlans = new TreeMap<>();
 	private List<DayOfWeek> weekDayPermutation;
 

@@ -43,8 +43,8 @@ public class WebUntisAdapter {
 		teacher.put("keyType", "name");
 		options.put("element", teacher);
 		options.put("teacherFields", Arrays.asList("id", "name", "externalkey"));
-		options.put("startDate", 20200831);
-		options.put("endDate", 20200904);
+		options.put("startDate", 20200914);
+		options.put("endDate", 20200918);
 		params.put("options", options);
 		String response = execute("getTimetable", params);
 //		System.out.println(response);

@@ -22,7 +22,7 @@ public class CarpoolParty {
 		System.out.println("Result after " + iterations + " iterations:");
 		WeekPlan goodPlan = controller.calculateGoodPlan(iterations);
 		controller.getFitness(goodPlan, true);
-		controller.printNumberOfDrives(goodPlan);
+		String noDrivesSummary = controller.summarizeNumberOfDrives(goodPlan);
 		System.out.println(goodPlan);
 		System.out.println(goodPlan.getWeekDayPermutation());
 	}

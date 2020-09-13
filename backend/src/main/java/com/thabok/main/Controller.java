@@ -3,6 +3,7 @@ package com.thabok.main;
 import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -26,7 +27,6 @@ public class Controller {
 	private List<Rule> rules = new ArrayList<>();
 	private Map<DayOfWeek, DayPlanInput> inputsPerDay;
 	public static List<DayOfWeek> weekdays = Arrays.asList(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY);
-//	public List<DayOfWeek> weekdays = Arrays.asList(DayOfWeek.FRIDAY, DayOfWeek.WEDNESDAY, DayOfWeek.TUESDAY, DayOfWeek.MONDAY, DayOfWeek.THURSDAY);
 	
 	public Controller(List<Person> persons) {
 		this.persons = persons;
@@ -55,14 +55,21 @@ public class Controller {
 		return bestPlan;
 	}
 	
-	public void printNumberOfDrives(WeekPlan wp) {
+	public String summarizeNumberOfDrives(WeekPlan wp) {
+		String summary = "";
 		persons.forEach(p -> numberOfDrives.put(p, 0));
 		for (DayPlan dp : wp.getDayPlans().values()) {
 			for (PartyTouple pt : dp.getPartyTouples()) {
 				numberOfDrives.put(pt.getDriver(), numberOfDrives.get(pt.getDriver()) + 1);
 			}
 		}
-		numberOfDrives.keySet().forEach(p -> System.out.println("- " + p.getName() + ": " + numberOfDrives.get(p)));
+		for (Person p : numberOfDrives.keySet()) {
+			String s = "- " + p.getName() + ": " + numberOfDrives.get(p);
+			System.out.println(s);
+			summary += s + "\n";
+		}
+		wp.summary = summary;
+		return summary;
 	}
 	
 	public void printOverview(WeekPlan wp) {
@@ -107,7 +114,7 @@ public class Controller {
 	public WeekPlan calculateWeekPlan() throws Exception {
 		initialize();
 		WeekPlan wp = new WeekPlan();
-//		Collections.shuffle(weekdays);
+		Collections.shuffle(weekdays);
 		for (DayOfWeek dayOfWeek : weekdays) {
 			wp.put(dayOfWeek, calculateDayPlan(dayOfWeek));
 		}
