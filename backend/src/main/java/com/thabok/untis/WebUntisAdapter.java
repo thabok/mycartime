@@ -1,4 +1,4 @@
-package com.thabok.webuntis;
+package com.thabok.untis;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -32,6 +32,9 @@ public class WebUntisAdapter {
 		if (teacherInitials == null || teacherInitials.isEmpty()) {
 			throw new Exception("No teacher initials specified.");
 		}
+		if (sessionId == null) {
+			throw new Exception("Must be logged in to query data from WebUntis.");
+		}
 		Map<String, Object> params = new HashMap<>();
 		Map<String, Object> options = new HashMap<>();
 		Map<String, Object> teacher = new HashMap<>();
@@ -47,23 +50,32 @@ public class WebUntisAdapter {
 //		System.out.println(response);
 		TimetableWrapper timetableWrapper = new Gson().fromJson(response, TimetableWrapper.class);
 		Map<Integer, TimetableItem> comingAndGoing = new HashMap<>();
-		for (TimetableItem item : timetableWrapper.result) {
-			TimetableItem timetableItem = comingAndGoing.get(item.date);
-			if (timetableItem == null) {
-				comingAndGoing.put(item.date, item);
-			} else {
-				if (item.startTime < timetableItem.startTime) {
-					timetableItem.startTime = item.startTime;
-				}
-				if (item.endTime > timetableItem.endTime) {
-					timetableItem.endTime = item.endTime;
+		try {
+			for (TimetableItem item : timetableWrapper.result) {
+				TimetableItem timetableItem = comingAndGoing.get(item.date);
+				if (timetableItem == null) {
+					comingAndGoing.put(item.date, item);
+				} else {
+					if (item.startTime < timetableItem.startTime) {
+						timetableItem.startTime = item.startTime;
+					}
+					if (item.endTime > timetableItem.endTime) {
+						timetableItem.endTime = item.endTime;
+					}
 				}
 			}
+		} catch (Exception e) {
+			String msg = e.getMessage();
+			try {
+				msg = (String) timetableWrapper.error.get("message");
+			} catch (Exception e1) {
+			}
+			throw new Exception(msg);
 		}
 		return new TreeMap<>(comingAndGoing);
 	}
 	
-	public static String login(String user, String password) {
+	public static String login(String user, String password) throws Exception {
 		
 		Map<String, Object> params = new HashMap<>();
 		params.put("user", user);
@@ -73,8 +85,17 @@ public class WebUntisAdapter {
 		String responseString = execute("authenticate", params);
         
         Map<?,?> m1 = new Gson().fromJson(responseString, Map.class);
-        Map<?,?> m2 = (Map<?,?>) m1.get("result");
-        sessionId = (String) m2.get("sessionId");
+        try {
+			Map<?,?> m2 = (Map<?,?>) m1.get("result");
+			sessionId = (String) m2.get("sessionId");
+		} catch (Exception e) {
+			String s = e.getMessage();
+			try {
+				s = (String)((Map<?,?>) m1.get("error")).get("message");
+			} catch (Exception e1) {
+			}
+			throw new Exception(s);
+		}
 		
 		return sessionId;
 	}

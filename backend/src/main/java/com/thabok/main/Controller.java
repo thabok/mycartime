@@ -21,15 +21,17 @@ import com.thabok.entities.WeekPlan;
 
 public class Controller {
 
-	List<Person> persons;
-	Map<Person, Integer> numberOfDrives;
+	private List<Person> persons;
+	private Map<Person, Integer> numberOfDrives;
 	private List<Rule> rules = new ArrayList<>();
 	private Map<DayOfWeek, DayPlanInput> inputsPerDay;
-//	private List<DayOfWeek> weekdays = Arrays.asList(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY);
-	private List<DayOfWeek> weekdays = Arrays.asList(DayOfWeek.FRIDAY, DayOfWeek.WEDNESDAY, DayOfWeek.TUESDAY, DayOfWeek.MONDAY, DayOfWeek.THURSDAY);
+	public static List<DayOfWeek> weekdays = Arrays.asList(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY);
+//	public List<DayOfWeek> weekdays = Arrays.asList(DayOfWeek.FRIDAY, DayOfWeek.WEDNESDAY, DayOfWeek.TUESDAY, DayOfWeek.MONDAY, DayOfWeek.THURSDAY);
 	
 	public Controller(List<Person> persons) {
 		this.persons = persons;
+		numberOfDrives = new HashMap<>();
+		persons.forEach(p -> numberOfDrives.put(p, 0));
 	}
 	
 	public WeekPlan calculateGoodPlan(int iterations) throws Exception {
@@ -68,7 +70,7 @@ public class Controller {
 			System.out.println(dayPlan.getDayOfWeek());
 			Map<Integer, List<PartyTouple>> partyTouplesByFirstLesson = new HashMap<>();
 			for (PartyTouple pt : dayPlan.getPartyTouples()) {
-				int firstLesson = pt.getDriver().getSchedule().getTimingInfoPerDay().get(dayPlan.getDayOfWeek()).getFirstLesson();
+				int firstLesson = pt.getDriver().schedule.getTimingInfoPerDay().get(dayPlan.getDayOfWeek()).getFirstLesson();
 				List<PartyTouple> list = partyTouplesByFirstLesson.get(firstLesson);
 				if (list == null) {
 					list = new ArrayList<>();
@@ -250,7 +252,7 @@ public class Controller {
 		DayPlanInput dpi = inputsPerDay.get(dayOfWeek);
 		dayPlan.setDayOfWeek(dayOfWeek);
 		
-		List<Person> personsForThisDay = persons.stream().filter(p -> p.getSchedule().getTimingInfoPerDay().get(dayOfWeek) != null).collect(Collectors.toList());
+		List<Person> personsForThisDay = persons.stream().filter(p -> p.schedule.getTimingInfoPerDay().get(dayOfWeek) != null).collect(Collectors.toList());
 		
 		/*
 		 * PART 1: Solo drivers
@@ -277,13 +279,13 @@ public class Controller {
 				List<PartyTouple> candidatesThere = new ArrayList<>();
 				List<PartyTouple> candidatesBack = new ArrayList<>();
 				for (PartyTouple pt : dayPlan.getPartyTouples()) {
-					if (remainingPerson.getSchedule().getTimingInfoPerDay().get(dayOfWeek).getFirstLesson() == pt
-							.getDriver().getSchedule().getTimingInfoPerDay().get(dayOfWeek).getFirstLesson()) {
+					if (remainingPerson.schedule.getTimingInfoPerDay().get(dayOfWeek).getFirstLesson() == pt
+							.getDriver().schedule.getTimingInfoPerDay().get(dayOfWeek).getFirstLesson()) {
 						// remaining person could join this party (->)
 						candidatesThere.add(pt);
 					}
-					if (remainingPerson.getSchedule().getTimingInfoPerDay().get(dayOfWeek).getLastLesson() == pt
-							.getDriver().getSchedule().getTimingInfoPerDay().get(dayOfWeek).getLastLesson()) {
+					if (remainingPerson.schedule.getTimingInfoPerDay().get(dayOfWeek).getLastLesson() == pt
+							.getDriver().schedule.getTimingInfoPerDay().get(dayOfWeek).getLastLesson()) {
 						// remaining person could join this party (<-)
 						candidatesBack.add(pt);
 					}
@@ -319,7 +321,7 @@ public class Controller {
 		int bestCandidatesFreeSeats = -1;
 		for (PartyTouple candidate : candidates) {
 			int currentNoFreeSeats;
-			int noPassengerSeats = candidate.getDriver().getCar().getNoPassengerSeats();
+			int noPassengerSeats = candidate.getDriver().getNoPassengerSeats();
 			Party party = isWayBack ? candidate.getPartyBack() : candidate.getPartyThere();
 			int noPassengers = party.getPassengers().size();
 			currentNoFreeSeats = noPassengerSeats - noPassengers;
@@ -340,7 +342,7 @@ public class Controller {
 		}
 		int score = 0;
 		if (designatedDrivers.contains(party.getDriver())) score++;
-		if (!(party.getDriver().getCar().getNoPassengerSeats() > party.getPassengers().size())) score = -10;
+		if (!(party.getDriver().getNoPassengerSeats() > party.getPassengers().size())) score = -10;
 		return score;
 	}
 
@@ -378,7 +380,7 @@ public class Controller {
 		Map<Integer, List<Person>> personsByFirstLesson = new HashMap<>(); 
 		// place persons into groups based on first-lesson
 		for (Person person : persons) {
-			TimingInfo timingInfo = person.getSchedule().getTimingInfoPerDay().get(dayOfWeek);
+			TimingInfo timingInfo = person.schedule.getTimingInfoPerDay().get(dayOfWeek);
 			if (timingInfo != null) {
 				int firstLesson = timingInfo.getFirstLesson();
 				if (!personsByFirstLesson.containsKey(firstLesson)) {
@@ -401,7 +403,7 @@ public class Controller {
 		Map<Integer, List<Person>> personsByLastLesson = new HashMap<>(); 
 		// place persons into groups based on first-lesson
 		for (Person person : persons) {
-			TimingInfo timingInfo = person.getSchedule().getTimingInfoPerDay().get(dayOfWeek);
+			TimingInfo timingInfo = person.schedule.getTimingInfoPerDay().get(dayOfWeek);
 			if (timingInfo != null) {
 				int lastLesson = timingInfo.getLastLesson();
 				if (!personsByLastLesson.containsKey(lastLesson)) {

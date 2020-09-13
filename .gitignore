@@ -26,4 +26,6 @@ bin/
 .settings/
 .classpath
 .project
-/target/
+target
+bin
+node_modules

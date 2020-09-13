@@ -1,7 +1,7 @@
 - !!com.thabok.entities.Person
-  name: Mareike
+  firstName: Mareike
   initials: Ul
-  partTime: false
+  isPartTime: false
   tall: false
   car: {
     noSeats: 5,
@@ -41,9 +41,9 @@
       }
       
 - !!com.thabok.entities.Person
-  name: Sara
+  firstName: Sara
   initials: MV
-  partTime: false
+  isPartTime: false
   tall: false
   car: {
     noSeats: 5,
@@ -83,9 +83,9 @@
       }
  
 - !!com.thabok.entities.Person
-  name: Josie
+  firstName: Josie
   initials: Di
-  partTime: false
+  isPartTime: false
   tall: false
   car: {
     noSeats: 4,
@@ -125,9 +125,9 @@
       }
 
 - !!com.thabok.entities.Person
-  name: Benjamin
+  firstName: Benjamin
   initials: Kl
-  partTime: false
+  isPartTime: false
   tall: true
   car: {
     noSeats: 5,
@@ -167,9 +167,9 @@
       }
 
 - !!com.thabok.entities.Person
-  name: Lina  
+  firstName: Lina  
   initials: Sc
-  partTime: false
+  isPartTime: false
   tall: false
   car: {
     noSeats: 5,
@@ -209,9 +209,9 @@
       }
 
 - !!com.thabok.entities.Person
-  name: Stephi  
+  firstName: Stephi  
   initials: Ne
-  partTime: false
+  isPartTime: false
   tall: false
   car: {
     noSeats: 5,
@@ -251,9 +251,9 @@
       }
 
 - !!com.thabok.entities.Person
-  name: Bea
+  firstName: Bea
   initials: Bo
-  partTime: false
+  isPartTime: false
   tall: false
   car: {
     noSeats: 5,
@@ -293,9 +293,9 @@
       }
 
 - !!com.thabok.entities.Person
-  name: René
+  firstName: René
   initials: Lf
-  partTime: false
+  isPartTime: false
   tall: true
   car: {
     noSeats: 2,
@@ -335,9 +335,9 @@
       }
 
 - !!com.thabok.entities.Person
-  name: Christian
+  firstName: Christian
   initials: Kt
-  partTime: false
+  isPartTime: false
   tall: true
   car: {
     noSeats: 5,
@@ -377,9 +377,9 @@
       }
       
 - !!com.thabok.entities.Person
-  name: Tim
+  firstName: Tim
   initials: Ki
-  partTime: false
+  isPartTime: false
   tall: true
   car: {
     noSeats: 5,
@@ -419,9 +419,9 @@
       }
 
 - !!com.thabok.entities.Person
-  name: Anna-Lena  
+  firstName: Anna-Lena  
   initials: We
-  partTime: false
+  isPartTime: false
   tall: false
   car: {
     noSeats: 5,
@@ -461,9 +461,9 @@
       }
 
 - !!com.thabok.entities.Person
-  name: Arne  
+  firstName: Arne  
   initials: Wg
-  partTime: false
+  isPartTime: false
   tall: false
   car: {
     noSeats: 5,
@@ -503,9 +503,9 @@
       }
 
 - !!com.thabok.entities.Person
-  name: Anna  
+  firstName: Anna  
   initials: Si
-  partTime: false
+  isPartTime: false
   tall: true
   car: {
     noSeats: 5,
@@ -545,9 +545,9 @@
       }
 
 - !!com.thabok.entities.Person
-  name: Laura G.
+  firstName: Laura G.
   initials: Gz
-  partTime: false
+  isPartTime: false
   tall: false
   car: {
     noSeats: 5,
@@ -587,8 +587,8 @@
       }
 
 - !!com.thabok.entities.Person
-  name: Sebastian
-  partTime: false
+  firstName: Sebastian
+  isPartTime: false
   tall: true
   car: {
     noSeats: 5,
@@ -628,8 +628,8 @@
       }
 
 - !!com.thabok.entities.Person
-  name: Lena
-  partTime: true
+  firstName: Lena
+  isPartTime: true
   tall: false
   car: {
     noSeats: 3,
@@ -663,9 +663,9 @@
       }
 
 - !!com.thabok.entities.Person
-  name: Volker  
+  firstName: Volker  
   initials: Su
-  partTime: false
+  isPartTime: false
   tall: true
   car: {
     noSeats: 5,

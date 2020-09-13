@@ -1,7 +1,6 @@
 package com.thabok.main;
 
 import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
 import java.util.List;
 
 import com.thabok.entities.Person;
@@ -32,8 +31,6 @@ public class CarpoolParty {
 		String testFile = "template.yaml";
 		List<Person> importPersons = ImportExport.importPersons(testFile);
 		controller = new Controller(importPersons);
-		controller.numberOfDrives = new HashMap<>();
-		controller.persons.forEach(p -> controller.numberOfDrives.put(p, 0));
 	}
 	
 }

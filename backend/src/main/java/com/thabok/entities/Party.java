@@ -60,7 +60,7 @@ public class Party {
 
 	public String toString() {
 		return (isWayBack ? "[<-] " : "[->] ")
-				+ "[" + (isWayBack ? getLessonAsTwoCharacters(driver.getSchedule().getTimingInfoPerDay().get(dayOfTheWeek).getLastLesson()) : getLessonAsTwoCharacters(driver.getSchedule().getTimingInfoPerDay().get(dayOfTheWeek).getFirstLesson()) ) +  "] "
+				+ "[" + (isWayBack ? getLessonAsTwoCharacters(driver.schedule.getTimingInfoPerDay().get(dayOfTheWeek).getLastLesson()) : getLessonAsTwoCharacters(driver.schedule.getTimingInfoPerDay().get(dayOfTheWeek).getFirstLesson()) ) +  "] "
 				+ driver.getName()
 				+ (passengers.isEmpty() ? "" : " (" + String.join(", ", passengers.stream().map(p -> p.getName()).collect(Collectors.toList())) + ")");
 	}

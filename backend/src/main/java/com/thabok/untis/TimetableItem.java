@@ -1,4 +1,4 @@
-package com.thabok.webuntis;
+package com.thabok.untis;
 
 public class TimetableItem {
 
