@@ -10,10 +10,6 @@ const toast = Toaster.create({
     position: "top",
 });
 
-function sleep(milliseconds) {
-    return new Promise(resolve => setTimeout(resolve, milliseconds));
-}
-
 const cardListStyles = {
     display: "flex",
     flexDirection: "row",
@@ -156,15 +152,7 @@ class MainPage extends Component {
     }
 
     getWebUntisLegend() {
-        let btnIntent
         let btnCaret = this.state.webuntisCollapsed ? "caret-down" : "caret-up"
-        if (this.state.connectionSuccessful) {
-            btnIntent = "success"
-        } else if (this.state.connectionErrorMessage) {
-            btnIntent = "danger"
-        } else {
-            btnIntent = "none"
-        }
         return (
             <legend style={{ padding: "5px 10px 5px 10px"}}>
                 WebUntis connection
