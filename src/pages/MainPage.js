@@ -546,7 +546,7 @@ class MainPage extends Component {
 
     async calculatePlan() {
         try {
-            await fetch('http://localhost:1337/calculatePlan', {
+            await fetch('http://desolate-stream-81085.herokuapp.com:80/calculatePlan', {
                 method: 'POST',
                 headers: {
                     'Content-Type' : 'application/json'
@@ -585,11 +585,11 @@ class MainPage extends Component {
 
     logout() {
         // can run in background, no need to wait for reply
-        fetch('http://localhost:1337/logout', { method: 'POST' })
+        fetch('http://desolate-stream-81085.herokuapp.com:80/logout', { method: 'POST' })
     }
 
     async login(route, quiet) {
-        await fetch('http://localhost:1337/' + route, {
+        await fetch('http://desolate-stream-81085.herokuapp.com:80/' + route, {
             method: 'POST',
             headers: {
                 'Content-Type' : 'application/json'
