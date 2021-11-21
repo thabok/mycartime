@@ -12,9 +12,7 @@ class App extends Component {
   componentDidMount() {}
 
   render() {
-    return (
-      <MainPage/>
-    )
+      return (<MainPage/>)
   }
 }
 

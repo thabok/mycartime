@@ -1,19 +1,18 @@
 package com.thabok.entities;
 
-import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.List;
 
 public class DayPlan {
 
-	private DayOfWeek dayOfWeek;
+	private DayOfWeekABCombo dayOfWeekABCombo;
 	private List<PartyTouple> partyTouples = new ArrayList<>();
 	
-	public DayOfWeek getDayOfWeek() {
-		return dayOfWeek;
+	public DayOfWeekABCombo getDayOfWeekABCombo() {
+		return dayOfWeekABCombo;
 	}
-	public void setDayOfWeek(DayOfWeek dayOfWeek) {
-		this.dayOfWeek = dayOfWeek;
+	public void setDayOfWeekABCombo(DayOfWeekABCombo dayOfWeekABCombo) {
+		this.dayOfWeekABCombo = dayOfWeekABCombo;
 	}
 	public List<PartyTouple> getPartyTouples() {
 		return partyTouples;
@@ -26,7 +25,7 @@ public class DayPlan {
 	} 
 	
     public String toString() {
-    	String s = "[" + dayOfWeek + "]\n";
+    	String s = "[" + dayOfWeekABCombo + "]\n";
     	for (PartyTouple partyTouple : partyTouples) {
 			s += "\t- " + (partyTouple.isDesignatedDriver() ? "* " : "  ") +  String.join("\n\t    ", partyTouple.toString().split("\\n")) + "\n";
 		}

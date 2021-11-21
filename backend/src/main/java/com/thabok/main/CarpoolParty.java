@@ -4,7 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 import com.thabok.entities.Person;
-import com.thabok.entities.WeekPlan;
+import com.thabok.entities.TwoWeekPlan;
 import com.thabok.io.ImportExport;
 
 
@@ -20,11 +20,12 @@ public class CarpoolParty {
 	private static void calculate(int iterations) throws Exception {
 		System.out.println();
 		System.out.println("Result after " + iterations + " iterations:");
-		WeekPlan goodPlan = controller.calculateGoodPlan(iterations);
+		TwoWeekPlan goodPlan = controller.calculateGoodPlan(iterations);
 		controller.getFitness(goodPlan, true);
 		String noDrivesSummary = controller.summarizeNumberOfDrives(goodPlan);
 		System.out.println(goodPlan);
 		System.out.println(goodPlan.getWeekDayPermutation());
+		System.out.println(noDrivesSummary);
 	}
 	
 	private static void initializeController() throws UnsupportedEncodingException {

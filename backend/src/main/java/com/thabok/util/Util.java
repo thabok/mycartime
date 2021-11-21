@@ -1,18 +1,35 @@
 package com.thabok.util;
 
 import java.time.DayOfWeek;
-import java.util.ArrayList;
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.thabok.entities.DayOfWeekABCombo;
 import com.thabok.entities.Schedule;
 import com.thabok.entities.TimingInfo;
 import com.thabok.main.Controller;
 import com.thabok.untis.TimetableItem;
 
 public class Util {
+
+	public static List<DayOfWeekABCombo> weekdayListAB = Arrays.asList(
+		new DayOfWeekABCombo(DayOfWeek.MONDAY, true),
+		new DayOfWeekABCombo(DayOfWeek.TUESDAY, true),
+		new DayOfWeekABCombo(DayOfWeek.WEDNESDAY, true),
+		new DayOfWeekABCombo(DayOfWeek.THURSDAY, true),
+		new DayOfWeekABCombo(DayOfWeek.FRIDAY, true),
+		new DayOfWeekABCombo(DayOfWeek.MONDAY, false),
+		new DayOfWeekABCombo(DayOfWeek.TUESDAY, false),
+		new DayOfWeekABCombo(DayOfWeek.WEDNESDAY, false),
+		new DayOfWeekABCombo(DayOfWeek.THURSDAY, false),
+		new DayOfWeekABCombo(DayOfWeek.FRIDAY, false)
+	);
 
 	public static int[] lessonStartTimes = {
 			755,  //  1st lesson
@@ -98,21 +115,46 @@ public class Util {
 	 */
 	public static Schedule timetableToSchedule(Map<Integer, TimetableItem> timetable) {
 		Schedule schedule = new Schedule();
-		List<Entry<Integer, TimetableItem>> entries = new ArrayList<>(timetable.entrySet());
-		if (entries.size() != Controller.weekdays.size()) {
-			throw new IllegalArgumentException("The timetable doesn't contain information for every day.");
-		}
-		Map<DayOfWeek, TimingInfo> timingInfoPerDay = new HashMap<>();
-		for (int i = 0; i < entries.size(); i++) {
-			TimetableItem item = entries.get(i).getValue();
-			DayOfWeek dayOfWeek = Controller.weekdays.get(i);
+		Map<Integer, TimingInfo> timingInfoPerDay = new HashMap<>();
+		for (Entry<Integer, TimetableItem> entry : timetable.entrySet()) {
+			DayOfWeekABCombo dayOfWeekABCombo = getDayOfWeekABCombo(entry.getKey() /* date */);
 			TimingInfo dayInfo = new TimingInfo();
-			dayInfo.setFirstLesson(convertArrivingTimeToLesson(item.startTime));
-			dayInfo.setLastLesson(convertArrivingTimeToLesson(item.endTime));
-			timingInfoPerDay.put(dayOfWeek, dayInfo);
+			dayInfo.setFirstLesson(convertArrivingTimeToLesson(entry.getValue().startTime));
+			dayInfo.setLastLesson(convertArrivingTimeToLesson(entry.getValue().endTime));
+			timingInfoPerDay.put(dayOfWeekABCombo.getUniqueNumber(), dayInfo);
 		}
 		schedule.setTimingInfoPerDay(timingInfoPerDay);
 		return schedule;
 	}
+
+	/**
+	 * Given a date integer of the kind yyyymmdd (e.g., 20210831 for August 31st 2021) 
+	 * this method returns the day of the week.
+	 * 
+	 * @param date the date integer
+	 * @return the day of the week enum
+	 */
+	private static DayOfWeekABCombo getDayOfWeekABCombo(int dateNumber) {
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
+		LocalDate dateObj = LocalDate.parse(String.valueOf(dateNumber), dtf);
+		LocalDate startDate = LocalDate.parse(String.valueOf(Controller.referenceWeekStartDate), dtf);
+		int number = (int) Period.between(startDate, dateObj).getDays();
+		DayOfWeek dow = Controller.weekdays.get(number % 7);
+		boolean isA = number < 7;
+		return new DayOfWeekABCombo(dow, isA);
+	}
 	
+	/**
+	 * Adds the specified number of days to the date while considering calendar rules.
+	 * @param dateNumber the original date number (int)
+	 * @param daysToAdd the number of days to add
+	 * @return the calculated date
+	 */
+	public static int calculateDateNumber(int dateNumber, int daysToAdd) {
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
+		LocalDate dateObj = LocalDate.parse(String.valueOf(dateNumber), dtf);
+		LocalDate calculatedDate = dateObj.plusDays(daysToAdd);
+		String calculatedDateString = dtf.format(calculatedDate);
+		return Integer.parseInt(calculatedDateString);
+	}
 }

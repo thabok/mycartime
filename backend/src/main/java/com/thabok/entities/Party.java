@@ -1,12 +1,11 @@
 package com.thabok.entities;
-import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class Party {
 
-	private DayOfWeek dayOfTheWeek;
+	private DayOfWeekABCombo dayOfWeekABCombo;
 	private boolean isWayBack;
 	private Person driver;
 	private List<Person> passengers = new ArrayList<>();
@@ -42,12 +41,12 @@ public class Party {
 		this.passengers.add(p);
 	}
 
-	public DayOfWeek getDayOfTheWeek() {
-		return dayOfTheWeek;
+	public DayOfWeekABCombo getDayOfTheWeekABCombo() {
+		return dayOfWeekABCombo;
 	}
 
-	public void setDayOfTheWeek(DayOfWeek dayOfTheWeek) {
-		this.dayOfTheWeek = dayOfTheWeek;
+	public void setDayOfTheWeekABCombo(DayOfWeekABCombo dayOfWeekABCombo) {
+		this.dayOfWeekABCombo = dayOfWeekABCombo;
 	}
 
 	public boolean isWayBack() {
@@ -60,7 +59,7 @@ public class Party {
 
 	public String toString() {
 		return (isWayBack ? "[<-] " : "[->] ")
-				+ "[" + (isWayBack ? getLessonAsTwoCharacters(driver.schedule.getTimingInfoPerDay().get(dayOfTheWeek).getLastLesson()) : getLessonAsTwoCharacters(driver.schedule.getTimingInfoPerDay().get(dayOfTheWeek).getFirstLesson()) ) +  "] "
+				+ "[" + (isWayBack ? getLessonAsTwoCharacters(driver.schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber()).getLastLesson()) : getLessonAsTwoCharacters(driver.schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber()).getFirstLesson()) ) +  "] "
 				+ driver.getName()
 				+ (passengers.isEmpty() ? "" : " (" + String.join(", ", passengers.stream().map(p -> p.getName()).collect(Collectors.toList())) + ")");
 	}

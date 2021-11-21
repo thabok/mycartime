@@ -10,18 +10,17 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.codec.binary.Base64;
-
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.thabok.entities.Person;
-import com.thabok.entities.Schedule;
-import com.thabok.entities.WeekPlan;
+import com.thabok.entities.TwoWeekPlan;
 import com.thabok.main.Controller;
 import com.thabok.untis.TimetableItem;
 import com.thabok.untis.WebUntisAdapter;
 import com.thabok.util.JsonUtil;
 import com.thabok.util.Util;
+
+import org.apache.commons.codec.binary.Base64;
 
 import spark.Request;
 import spark.Response;
@@ -63,12 +62,12 @@ public class WebService {
 		Type typeToken = new TypeToken<List<Person>>() {}.getType();
 		List<Person> persons = new Gson().fromJson(req.body(), typeToken);
 		for (Person person : persons) {
+			System.out.println("creating timetable for " + person.firstName + " " + person.lastName + ", " + person.initials);
 			Map<Integer, TimetableItem> timetable = WebUntisAdapter.getTimetable(person.initials);
-			Schedule schedule = Util.timetableToSchedule(timetable);
-			person.schedule = schedule;
+			person.schedule = Util.timetableToSchedule(timetable);
 		}
 		Controller controller = new Controller(persons);
-		WeekPlan wp = controller.calculateGoodPlan(1000);
+		TwoWeekPlan wp = controller.calculateGoodPlan(1000);
 		controller.summarizeNumberOfDrives(wp);
 		WebUntisAdapter.logout();
 		return wp;

@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.thabok.entities.DayOfWeekABCombo;
 import com.thabok.entities.DayPlan;
 import com.thabok.entities.DayPlanInput;
 import com.thabok.entities.Party;
@@ -18,15 +19,17 @@ import com.thabok.entities.PartyTouple;
 import com.thabok.entities.Person;
 import com.thabok.entities.Rule;
 import com.thabok.entities.TimingInfo;
-import com.thabok.entities.WeekPlan;
+import com.thabok.entities.TwoWeekPlan;
+import com.thabok.util.Util;
 
 public class Controller {
 
 	private List<Person> persons;
 	private Map<Person, Integer> numberOfDrives;
 	private List<Rule> rules = new ArrayList<>();
-	private Map<DayOfWeek, DayPlanInput> inputsPerDay;
+	private Map<DayOfWeekABCombo, DayPlanInput> inputsPerDay;
 	public static List<DayOfWeek> weekdays = Arrays.asList(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY);
+    public static int referenceWeekStartDate = 20211122;
 	
 	public Controller(List<Person> persons) {
 		this.persons = persons;
@@ -34,28 +37,22 @@ public class Controller {
 		persons.forEach(p -> numberOfDrives.put(p, 0));
 	}
 	
-	public WeekPlan calculateGoodPlan(int iterations) throws Exception {
+	public TwoWeekPlan calculateGoodPlan(int iterations) throws Exception {
 		float bestScore = -1f;
-		float worstScore = 1f;
-		WeekPlan bestPlan = null;
-		WeekPlan worstPlan = null;
+		TwoWeekPlan bestPlan = null;
 		for (int i = 0; i < iterations; i++) {
-			WeekPlan weekPlan = calculateWeekPlan();
+			TwoWeekPlan weekPlan = calculateWeekPlan();
 			float fitness = getFitness(weekPlan, false);
 			if (fitness > bestScore) {
 				bestScore = fitness;
 				bestPlan = weekPlan;
-			}
-			if (fitness < worstScore) {
-				worstScore = fitness;
-				worstPlan = weekPlan;
 			}
 		}
 		System.out.println("Best Score: " + bestScore);
 		return bestPlan;
 	}
 	
-	public String summarizeNumberOfDrives(WeekPlan wp) {
+	public String summarizeNumberOfDrives(TwoWeekPlan wp) {
 		String summary = "";
 		persons.forEach(p -> numberOfDrives.put(p, 0));
 		for (DayPlan dp : wp.getDayPlans().values()) {
@@ -72,12 +69,12 @@ public class Controller {
 		return summary;
 	}
 	
-	public void printOverview(WeekPlan wp) {
+	public void printOverview(TwoWeekPlan wp) {
 		for (DayPlan dayPlan : wp.getDayPlans().values()) {
-			System.out.println(dayPlan.getDayOfWeek());
+			System.out.println(dayPlan.getDayOfWeekABCombo());
 			Map<Integer, List<PartyTouple>> partyTouplesByFirstLesson = new HashMap<>();
 			for (PartyTouple pt : dayPlan.getPartyTouples()) {
-				int firstLesson = pt.getDriver().schedule.getTimingInfoPerDay().get(dayPlan.getDayOfWeek()).getFirstLesson();
+				int firstLesson = pt.getDriver().schedule.getTimingInfoPerDay().get(dayPlan.getDayOfWeekABCombo().getUniqueNumber()).getFirstLesson();
 				List<PartyTouple> list = partyTouplesByFirstLesson.get(firstLesson);
 				if (list == null) {
 					list = new ArrayList<>();
@@ -98,12 +95,12 @@ public class Controller {
 	public void initialize() {
 		inputsPerDay = new HashMap<>();
 		persons.forEach(p -> numberOfDrives.put(p, 0));
-		for (DayOfWeek dayOfWeek : weekdays) {
+		for (DayOfWeekABCombo dayOfWeekABCombo : Util.weekdayListAB) {
 			DayPlanInput dpi = new DayPlanInput();
-			dpi.personsByFirstLesson = getPersonsByFirstLesson(persons, dayOfWeek);
-			dpi.personsByLastLesson = getPersonsByLastLesson(persons, dayOfWeek);
+			dpi.personsByFirstLesson = getPersonsByFirstLesson(persons, dayOfWeekABCombo);
+			dpi.personsByLastLesson = getPersonsByLastLesson(persons, dayOfWeekABCombo);
 			dpi.designatedDrivers = getDesignatedDrivers(dpi.personsByFirstLesson, dpi.personsByLastLesson);
-			inputsPerDay.put(dayOfWeek, dpi);
+			inputsPerDay.put(dayOfWeekABCombo, dpi);
 			dpi.designatedDrivers.forEach(driver -> {
 				Integer number = numberOfDrives.get(driver);
 				numberOfDrives.put(driver, number + 1);
@@ -111,14 +108,15 @@ public class Controller {
 		}
 	}
 	
-	public WeekPlan calculateWeekPlan() throws Exception {
+	public TwoWeekPlan calculateWeekPlan() throws Exception {
 		initialize();
-		WeekPlan wp = new WeekPlan();
-		Collections.shuffle(weekdays);
-		for (DayOfWeek dayOfWeek : weekdays) {
-			wp.put(dayOfWeek, calculateDayPlan(dayOfWeek));
+		TwoWeekPlan wp = new TwoWeekPlan();
+		// shuffle list to get new combinations
+		Collections.shuffle(Util.weekdayListAB);
+		wp.setWeekDayPermutation(new ArrayList<>(Util.weekdayListAB));
+		for (DayOfWeekABCombo dayOfWeekABCombo : wp.getWeekDayPermutation()) {
+			wp.put(dayOfWeekABCombo, calculateDayPlan(dayOfWeekABCombo));
 		}
-		wp.setWeekDayPermutation(new ArrayList<>(weekdays));
 		return wp;
 	}
 	
@@ -148,7 +146,7 @@ public class Controller {
 	 * @param weekPlan
 	 * @return fitness
 	 */
-	public float getFitness(WeekPlan weekPlan, boolean print) {
+	public float getFitness(TwoWeekPlan weekPlan, boolean print) {
 		// Rules
 		List<Rule> nonGlobalRules = rules.stream().filter(rule -> rule.isMandatory && "GLOBAL".equals(rule.scope)).collect(Collectors.toList());
 		for (Rule rule : nonGlobalRules) {
@@ -209,7 +207,7 @@ public class Controller {
 		return fitness;
 	}
 	
-	private boolean matches(WeekPlan weekPlan, Rule rule) {
+	private boolean matches(TwoWeekPlan weekPlan, Rule rule) {
 		return true;
 	}
 
@@ -254,19 +252,19 @@ public class Controller {
 		return true;
 	}
 
-	public DayPlan calculateDayPlan(DayOfWeek dayOfWeek) throws Exception {
+	public DayPlan calculateDayPlan(DayOfWeekABCombo dayOfWeekABCombo) throws Exception {
 		DayPlan dayPlan = new DayPlan();
-		DayPlanInput dpi = inputsPerDay.get(dayOfWeek);
-		dayPlan.setDayOfWeek(dayOfWeek);
+		DayPlanInput dpi = inputsPerDay.get(dayOfWeekABCombo);
+		dayPlan.setDayOfWeekABCombo(dayOfWeekABCombo);
 		
-		List<Person> personsForThisDay = persons.stream().filter(p -> p.schedule.getTimingInfoPerDay().get(dayOfWeek) != null).collect(Collectors.toList());
+		List<Person> personsForThisDay = persons.stream().filter(p -> p.schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber()) != null).collect(Collectors.toList());
 		
 		/*
 		 * PART 1: Solo drivers
 		 */
 		
 		// add parties for solo drivers
-		addPartiesForDesignatedDrivers(dayOfWeek, dayPlan, dpi.designatedDrivers);
+		addPartiesForDesignatedDrivers(dayOfWeekABCombo, dayPlan, dpi.designatedDrivers);
 
 		/*
 		 * PART 2: There & back matches
@@ -286,13 +284,13 @@ public class Controller {
 				List<PartyTouple> candidatesThere = new ArrayList<>();
 				List<PartyTouple> candidatesBack = new ArrayList<>();
 				for (PartyTouple pt : dayPlan.getPartyTouples()) {
-					if (remainingPerson.schedule.getTimingInfoPerDay().get(dayOfWeek).getFirstLesson() == pt
-							.getDriver().schedule.getTimingInfoPerDay().get(dayOfWeek).getFirstLesson()) {
+					if (remainingPerson.schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber()).getFirstLesson() == pt
+							.getDriver().schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber()).getFirstLesson()) {
 						// remaining person could join this party (->)
 						candidatesThere.add(pt);
 					}
-					if (remainingPerson.schedule.getTimingInfoPerDay().get(dayOfWeek).getLastLesson() == pt
-							.getDriver().schedule.getTimingInfoPerDay().get(dayOfWeek).getLastLesson()) {
+					if (remainingPerson.schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber()).getLastLesson() == pt
+							.getDriver().schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber()).getLastLesson()) {
 						// remaining person could join this party (<-)
 						candidatesBack.add(pt);
 					}
@@ -353,7 +351,7 @@ public class Controller {
 		return score;
 	}
 
-	private void addPartiesForDesignatedDrivers(DayOfWeek dayOfWeek, DayPlan dayPlan, Set<Person> designatedDrivers) throws Exception {
+	private void addPartiesForDesignatedDrivers(DayOfWeekABCombo dayOfWeekABCombo, DayPlan dayPlan, Set<Person> designatedDrivers) throws Exception {
 		for (Person driver : designatedDrivers ) {
 			addSoloParty(dayPlan, driver, true);
 		}
@@ -363,13 +361,13 @@ public class Controller {
 		PartyTouple partyTouple = new PartyTouple();
 		
 		Party partyThere = new Party();
-		partyThere.setDayOfTheWeek(dayPlan.getDayOfWeek());
+		partyThere.setDayOfTheWeekABCombo(dayPlan.getDayOfWeekABCombo());
 		partyThere.setDriver(driver);
 		partyThere.setWayBack(false);
 		partyTouple.setPartyThere(partyThere);
 		
 		Party partyBack = new Party();
-		partyBack.setDayOfTheWeek(dayPlan.getDayOfWeek());
+		partyBack.setDayOfTheWeekABCombo(dayPlan.getDayOfWeekABCombo());
 		partyBack.setDriver(driver);
 		partyBack.setWayBack(true);
 		partyTouple.setPartyBack(partyBack);
@@ -383,11 +381,11 @@ public class Controller {
 	 * @param dayOfWeek the day of the week needed to query the persons' schedules
 	 * @return a map of persons grouped by their first lesson
 	 */
-	private Map<Integer, List<Person>> getPersonsByFirstLesson(List<Person> persons, DayOfWeek dayOfWeek) {
+	private Map<Integer, List<Person>> getPersonsByFirstLesson(List<Person> persons, DayOfWeekABCombo dayOfWeekABCombo) {
 		Map<Integer, List<Person>> personsByFirstLesson = new HashMap<>(); 
 		// place persons into groups based on first-lesson
 		for (Person person : persons) {
-			TimingInfo timingInfo = person.schedule.getTimingInfoPerDay().get(dayOfWeek);
+			TimingInfo timingInfo = person.schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber());
 			if (timingInfo != null) {
 				int firstLesson = timingInfo.getFirstLesson();
 				if (!personsByFirstLesson.containsKey(firstLesson)) {
@@ -406,11 +404,11 @@ public class Controller {
 	 * @param dayOfWeek the day of the week needed to query the persons' schedules
 	 * @return a map of persons grouped by their last lesson
 	 */
-	private Map<Integer, List<Person>> getPersonsByLastLesson(List<Person> persons, DayOfWeek dayOfWeek) {
+	private Map<Integer, List<Person>> getPersonsByLastLesson(List<Person> persons, DayOfWeekABCombo dayOfWeekABCombo) {
 		Map<Integer, List<Person>> personsByLastLesson = new HashMap<>(); 
 		// place persons into groups based on first-lesson
 		for (Person person : persons) {
-			TimingInfo timingInfo = person.schedule.getTimingInfoPerDay().get(dayOfWeek);
+			TimingInfo timingInfo = person.schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber());
 			if (timingInfo != null) {
 				int lastLesson = timingInfo.getLastLesson();
 				if (!personsByLastLesson.containsKey(lastLesson)) {
@@ -445,5 +443,4 @@ public class Controller {
 		return designatedDrivers;
 	}
 
-	
 }
