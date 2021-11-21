@@ -30,7 +30,7 @@ public class WebUntisAdapter {
     
     public static String sessionId = null;
     
-    private static Map<Integer, TimetableItem>  getTimetableBasedOnStartDate(String teacherInitials, int startDate) throws Exception {
+    private static Map<Integer, Period>  getTimetableBasedOnStartDate(String teacherInitials, int startDate) throws Exception {
         if (teacherInitials == null || teacherInitials.isEmpty()) {
             throw new Exception("No teacher initials specified.");
         }
@@ -50,10 +50,10 @@ public class WebUntisAdapter {
         params.put("options", options);
         String response = execute("getTimetable", params);
         TimetableWrapper timetableWrapper = new Gson().fromJson(response, TimetableWrapper.class);
-        Map<Integer, TimetableItem> comingAndGoing = new HashMap<>();
+        Map<Integer, Period> comingAndGoing = new HashMap<>();
         try {
-            for (TimetableItem item : timetableWrapper.result) {
-                TimetableItem timetableItem = comingAndGoing.get(item.date);
+            for (Period item : timetableWrapper.result) {
+                Period timetableItem = comingAndGoing.get(item.date);
                 if (timetableItem == null) {
                     comingAndGoing.put(item.date, item);
                 } else {
@@ -76,10 +76,11 @@ public class WebUntisAdapter {
         return new TreeMap<>(comingAndGoing);
     }
 
-    public static Map<Integer, TimetableItem>  getTimetable(String teacherInitials) throws Exception {
-        System.out.println("Fetching timetable starting from " + Controller.referenceWeekStartDate);
-        Map<Integer, TimetableItem> timetable = getTimetableBasedOnStartDate(teacherInitials, Controller.referenceWeekStartDate);
-        System.out.println("Fetching timetable starting from " + (Controller.referenceWeekStartDate + 7));
+    public static Map<Integer, Period>  getTimetable(String teacherInitials, int scheduleReferenceStartDate) throws Exception {
+        System.out.println("Fetching timetable for A-week, starting from " + scheduleReferenceStartDate);
+        Map<Integer, Period> timetable = getTimetableBasedOnStartDate(teacherInitials, scheduleReferenceStartDate);
+        int bWeekStartDate = Util.calculateDateNumber(scheduleReferenceStartDate, 7);
+        System.out.println("Fetching timetable for B-week, starting from " + bWeekStartDate);
         timetable.putAll(getTimetableBasedOnStartDate(teacherInitials, (Controller.referenceWeekStartDate + 7)));
 		return timetable;
     }

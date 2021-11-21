@@ -178,7 +178,7 @@ public class Controller {
 			}
 		}
 		// initial fitness based on avg day plan fitness
-		float avgDayPlanFitness = totalDayPlanFitness / (float) 5;
+		float avgDayPlanFitness = totalDayPlanFitness / (float) 10;
 		float fitness = avgDayPlanFitness;
 		for (Person person : persons) {
 			Integer drivingDays = drivingDaysPerPerson.get(person);
@@ -196,7 +196,7 @@ public class Controller {
 		float minMaxDiffPenalty = maxDrivingDays == minDrivingDays ? 0f : 1 - (1f / (1 + maxDrivingDays - minDrivingDays));
 		fitness -= 0.3f * fitness * minMaxDiffPenalty;
 		// fitness penalty based on avg driving days
-		float avgDrivingDaysPenalty = avgDrivingDaysPerPerson / (float) 5; // 0 < value <= 1; the lower the better
+		float avgDrivingDaysPenalty = avgDrivingDaysPerPerson / (float) 10; // 0 < value <= 1; the lower the better
 		fitness -= 0.3f * fitness * avgDrivingDaysPenalty;
 		
 		if (print) {

@@ -1,6 +1,6 @@
 package com.thabok.untis;
 
-public class TimetableItem {
+public class Period {
 
 	public int date;
 	public int startTime;

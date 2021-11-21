@@ -215,6 +215,7 @@ class MainPage extends Component {
                                     <DatePicker
                                         onChange={(scheduleReferenceDate) => this.setState({scheduleReferenceDate})}
                                         defaultValue={this.state.scheduleReferenceDate}
+                                        highlightCurrentDay={true}
                                         minDate={this.getMinDate()}
                                         maxDate={this.getMaxDate()}
                                     />
@@ -592,7 +593,6 @@ class MainPage extends Component {
     async calculatePlan() {
         try {
             const scheduleReferenceStartDate = (this.state.scheduleReferenceDate.getFullYear() * 10000) + ((this.state.scheduleReferenceDate.getMonth() + 1) * 100) + (this.state.scheduleReferenceDate.getDate())
-            const scheduleReferenceEndDate = scheduleReferenceStartDate + 4
 
             await fetch('http://localhost:1337/calculatePlan', {
                 method: 'POST',
@@ -601,7 +601,6 @@ class MainPage extends Component {
                 },
                 body: JSON.stringify({
                     scheduleReferenceStartDate: scheduleReferenceStartDate,
-                    scheduleReferenceEndDate: scheduleReferenceEndDate,
                     persons: this.state.persons
                 })
             })

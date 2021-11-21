@@ -15,9 +15,10 @@ import com.google.gson.reflect.TypeToken;
 import com.thabok.entities.Person;
 import com.thabok.entities.TwoWeekPlan;
 import com.thabok.main.Controller;
-import com.thabok.untis.TimetableItem;
+import com.thabok.untis.Period;
 import com.thabok.untis.WebUntisAdapter;
 import com.thabok.util.JsonUtil;
+import com.thabok.util.PlanInputData;
 import com.thabok.util.Util;
 
 import org.apache.commons.codec.binary.Base64;
@@ -59,11 +60,11 @@ public class WebService {
 	 * @throws Exception things can go wrong...
 	 */
 	public Object calculatePlan(Request req, Response res) throws Exception {
-		Type typeToken = new TypeToken<List<Person>>() {}.getType();
-		List<Person> persons = new Gson().fromJson(req.body(), typeToken);
+		PlanInputData inputData = new Gson().fromJson(req.body(), PlanInputData.class);
+		List<Person> persons = inputData.persons;
 		for (Person person : persons) {
 			System.out.println("creating timetable for " + person.firstName + " " + person.lastName + ", " + person.initials);
-			Map<Integer, TimetableItem> timetable = WebUntisAdapter.getTimetable(person.initials);
+			Map<Integer, Period> timetable = WebUntisAdapter.getTimetable(person.initials, inputData.scheduleReferenceStartDate);
 			person.schedule = Util.timetableToSchedule(timetable);
 		}
 		Controller controller = new Controller(persons);

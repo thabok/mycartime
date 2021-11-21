@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class TimetableWrapper {
 
-	public List<TimetableItem> result;
+	public List<Period> result;
 	public Map<?,?> error;
 	
 }

@@ -2,7 +2,6 @@ package com.thabok.util;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -14,7 +13,7 @@ import com.thabok.entities.DayOfWeekABCombo;
 import com.thabok.entities.Schedule;
 import com.thabok.entities.TimingInfo;
 import com.thabok.main.Controller;
-import com.thabok.untis.TimetableItem;
+import com.thabok.untis.Period;
 
 public class Util {
 
@@ -113,10 +112,10 @@ public class Util {
 	 * @param timetable the timetable object (continuous)
 	 * @return the schedule object (discrete)
 	 */
-	public static Schedule timetableToSchedule(Map<Integer, TimetableItem> timetable) {
+	public static Schedule timetableToSchedule(Map<Integer, Period> timetable) {
 		Schedule schedule = new Schedule();
 		Map<Integer, TimingInfo> timingInfoPerDay = new HashMap<>();
-		for (Entry<Integer, TimetableItem> entry : timetable.entrySet()) {
+		for (Entry<Integer, Period> entry : timetable.entrySet()) {
 			DayOfWeekABCombo dayOfWeekABCombo = getDayOfWeekABCombo(entry.getKey() /* date */);
 			TimingInfo dayInfo = new TimingInfo();
 			dayInfo.setFirstLesson(convertArrivingTimeToLesson(entry.getValue().startTime));
@@ -138,7 +137,7 @@ public class Util {
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
 		LocalDate dateObj = LocalDate.parse(String.valueOf(dateNumber), dtf);
 		LocalDate startDate = LocalDate.parse(String.valueOf(Controller.referenceWeekStartDate), dtf);
-		int number = (int) Period.between(startDate, dateObj).getDays();
+		int number = (int) java.time.Period.between(startDate, dateObj).getDays();
 		DayOfWeek dow = Controller.weekdays.get(number % 7);
 		boolean isA = number < 7;
 		return new DayOfWeekABCombo(dow, isA);
