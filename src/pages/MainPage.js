@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Switch, Icon, InputGroup, Button, Tooltip, Callout, Toaster, Card, Dialog, FormGroup, NumericInput, Collapse } from '@blueprintjs/core';
+import { DatePicker } from "@blueprintjs/datetime";
 import ls from 'local-storage'
 import Download from '@axetroy/react-download';
 import DragAndDropFileUpload from '../components/DragAndDropFileUpload'
@@ -172,6 +173,20 @@ class MainPage extends Component {
         )
     }
 
+    getMinDate() {
+        const today = new Date()
+        let minDate = today
+        minDate.setFullYear(today.getFullYear() - 1)
+        return minDate
+    }
+    
+    getMaxDate() {
+        const today = new Date()
+        let minDate = today
+        minDate.setFullYear(today.getFullYear() + 1)
+        return minDate
+    }
+
     getDrivingPlanFieldset() {
         return (
             <fieldset style={cardListStyles}>
@@ -180,29 +195,59 @@ class MainPage extends Component {
                     { (this.state.drivingPlan === undefined)
                     ? 
                         <div>
-                            <Button 
-                                text="Calculate Driving Plan"
-                                icon="send-to-map"
-                                intent="primary"
-                                disabled={this.disableConnectionButton()}
-                                loading={this.state.waitingForPlan}
-                                style={{
-                                    width:  "200px",
-                                    height: "100px"
-                                }}
-                                onClick={() => this.requestDrivingPlan()}
-                                />
-                            {this.disableConnectionButton()
-                            ?
-                                <Callout
-                                intent="primary"
-                                icon="info-sign"
-                                style={{width:  "200px"}}>
-                                    Username and password are missing.
-                                </Callout>
-                            :
-                                null
-                            }
+                            <div>
+                                {
+                                    this.state.scheduleReferenceDate && this.state.scheduleReferenceDate.getDay() === 1
+                                ?   <Callout 
+                                        style={{ width: "300px" }}
+                                        intent="success"
+                                        onClick={() => {
+                                            let oldDate = this.state.scheduleReferenceDate
+                                            oldDate.setDate(oldDate.getDate() + 1)
+                                            this.setState({scheduleReferenceDate : oldDate})
+                                        }}
+                                        icon="tick">
+                                            Reference Date: {this.state.scheduleReferenceDate.getDate() + "." + (this.state.scheduleReferenceDate.getMonth() + 1) + "." + this.state.scheduleReferenceDate.getFullYear()}
+                                    </Callout>
+                                :
+                                <div>
+                                    <Callout style={{ width: "300px" }} intent="warning" icon="error">Please pick a Monday indicating a reference week for retrieving the schedule.
+                                    <DatePicker
+                                        onChange={(scheduleReferenceDate) => this.setState({scheduleReferenceDate})}
+                                        defaultValue={this.state.scheduleReferenceDate}
+                                        minDate={this.getMinDate()}
+                                        maxDate={this.getMaxDate()}
+                                    />
+                                    </Callout>
+                                </div>
+                                }
+                                
+                            </div>
+                            <div>
+                                <Button 
+                                    text="Calculate Driving Plan"
+                                    icon="send-to-map"
+                                    intent="primary"
+                                    disabled={this.disableConnectionButton()}
+                                    loading={this.state.waitingForPlan}
+                                    style={{
+                                        width:  "200px",
+                                        height: "100px"
+                                    }}
+                                    onClick={() => this.requestDrivingPlan()}
+                                    />
+                                {this.disableConnectionButton()
+                                ?
+                                    <Callout
+                                    intent="warning"
+                                    icon="info-sign"
+                                    style={{width:  "200px"}}>
+                                        Username and password are missing.
+                                    </Callout>
+                                :
+                                    null
+                                }
+                            </div>
                         </div>
                      :
                         // display driving plan
@@ -546,12 +591,19 @@ class MainPage extends Component {
 
     async calculatePlan() {
         try {
-            await fetch('http://desolate-stream-81085.herokuapp.com:80/calculatePlan', {
+            const scheduleReferenceStartDate = (this.state.scheduleReferenceDate.getFullYear() * 10000) + ((this.state.scheduleReferenceDate.getMonth() + 1) * 100) + (this.state.scheduleReferenceDate.getDate())
+            const scheduleReferenceEndDate = scheduleReferenceStartDate + 4
+
+            await fetch('http://localhost:1337/calculatePlan', {
                 method: 'POST',
                 headers: {
                     'Content-Type' : 'application/json'
                 },
-                body: JSON.stringify(this.state.persons)
+                body: JSON.stringify({
+                    scheduleReferenceStartDate: scheduleReferenceStartDate,
+                    scheduleReferenceEndDate: scheduleReferenceEndDate,
+                    persons: this.state.persons
+                })
             })
             .then(response => {
                 if (response.ok) {
@@ -578,18 +630,18 @@ class MainPage extends Component {
                 const msg = "Calculation of Driving Plan failed: " + error
                 toast.show({message: msg, intent: "danger", icon: "error"})
             })
-        } catch {
-            console.log("sasdfa")
+        } catch (err) {
+            console.log(err)
         }
     }
 
     logout() {
         // can run in background, no need to wait for reply
-        fetch('http://desolate-stream-81085.herokuapp.com:80/logout', { method: 'POST' })
+        fetch('http://localhost:1337/logout', { method: 'POST' })
     }
 
     async login(route, quiet) {
-        await fetch('http://desolate-stream-81085.herokuapp.com:80/' + route, {
+        await fetch('http://localhost:1337/' + route, {
             method: 'POST',
             headers: {
                 'Content-Type' : 'application/json'
