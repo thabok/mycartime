@@ -29,7 +29,7 @@ public class Controller {
 	private List<Rule> rules = new ArrayList<>();
 	private Map<DayOfWeekABCombo, DayPlanInput> inputsPerDay;
 	public static List<DayOfWeek> weekdays = Arrays.asList(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY);
-    public static int referenceWeekStartDate = 20211122;
+    public static int referenceWeekStartDate;
 	
 	public Controller(List<Person> persons) {
 		this.persons = persons;

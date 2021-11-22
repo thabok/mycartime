@@ -18,7 +18,7 @@ function DragAndDropFileUpload(onDrop) {
           ?
             <p>Drop the json file here to load the stored state.<br/><br/><i>Note: This will overwrite any items you currently have configured.</i></p>
           :
-            <p>You can manually add persons using the (+) button below or upload a previously saved file to continue with that. Just drag &amp; drop a *.lic file here or click to browse.</p> 
+            <p>You can manually add persons using the (+) button below or upload a previously saved file to continue with that. Just drag &amp; drop the *.json file here or click to browse.</p> 
         }
         </Callout>
       </div>

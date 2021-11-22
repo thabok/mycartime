@@ -6,12 +6,10 @@ import static spark.Spark.options;
 import static spark.Spark.port;
 import static spark.Spark.post;
 
-import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.thabok.entities.Person;
 import com.thabok.entities.TwoWeekPlan;
 import com.thabok.main.Controller;
@@ -62,6 +60,7 @@ public class WebService {
 	public Object calculatePlan(Request req, Response res) throws Exception {
 		PlanInputData inputData = new Gson().fromJson(req.body(), PlanInputData.class);
 		List<Person> persons = inputData.persons;
+		Controller.referenceWeekStartDate = inputData.scheduleReferenceStartDate;
 		for (Person person : persons) {
 			System.out.println("creating timetable for " + person.firstName + " " + person.lastName + ", " + person.initials);
 			Map<Integer, Period> timetable = WebUntisAdapter.getTimetable(person.initials, inputData.scheduleReferenceStartDate);

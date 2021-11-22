@@ -5,6 +5,8 @@ import ls from 'local-storage'
 import Download from '@axetroy/react-download';
 import DragAndDropFileUpload from '../components/DragAndDropFileUpload'
 
+const BACKEND_URL = BACKEND_URL + '';
+
 const toast = Toaster.create({
     className: "main",
     position: "top",
@@ -27,7 +29,7 @@ const cardStyles = {
 
 class MainPage extends Component {
     constructor(props) {
-        super()
+        super(props)
         this.state = {
             username: "",
             password: "",
@@ -192,7 +194,7 @@ class MainPage extends Component {
             <fieldset style={cardListStyles}>
                 {this.getDrivingPlanLegend()}
                 <center>
-                    { (this.state.drivingPlan === undefined)
+                    { (typeof this.state.drivingPlan !== typeof {})
                     ? 
                         <div>
                             <div>
@@ -252,7 +254,7 @@ class MainPage extends Component {
                         </div>
                      :
                         // display driving plan
-                        this.state.drivingPlan.summary
+                        <DrivingPlan plan={this.state.drivingPlan.dayPlans} />
                     }                    
                 </center>
             </fieldset>
@@ -594,7 +596,7 @@ class MainPage extends Component {
         try {
             const scheduleReferenceStartDate = (this.state.scheduleReferenceDate.getFullYear() * 10000) + ((this.state.scheduleReferenceDate.getMonth() + 1) * 100) + (this.state.scheduleReferenceDate.getDate())
 
-            await fetch('http://localhost:1337/calculatePlan', {
+            await fetch(BACKEND_URL + '/calculatePlan', {
                 method: 'POST',
                 headers: {
                     'Content-Type' : 'application/json'
@@ -636,11 +638,11 @@ class MainPage extends Component {
 
     logout() {
         // can run in background, no need to wait for reply
-        fetch('http://localhost:1337/logout', { method: 'POST' })
+        fetch(BACKEND_URL + '/logout', { method: 'POST' })
     }
 
     async login(route, quiet) {
-        await fetch('http://localhost:1337/' + route, {
+        await fetch(BACKEND_URL + '/' + route, {
             method: 'POST',
             headers: {
                 'Content-Type' : 'application/json'
