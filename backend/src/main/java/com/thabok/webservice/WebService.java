@@ -8,9 +8,11 @@ import static spark.Spark.post;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CancellationException;
 
 import com.google.gson.Gson;
 import com.thabok.entities.Person;
+import com.thabok.entities.ProgressObject;
 import com.thabok.entities.TwoWeekPlan;
 import com.thabok.main.Controller;
 import com.thabok.untis.Period;
@@ -27,6 +29,9 @@ import spark.Response;
 
 public class WebService {
 
+	private static ProgressObject progress = new ProgressObject();
+	public static boolean isCancelled;
+
 	public WebService() {
 		port(getPort(1337));
 		enableCORS("*");
@@ -35,7 +40,17 @@ public class WebService {
 		post("/checkConnection", (req, res) -> checkConnection(req, res), JsonUtil.json());
 		post("/login", (req, res) -> login(req, res), JsonUtil.json());
 		post("/calculatePlan", (req, res) -> calculatePlan(req, res), JsonUtil.json());
+		post("/cancel", (req, res) -> cancel(req, res), JsonUtil.json());
+		get("/progress", (req, res) -> getProgress(req, res), JsonUtil.json());
 		post("/logout", (req, res) -> logout(req, res), JsonUtil.json());
+	}
+
+	private Object getProgress(Request req, Response res) {
+		return progress;
+	}
+
+	private Object cancel(Request req, Response res) {
+		return isCancelled = true;
 	}
 
 	private int getPort(int defaultPort) {
@@ -58,19 +73,37 @@ public class WebService {
 	 * @throws Exception things can go wrong...
 	 */
 	public Object calculatePlan(Request req, Response res) throws Exception {
+		isCancelled = false;
 		PlanInputData inputData = new Gson().fromJson(req.body(), PlanInputData.class);
 		List<Person> persons = inputData.persons;
 		Controller.referenceWeekStartDate = inputData.scheduleReferenceStartDate;
+		int personCount = 0;
 		for (Person person : persons) {
-			System.out.println("creating timetable for " + person.firstName + " " + person.lastName + ", " + person.initials);
+			if (isCancelled) {
+				throw new CancellationException("The operation was cancelled by the user.");
+			}
+			personCount++;
+			String msg = "Fetching timetable for " + person.firstName + " " + person.lastName + " (" + person.initials + ")";
+			System.out.println(msg);
+			float progressValue = (((float)personCount) / persons.size()) * 0.95f;
+			WebService.updateProgress(progressValue, msg);
 			Map<Integer, Period> timetable = WebUntisAdapter.getTimetable(person.initials, inputData.scheduleReferenceStartDate);
 			person.schedule = Util.timetableToSchedule(timetable);
 		}
+		// at this point we should be at a progress value of 0.95 (95%)
 		Controller controller = new Controller(persons);
 		TwoWeekPlan wp = controller.calculateGoodPlan(1000);
 		controller.summarizeNumberOfDrives(wp);
 		WebUntisAdapter.logout();
 		return wp;
+	}
+
+	/** 
+	 * Updates the progress object which can be queried via GET /progress
+	 */
+	public static void updateProgress(float f, String msg) {
+		progress.value = f;
+		progress.message = msg;
 	}
 
 	public WebPkg login(Request req, Response res) {

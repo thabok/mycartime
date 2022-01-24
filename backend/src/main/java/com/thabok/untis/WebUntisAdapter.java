@@ -3,8 +3,10 @@ package com.thabok.untis;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.ParseException;
@@ -17,7 +19,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import com.google.gson.Gson;
-import com.thabok.main.Controller;
 import com.thabok.util.Util;
 
 public class WebUntisAdapter {
@@ -29,6 +30,8 @@ public class WebUntisAdapter {
     private static final String URL_SCHOOL_NGW = "https://cissa.webuntis.com/WebUntis/jsonrpc.do?school=" + SCHOOL_NAME;
     
     public static String sessionId = null;
+    
+    private static Map<String, String> requestResultCache = new HashMap<>();
     
     private static Map<Integer, Period>  getTimetableBasedOnStartDate(String teacherInitials, int startDate) throws Exception {
         if (teacherInitials == null || teacherInitials.isEmpty()) {
@@ -52,7 +55,10 @@ public class WebUntisAdapter {
         TimetableWrapper timetableWrapper = new Gson().fromJson(response, TimetableWrapper.class);
         Map<Integer, Period> comingAndGoing = new HashMap<>();
         try {
-            for (Period item : timetableWrapper.result) {
+        	List<Period> relevantPeriods = timetableWrapper.result.stream()
+        			.filter(p -> Util.isPeriodRelevant(p, teacherInitials))
+        			.collect(Collectors.toList());
+            for (Period item : relevantPeriods) {
                 Period timetableItem = comingAndGoing.get(item.date);
                 if (timetableItem == null) {
                     comingAndGoing.put(item.date, item);
@@ -81,7 +87,7 @@ public class WebUntisAdapter {
         Map<Integer, Period> timetable = getTimetableBasedOnStartDate(teacherInitials, scheduleReferenceStartDate);
         int bWeekStartDate = Util.calculateDateNumber(scheduleReferenceStartDate, 7);
         System.out.println("Fetching timetable for B-week, starting from " + bWeekStartDate);
-        timetable.putAll(getTimetableBasedOnStartDate(teacherInitials, (Controller.referenceWeekStartDate + 7)));
+        timetable.putAll(getTimetableBasedOnStartDate(teacherInitials, bWeekStartDate));
 		return timetable;
     }
     
@@ -142,6 +148,13 @@ public class WebUntisAdapter {
     }
 
     private static String post(Object payload) {
+    	// try cache
+    	String payloadKey = new Gson().toJson(payload);
+    	String cachedResult = requestResultCache.get(payloadKey);
+    	if (cachedResult != null) {
+    		return cachedResult;
+    	}
+    	// real request
         String responseString = null;
         HttpPost post = new HttpPost(URL_SCHOOL_NGW);
         String json = new Gson().toJson(payload);
@@ -162,6 +175,8 @@ public class WebUntisAdapter {
             System.err.println("Response could not be parsed.");
             e.printStackTrace();
         }
+        // cache result
+        requestResultCache.put(payloadKey, responseString);
         return responseString;
     }
     

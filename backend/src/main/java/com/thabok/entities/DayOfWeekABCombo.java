@@ -22,7 +22,7 @@ public class DayOfWeekABCombo implements Comparable<DayOfWeekABCombo> {
     }
 
     public String toString() {
-        return dayOfWeek + " (" + (isWeekA ? "A" : "B") + ")";
+        return dayOfWeek + "_" + (isWeekA ? "A" : "B");
     }
 
     public DayOfWeek getDayOfWeek() {

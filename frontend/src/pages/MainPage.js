@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
-import { Switch, Icon, InputGroup, Button, Tooltip, Callout, Toaster, Card, Dialog, FormGroup, NumericInput, Collapse } from '@blueprintjs/core';
-import { DatePicker } from "@blueprintjs/datetime";
+import { Switch, Icon, InputGroup, Button, Tooltip, Callout, Toaster, Card, Dialog, FormGroup, NumericInput, Collapse, ProgressBar } from '@blueprintjs/core';
+import { DateInput } from '@blueprintjs/datetime';
 import ls from 'local-storage'
 import Download from '@axetroy/react-download';
 import DragAndDropFileUpload from '../components/DragAndDropFileUpload'
+import DrivingPlan from './DrivingPlan'
 
-const BACKEND_URL = BACKEND_URL + '';
+const BACKEND_URL = "http://127.0.0.1:1337"
 
 const toast = Toaster.create({
     className: "main",
@@ -38,18 +39,28 @@ class MainPage extends Component {
             connectionSuccessful: false,
             connectionErrorMessage: undefined,
             persons: [],
+            drivingPlan: undefined,
             newMember_firstname: undefined,
             newMember_lastname: undefined,
             newMember_initials: undefined,
             newMember_roomy: true,
-            newMember_noseats: 4
+            newMember_noseats: 4,
+            progressValue: 0,
+            progressMessage: ""
         }
+        this.timer = null
     }
 
+    componentWillUnmount() {
+        this.stopProgressTimer()
+    }
+    
     componentDidMount() {
         this.setState({
             username: ls.get("username") || "",
             persons: ls.get("persons") || [],
+            drivingPlan: ls.get("drivingPlan") || undefined,
+            ABWeekStartDate: new Date(ls.get("ABWeekStartDate")),
         })
     }
 
@@ -121,6 +132,26 @@ class MainPage extends Component {
                             : 
                             null
                         }
+                        <br/>
+                        <Callout intent="primary" icon="info-sign">
+                        WebUntis only allows to query the schedule for specific dates. Please select a Monday to indicate a 2-weeks period (A week + B week):
+                        </Callout>
+                        <DateInput
+                            value={this.state.ABWeekStartDate}
+                            onChange={(selectedDate, isUserChange) => {
+                                if (selectedDate && selectedDate.getDay() == 1) {
+                                    this.updateState("ABWeekStartDate", selectedDate)
+                                } else {
+                                    toast.show({message: "Please select a Monday.", intent: "danger", icon: "error"})
+                                }
+                            }}
+                            fill={true}
+                            formatDate={date => date.toLocaleDateString()}
+                            parseDate={str => new Date(str)}
+                            highlightCurrentDay={true}
+                            minDate={this.getMinDate()}
+                            maxDate={this.getMaxDate()}
+                            placeholder="dd.mm.yyyy" />
                     </Collapse>
                     <Collapse isOpen={this.state.webuntisCollapsed} >
                         {this.state.connectionSuccessful ? <Callout intent="success" icon="tick">Connection successfully tested</Callout> : null }
@@ -168,7 +199,7 @@ class MainPage extends Component {
                 </Collapse>
                 <Collapse isOpen={this.state.carpoolmembersCollapsed} >
                     <center>
-                        <Callout style={{ width: "300px" }} intent="success" icon="tick">{this.state.persons.length} members for your carpool party!</Callout>
+                        <Callout style={{ width: "300px" }} intent="success" icon="tick">You have {this.state.persons.length} members in your carpool party!</Callout>
                     </center>
                 </Collapse>
             </fieldset>
@@ -193,77 +224,82 @@ class MainPage extends Component {
         return (
             <fieldset style={cardListStyles}>
                 {this.getDrivingPlanLegend()}
-                <center>
-                    { (typeof this.state.drivingPlan !== typeof {})
-                    ? 
-                        <div>
-                            <div>
-                                {
-                                    this.state.scheduleReferenceDate && this.state.scheduleReferenceDate.getDay() === 1
-                                ?   <Callout 
-                                        style={{ width: "300px" }}
-                                        intent="success"
-                                        onClick={() => {
-                                            let oldDate = this.state.scheduleReferenceDate
-                                            oldDate.setDate(oldDate.getDate() + 1)
-                                            this.setState({scheduleReferenceDate : oldDate})
-                                        }}
-                                        icon="tick">
-                                            Reference Date: {this.state.scheduleReferenceDate.getDate() + "." + (this.state.scheduleReferenceDate.getMonth() + 1) + "." + this.state.scheduleReferenceDate.getFullYear()}
-                                    </Callout>
-                                :
-                                <div>
-                                    <Callout style={{ width: "300px" }} intent="warning" icon="error">Please pick a Monday indicating a reference week for retrieving the schedule.
-                                    <DatePicker
-                                        onChange={(scheduleReferenceDate) => this.setState({scheduleReferenceDate})}
-                                        defaultValue={this.state.scheduleReferenceDate}
-                                        highlightCurrentDay={true}
-                                        minDate={this.getMinDate()}
-                                        maxDate={this.getMaxDate()}
-                                    />
-                                    </Callout>
-                                </div>
-                                }
-                                
-                            </div>
-                            <div>
-                                <Button 
-                                    text="Calculate Driving Plan"
-                                    icon="send-to-map"
-                                    intent="primary"
-                                    disabled={this.disableConnectionButton()}
-                                    loading={this.state.waitingForPlan}
-                                    style={{
-                                        width:  "200px",
-                                        height: "100px"
-                                    }}
-                                    onClick={() => this.requestDrivingPlan()}
-                                    />
-                                {this.disableConnectionButton()
-                                ?
-                                    <Callout
-                                    intent="warning"
-                                    icon="info-sign"
-                                    style={{width:  "200px"}}>
-                                        Username and password are missing.
-                                    </Callout>
-                                :
-                                    null
-                                }
-                            </div>
-                        </div>
-                     :
-                        // display driving plan
-                        <DrivingPlan plan={this.state.drivingPlan.dayPlans} />
-                    }                    
-                </center>
+                {
+                    typeof this.state.drivingPlan !== typeof {}
+                ? 
+                    this.getDrivingPlanButton()
+                :
+                    <div>
+                        <DrivingPlan plan={this.state.drivingPlan}/>
+                    </div>
+                }           
             </fieldset>
+        )
+    }
+
+    getDrivingPlanButton() {
+        return (
+            <div>
+                <Button 
+                    text="Calculate Driving Plan"
+                    icon="send-to-map"
+                    intent="primary"
+                    disabled={this.disableConnectionButton() || (this.state.ABWeekStartDate == null || this.state.ABWeekStartDate === '')}
+                    loading={this.state.waitingForPlan}
+                    style={{
+                        width:  "200px",
+                        height: "100px"
+                    }}
+                    onClick={() => this.requestDrivingPlan()}
+                    />
+                    {/* Configure Progress Popover */}
+                    {this.getProgressDialog()}
+                    {/* Disable button if credentials are missing */}
+                    {this.disableConnectionButton()
+                    ?
+                        <Callout
+                        intent="primary"
+                        icon="info-sign"
+                        style={{width:  "200px"}}>
+                            Username / password / start date are missing (see WebUntis section on top)
+                        </Callout>
+                    :
+                        null
+                    }
+            </div>
         )
     }
 
     /*****************************************************
      * SECTION ROUTINES
      *****************************************************/
+
+    getProgressDialog() {
+        return (
+            <Dialog 
+            className=""
+            icon="person"
+            autoFocus={true}
+            title="Calculating plan..."
+            onClose={() => {this.setState({isDialogOpen: false})}}
+            isOpen={this.state.waitingForPlan && this.state.isProgressDialogOpen}>
+                <ProgressBar
+                    intent="primary"
+                    value={this.state.progressValue}
+                    />
+                <center>
+                    <br/>
+                    {this.state.progressMessage}
+                    <br/><br/>
+                    <Button
+                        style={{width: "100px"}}
+                        icon="delete"
+                        text="Cancel"
+                        intent="danger"
+                        onClick={() => this.cancelCalculation()}/>
+                </center>
+            </Dialog>)
+    }
 
     getPersonDetailsDialog() {
         return (
@@ -385,7 +421,10 @@ class MainPage extends Component {
             <legend style={{ padding: "5px 10px 5px 10px"}}>
                 WebUntis connection
                 &nbsp;&nbsp;
-                <Icon icon={btnCaret} onClick={() => this.setState({ webuntisCollapsed: !this.state.webuntisCollapsed })} />
+                <Icon 
+                    style={{ cursor : "pointer" }}
+                    icon={btnCaret}
+                    onClick={() => this.setState({ webuntisCollapsed: !this.state.webuntisCollapsed })} />
             </legend>
         )
     }
@@ -396,7 +435,10 @@ class MainPage extends Component {
             <legend style={{ padding: "5px 10px 5px 10px" }}>
                 Add Carpool Party Members
                 &nbsp;&nbsp;
-                <Icon icon={btnCaret} onClick={() => this.setState({ carpoolmembersCollapsed: !this.state.carpoolmembersCollapsed })} />
+                <Icon
+                    style={{ cursor : "pointer" }}
+                    icon={btnCaret}
+                    onClick={() => this.setState({ carpoolmembersCollapsed: !this.state.carpoolmembersCollapsed })} />
             </legend>
         )
     }
@@ -405,6 +447,11 @@ class MainPage extends Component {
         return (
             <legend style={{ padding: "5px 10px 5px 10px" }}>
                 Carpool Party Driving Plan
+                &nbsp;&nbsp;
+                <Icon
+                    style={{ cursor : "pointer" }}
+                    icon="cross"
+                    onClick={() => this.updateState("drivingPlan", undefined)} />
             </legend>
         )
     }
@@ -431,6 +478,22 @@ class MainPage extends Component {
         )
     }
 
+    startProgressTimer() {
+        this.timer = setInterval(() => this.getProgress(), 1000)
+        this.setState({ progressMessage: "Preparing..." })
+    }
+
+    stopProgressTimer() {
+        if (this.timer != null) {
+            clearInterval(this.timer)
+            this.timer = null
+        }
+        this.setState({
+            progressValue: 0,
+            progressMessage: ""
+        })
+    }
+
     /*****************************************************
      * HANDLERS
      *****************************************************/ 
@@ -441,12 +504,51 @@ class MainPage extends Component {
         this.setState({ loggingIn: false})
     }
     
+    async getProgress() {
+        await fetch(BACKEND_URL + '/progress', {
+            method: 'GET',
+            headers: {
+                'Content-Type' : 'application/json'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                // update progress in state
+                response.json().then(progressObj => {
+                    this.setState({
+                        progressValue: progressObj.value,
+                        progressMessage: progressObj.message
+                    })
+                })
+            }
+        })
+        .catch(() => {
+            this.stopProgressTimer()
+        })
+    }
+
+    async cancelCalculation() {
+        fetch(BACKEND_URL + '/cancel', {
+            method: 'POST',
+            headers: {
+                'Content-Type' : 'application/json'
+            }
+        })
+        this.setState({ 
+            waitingForPlan: false,
+            isProgressDialogOpen: false
+        })
+        this.stopProgressTimer()
+    }
+
     async requestDrivingPlan() {
-        this.setState( { waitingForPlan: true, carpoolmembersCollapsed: true })
+        this.startProgressTimer()
+        this.setState( { waitingForPlan: true, carpoolmembersCollapsed: true, isProgressDialogOpen: true })
         await this.login("login", true)
         await this.calculatePlan()
         this.logout()
-        this.setState( { waitingForPlan: false })
+        this.stopProgressTimer()
+        this.setState( { waitingForPlan: false, isProgressDialogOpen: false })
     }
 
     newPersonDataInvalid() {
@@ -594,25 +696,24 @@ class MainPage extends Component {
 
     async calculatePlan() {
         try {
-            const scheduleReferenceStartDate = (this.state.scheduleReferenceDate.getFullYear() * 10000) + ((this.state.scheduleReferenceDate.getMonth() + 1) * 100) + (this.state.scheduleReferenceDate.getDate())
-
+            const referenceDate = (this.state.ABWeekStartDate.getFullYear() * 10000) + ((this.state.ABWeekStartDate.getMonth() + 1) * 100) + (this.state.ABWeekStartDate.getDate())
+            const payload = {
+                persons: this.state.persons,
+                scheduleReferenceStartDate: referenceDate
+            }
             await fetch(BACKEND_URL + '/calculatePlan', {
                 method: 'POST',
                 headers: {
                     'Content-Type' : 'application/json'
                 },
-                body: JSON.stringify({
-                    scheduleReferenceStartDate: scheduleReferenceStartDate,
-                    persons: this.state.persons
-                })
+                body: JSON.stringify(payload)
             })
             .then(response => {
                 if (response.ok) {
                     // request succeeded
                     toast.show({message: "Successfully calculated a driving plan", intent: "success", icon: "tick"})
                     response.json().then(drivingPlan => {
-                        this.setState( { drivingPlan })
-                        console.log(drivingPlan)
+                        this.updateState("drivingPlan", drivingPlan)
                     })
                 } else {
                     // request failed -> return object's message will contain details

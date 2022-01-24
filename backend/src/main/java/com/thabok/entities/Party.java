@@ -8,10 +8,28 @@ public class Party {
 	private DayOfWeekABCombo dayOfWeekABCombo;
 	private boolean isWayBack;
 	private Person driver;
+	private int time;
+	private int lesson;
 	private List<Person> passengers = new ArrayList<>();
 
 	public Person getDriver() {
 		return driver;
+	}
+
+	public int getLesson() {
+		return lesson;
+	}
+
+	public void setLesson(int lesson) {
+		this.lesson = lesson;
+	}
+
+	public int getTime() {
+		return time;
+	}
+
+	public void setTime(int time) {
+		this.time = time;
 	}
 
 	public void setDriver(Person driver) {
@@ -20,6 +38,14 @@ public class Party {
 
 	public List<Person> getPassengers() {
 		return passengers;
+	}
+	
+	public Person popPassenger() {
+		if (!passengers.isEmpty()) {
+			Person removedPassenger = passengers.remove(passengers.size() - 1);
+			return removedPassenger;
+		}
+		throw new IllegalStateException("Cannot remove passengers because... there are none.");
 	}
 
 	/**
@@ -59,12 +85,23 @@ public class Party {
 
 	public String toString() {
 		return (isWayBack ? "[<-] " : "[->] ")
-				+ "[" + (isWayBack ? getLessonAsTwoCharacters(driver.schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber()).getLastLesson()) : getLessonAsTwoCharacters(driver.schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber()).getFirstLesson()) ) +  "] "
+				+ "[" + getLessonAsTwoCharacters() +  "] "
 				+ driver.getName()
 				+ (passengers.isEmpty() ? "" : " (" + String.join(", ", passengers.stream().map(p -> p.getName()).collect(Collectors.toList())) + ")");
 	}
 	
-	private String getLessonAsTwoCharacters(int lesson) {
+//	public int getLesson() {
+//		if (isWayBack) {
+//			// way back
+//			return driver.schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber()).getLastLesson();
+//		} else {
+//			// way there
+//			return driver.schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber()).getFirstLesson();
+//		}
+//	}
+//	
+	public String getLessonAsTwoCharacters() {
+		int lesson = getLesson();
 		if (lesson < 10) {
 			return " " + lesson;
 		} else {

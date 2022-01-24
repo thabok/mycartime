@@ -11,6 +11,7 @@ import java.util.Map.Entry;
 
 import com.thabok.entities.DayOfWeekABCombo;
 import com.thabok.entities.Schedule;
+import com.thabok.entities.Teacher;
 import com.thabok.entities.TimingInfo;
 import com.thabok.main.Controller;
 import com.thabok.untis.Period;
@@ -30,6 +31,9 @@ public class Util {
 		new DayOfWeekABCombo(DayOfWeek.FRIDAY, false)
 	);
 
+	/**
+	 * Array of lesson start times. Note that access is zero-based while lessons are one-based!
+	 */
 	public static int[] lessonStartTimes = {
 			755,  //  1st lesson
 			840,  //  2nd lesson
@@ -57,15 +61,18 @@ public class Util {
 	 * @return the number of the lesson the person starts with (1-13)
 	 */
 	public static int convertArrivingTimeToLesson(int time) {
-		for (int i = 1; i <= lessonStartTimes.length; i++) {
+		for (int i = 0; i < lessonStartTimes.length; i++) {
 			if (time <= lessonStartTimes[i]) {
-				return i;
+				return i + 1;
 			}
 		}
 		System.out.println("Time " + time + " seems to be kind of late...");
 		return 13;
 	}
 	
+	/**
+	 * Array of lesson end times. Note that access is zero-based while lessons are one-based!
+	 */
 	public static int[] lessonEndTimes = {
 			840,  //  1st lesson
 			940,  //  2nd lesson
@@ -82,24 +89,24 @@ public class Util {
 	};
 	
 	/**
-	 * Uses the lesson start times to figure out what lesson the person ends with.
-	 * The time must be lower or equal to the next lesson's start time.<br><br>
+	 * Uses the lesson end times to figure out what lesson the person ends with.
+	 * The time must be lower or equal to the next lesson's end time.<br><br>
 	 * Example:<br>
 	 * <ul>
 	 *   <li>1000 would mean finishing after the 3rd lesson</li>
 	 *   <li>1030 is after the 4th lesson (not <= 1025)</li>
 	 * </ul>
 	 * @param time the integer value of the end time, e.g. 1255 for 12:55h
-	 * @return the number of the lesson the person starts with (1-13)
+	 * @return the number of the lesson the person ends with (1-13)
 	 */
 	public static int convertLeavingTimeToLesson(int time) {
-		for (int i = 1; i <= lessonStartTimes.length; i++) {
-			if (time <= lessonStartTimes[i]) {
-				return i;
+		for (int i = 0; i < lessonEndTimes.length; i++) {
+			if (time <= lessonEndTimes[i]) {
+				return i + 1;  // return value + 1 (lessons are one-based)
 			}
 		}
 		System.out.println("Time " + time + " seems to be kind of late...");
-		return 13;
+		return lessonEndTimes.length + 1; // return value + 1 (lessons are one-based)
 	}
 	
 	/**
@@ -119,7 +126,7 @@ public class Util {
 			DayOfWeekABCombo dayOfWeekABCombo = getDayOfWeekABCombo(entry.getKey() /* date */);
 			TimingInfo dayInfo = new TimingInfo();
 			dayInfo.setFirstLesson(convertArrivingTimeToLesson(entry.getValue().startTime));
-			dayInfo.setLastLesson(convertArrivingTimeToLesson(entry.getValue().endTime));
+			dayInfo.setLastLesson(convertLeavingTimeToLesson(entry.getValue().endTime));
 			timingInfoPerDay.put(dayOfWeekABCombo.getUniqueNumber(), dayInfo);
 		}
 		schedule.setTimingInfoPerDay(timingInfoPerDay);
@@ -155,5 +162,33 @@ public class Util {
 		LocalDate calculatedDate = dateObj.plusDays(daysToAdd);
 		String calculatedDateString = dtf.format(calculatedDate);
 		return Integer.parseInt(calculatedDateString);
+	}
+	
+	/**
+	 * Returns true if the period is relevant for the carpool planning. False if not.
+	 * 
+	 * @param period the period to be checked
+	 * @param initials initials of the teacher who's schedule is queried
+	 * @return true if the period is relevant for the carpool planning. False if not.
+	 */
+	public static boolean isPeriodRelevant(Period period, String initials) {
+		boolean foundDifferentOrgname = false;
+		boolean foundMatchingName = false;
+		for (Teacher teacher : period.te) {
+			if (teacher.orgname != null) {
+				if (teacher.orgname.equals(initials)) {
+					// the period is handled by the specified teacher
+					foundMatchingName = true;
+				} else {
+					// the period is only handled temporarily by the specified teacher 
+					foundDifferentOrgname = true;
+				}
+			} else if (teacher.name != null && teacher.name.equals(initials)) {
+				// the period is handled by the specified teacher
+				foundMatchingName = true;
+			}
+		}
+		boolean isIrrelevant = foundDifferentOrgname && !foundMatchingName;
+		return !isIrrelevant;
 	}
 }

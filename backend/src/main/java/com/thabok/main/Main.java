@@ -1,4 +1,6 @@
-package com.thabok.webservice;
+package com.thabok.main;
+
+import com.thabok.webservice.WebService;
 
 public class Main {
 
