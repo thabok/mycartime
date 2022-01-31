@@ -6,6 +6,8 @@ import static spark.Spark.options;
 import static spark.Spark.port;
 import static spark.Spark.post;
 
+import java.time.DayOfWeek;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CancellationException;
@@ -13,6 +15,7 @@ import java.util.concurrent.CancellationException;
 import com.google.gson.Gson;
 import com.thabok.entities.Person;
 import com.thabok.entities.ProgressObject;
+import com.thabok.entities.TimingInfo;
 import com.thabok.entities.TwoWeekPlan;
 import com.thabok.main.Controller;
 import com.thabok.untis.Period;
@@ -88,14 +91,38 @@ public class WebService {
 			float progressValue = (((float)personCount) / persons.size()) * 0.95f;
 			WebService.updateProgress(progressValue, msg);
 			Map<Integer, Period> timetable = WebUntisAdapter.getTimetable(person.initials, inputData.scheduleReferenceStartDate);
-			person.schedule = Util.timetableToSchedule(timetable);
+			person.schedule = Util.timetableToSchedule(person, timetable);
 		}
+		
+//		printScheduleStatistics(persons);
+		
 		// at this point we should be at a progress value of 0.95 (95%)
 		Controller controller = new Controller(persons);
 		TwoWeekPlan wp = controller.calculateGoodPlan(1000);
 		controller.summarizeNumberOfDrives(wp);
-		WebUntisAdapter.logout();
+//		WebUntisAdapter.logout();
 		return wp;
+	}
+
+	private void printScheduleStatistics(List<Person> persons) {
+		List<DayOfWeek> weekdays = Arrays.asList(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY);
+		System.out.println("Between A and B week:");
+		for (Person person : persons) {
+			int daysWithSameStartAndEnd = 0;
+			for (DayOfWeek dow : weekdays) {
+				try {
+					TimingInfo timingInfoA = person.schedule.getTimingInfoPerDay().get(dow.getValue());
+					TimingInfo timingInfoB = person.schedule.getTimingInfoPerDay().get(dow.getValue() + 7);
+					if (timingInfoA.getFirstLesson() == timingInfoB.getFirstLesson() && timingInfoA.getLastLesson() == timingInfoB.getLastLesson()) {
+						daysWithSameStartAndEnd++;
+					}
+				} catch (Exception e) {
+					//ignore
+				}
+			}
+			System.out.println(person.firstName + " has identical coming & leaving times on " + daysWithSameStartAndEnd + "/5 days.");
+		}
+		
 	}
 
 	/** 

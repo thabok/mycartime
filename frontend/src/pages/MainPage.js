@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Switch, Icon, InputGroup, Button, Tooltip, Callout, Toaster, Card, Dialog, FormGroup, NumericInput, Collapse, ProgressBar } from '@blueprintjs/core';
+import { Switch, Icon, InputGroup, Button, Tooltip, Callout, Toaster, Card, Dialog, FormGroup, NumericInput, Collapse, ProgressBar, Checkbox } from '@blueprintjs/core';
 import { DateInput } from '@blueprintjs/datetime';
 import ls from 'local-storage'
 import Download from '@axetroy/react-download';
@@ -7,6 +7,9 @@ import DragAndDropFileUpload from '../components/DragAndDropFileUpload'
 import DrivingPlan from './DrivingPlan'
 
 const BACKEND_URL = "http://127.0.0.1:1337"
+
+const dayNumbersA = [ 0, 1, 2, 3, 4]
+const dayNumbersB = [ 5, 6, 7, 8, 9]
 
 const toast = Toaster.create({
     className: "main",
@@ -45,8 +48,10 @@ class MainPage extends Component {
             newMember_initials: undefined,
             newMember_roomy: true,
             newMember_noseats: 4,
+            newMember_customDays: this.getEmptyCustomDaysMap(),
             progressValue: 0,
-            progressMessage: ""
+            progressMessage: "",
+            showAdvancedOptions: false
         }
         this.timer = null
     }
@@ -139,7 +144,7 @@ class MainPage extends Component {
                         <DateInput
                             value={this.state.ABWeekStartDate}
                             onChange={(selectedDate, isUserChange) => {
-                                if (selectedDate && selectedDate.getDay() == 1) {
+                                if (selectedDate && selectedDate.getDay() === 1) {
                                     this.updateState("ABWeekStartDate", selectedDate)
                                 } else {
                                     toast.show({message: "Please select a Monday.", intent: "danger", icon: "error"})
@@ -301,10 +306,59 @@ class MainPage extends Component {
             </Dialog>)
     }
 
+    isChecked_CustomDays(dayNumber, propertyName) {
+        const value = this.getCustomDayValue(dayNumber, propertyName)
+        if (value !== null) {
+            return value
+        } else {
+            return false
+        }
+    }
+
+    getCustomDayValue(dayNumber, propertyName) {
+        if (this.state.newMember_customDays !== undefined) {
+            return this.state.newMember_customDays[dayNumber][propertyName]
+        } else {
+            return null;
+        }
+    }
+
+    updateCustomDays(dayNumber, propertyName, value) {
+        // for null value -> assume flag and invert the current state (=toggle)
+        let newValue = value
+        if (newValue === null) {
+            newValue = !this.isChecked_CustomDays(dayNumber, propertyName)
+        }
+
+        let map = this.state.newMember_customDays
+        map[dayNumber][propertyName] = newValue
+        // handle dependencies between needsCar, skipMorning and skipAfternoon
+        switch(propertyName) {
+            case "needsCar":
+                if (newValue === false) {
+                    // also disable skipMorning/skipAfternoon
+                    map[dayNumber]['skipMorning'] = false
+                    map[dayNumber]['skipAfternoon'] = false
+                }
+                break
+            case "skipMorning":
+            case "skipAfternoon":
+                if (newValue === true) {
+                    // also enable "needsCar"
+                    map[dayNumber]['needsCar'] = true
+                }
+                break
+            default:
+                break
+        }
+        this.setState( { newMember_customDays: map } )
+    }
+
     getPersonDetailsDialog() {
         return (
             <Dialog 
                 className=""
+                style={{ width: "1000px"}}
                 icon="person"
                 autoFocus={true}
                 title="New Carpool Party member"
@@ -366,21 +420,82 @@ class MainPage extends Component {
                         onKeyPress={(e) => this.handleKeyPress(e)}
                         onValueChange={(number, string) => { this.setState({newMember_noseats: number}) }} />
                 </FormGroup>
-                <FormGroup
-                    helperText={undefined}
-                    label="Roomy car"
-                    labelFor="input-roomy"
-                    labelInfo={undefined} >
+                <div>
                     <Switch 
-                        id="input-roomy"
+                        id="switch-advanced"
                         large={true}
-                        checked={this.state.newMember_roomy}
-                        onKeyPress={(e) => this.handleKeyPress(e)}
-                        onChange={(e) => {
-                                console.log(this.state.newMember_roomy + " --> " + !this.state.newMember_roomy)
-                                this.setState({newMember_roomy: !this.state.newMember_roomy})
-                             }} />
-                </FormGroup>
+                        style={{ float: "right"}}
+                        innerLabel={this.state.showAdvancedOptions ? "Hide Advanced Options" : "Show Advanced Options"}
+                        checked={this.state.showAdvancedOptions}
+                        onChange={(e) => this.setState( { showAdvancedOptions: !this.state.showAdvancedOptions } )}/>
+                </div>
+                { this.state.showAdvancedOptions ?
+                    <div>
+                        <hr/>
+                        <FormGroup
+                            helperText={undefined}
+                            label="Roomy car"
+                            labelFor="input-roomy"
+                            inline={true}
+                            labelInfo="(comfortable for tall persons?)" >
+                            <Switch 
+                                id="input-roomy"
+                                large={true}
+                                checked={this.state.newMember_roomy}
+                                onKeyPress={(e) => this.handleKeyPress(e)}
+                                onChange={(e) => {
+                                        console.log(this.state.newMember_roomy + " --> " + !this.state.newMember_roomy)
+                                        this.setState({newMember_roomy: !this.state.newMember_roomy})
+                                    }} />
+                        </FormGroup>
+                        <FormGroup
+                            helperText={undefined}
+                            label="Customize preferences for specific days"
+                            labelFor="lonely-driver">
+                            <table border="1">
+                                <thead>
+                                    <tr><th><Button
+                                        icon="delete"
+                                        text="Reset"
+                                        intent="danger"
+                                        onClick={() => this.setState({ newMember_customDays: this.getEmptyCustomDaysMap() })}/>
+                                        </th>
+                                        <th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><b>Week A</b></td>
+                                        {dayNumbersA.map((dayNumber) => {
+                                            return (
+                                        <td>
+                                            <Checkbox checked={this.state.newMember_customDays[dayNumber].needsCar} onChange={() => this.updateCustomDays(dayNumber, 'needsCar', null)} label="Needs car" />
+                                            <Checkbox checked={this.state.newMember_customDays[dayNumber].skipMorning} onChange={() => this.updateCustomDays(dayNumber, 'skipMorning', null)} label="Skip on morning" />
+                                            <Checkbox checked={this.state.newMember_customDays[dayNumber].skipAfternoon} onChange={() => this.updateCustomDays(dayNumber, 'skipAfternoon', null)} label="Skip on afternoon" />
+                                            <InputGroup placeholder="start time: 7:40" disabled={this.isChecked_CustomDays(dayNumber, 'skipMorning')} value={this.state.newMember_customDays[dayNumber].customStart} onChange={(e) => this.updateCustomDays(dayNumber, 'customStart', e.target.value)} />
+                                            <InputGroup placeholder="end time: 14:30" disabled={this.isChecked_CustomDays(dayNumber, 'skipAfternoon')} value={this.state.newMember_customDays[dayNumber].customEnd} onChange={(e) => this.updateCustomDays(dayNumber, 'customEnd', e.target.value)} />
+                                        </td>)
+                                        })}
+                                    </tr>
+                                    <tr>
+                                        <td><b>Week B</b></td>
+                                        {dayNumbersB.map((dayNumber) => {
+                                            return (
+                                            <td>
+                                                <Checkbox checked={this.state.newMember_customDays[dayNumber].needsCar} onChange={() => this.updateCustomDays(dayNumber, 'needsCar', null)} label="Needs car" />
+                                                <Checkbox checked={this.state.newMember_customDays[dayNumber].skipMorning} onChange={() => this.updateCustomDays(dayNumber, 'skipMorning', null)} label="Skip on morning" />
+                                                <Checkbox checked={this.state.newMember_customDays[dayNumber].skipAfternoon} onChange={() => this.updateCustomDays(dayNumber, 'skipAfternoon', null)} label="Skip on afternoon" />
+                                                <InputGroup placeholder="start time: 7:40" disabled={this.isChecked_CustomDays(dayNumber, 'skipMorning')} value={this.state.newMember_customDays[dayNumber].customStart} onChange={(e) => this.updateCustomDays(dayNumber, 'customStart', e.target.value)} />
+                                                <InputGroup placeholder="end time: 14:30" disabled={this.isChecked_CustomDays(dayNumber, 'skipAfternoon')} value={this.state.newMember_customDays[dayNumber].customEnd} onChange={(e) => this.updateCustomDays(dayNumber, 'customEnd', e.target.value)} />
+                                            </td>)
+                                            })}
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </FormGroup>
+                        <hr/>
+                    </div>
+                : null }
                 <center>
                     <Button
                         style={{width: "100px" }}
@@ -594,10 +709,12 @@ class MainPage extends Component {
                 person.initials = this.state.newMember_initials
                 person.numberOfSeats = this.state.newMember_noseats
                 person.isCarRoomy = this.state.newMember_roomy
+                person.customDays = this.state.newMember_customDays
             }
             persons.push(person)
         }
         this.updateState("persons", persons)
+        console.log(persons)
         this.setState({ isDialogOpen: false })
     }
 
@@ -672,7 +789,22 @@ class MainPage extends Component {
             newMember_initials: "",
             newMember_roomy: true,
             newMember_noseats: 5,
+            newMember_customDays: this.getEmptyCustomDaysMap(),
         })
+    }
+
+    getEmptyCustomDaysMap() {
+        let map = {}
+        for (let n=0; n < 10; n++) {
+            map[n] = {
+                needsCar: false,
+                skipMorning: false,
+                skipAfternoon: false,
+                customStart: "",
+                customEnd: "",
+            }
+        }
+        return map
     }
 
     openDialogForExistingPerson(initials) {
@@ -686,6 +818,7 @@ class MainPage extends Component {
                 newMember_initials: person.initials,
                 newMember_roomy: person.isCarRoomy,
                 newMember_noseats: person.numberOfSeats,
+                newMember_customDays: person.customDays !== undefined ? person.customDays : this.getEmptyCustomDaysMap(),
             })
         }
     }

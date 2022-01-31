@@ -1,4 +1,9 @@
 package com.thabok.entities;
+
+import java.util.Map;
+
+import com.thabok.util.Util;
+
 public class Person {
 
 	public String firstName;
@@ -9,6 +14,13 @@ public class Person {
     public boolean isCarRoomy;
     public int numberOfSeats;
     public Schedule schedule;
+
+    /**
+     * Integer keys from 0-9 indicate days from Monday-A thru Friday-B.
+     * The Boolean value says if the person should be considered as a designated driver on this day.  
+     */
+    public Map<Integer, CustomDay> customDays = Util.initializeEmptyCustomDays();
+    
 
     public String getName() {
     	return firstName + " " + lastName;

@@ -43,9 +43,32 @@ public class Party {
 	public Person popPassenger() {
 		if (!passengers.isEmpty()) {
 			Person removedPassenger = passengers.remove(passengers.size() - 1);
+			updateTime();
 			return removedPassenger;
 		}
 		throw new IllegalStateException("Cannot remove passengers because... there are none.");
+	}
+
+	/**
+	 * Updates the party time to the earliest time (if wayThere) or the latest time (if wayBack) of any member (driver/passengers).
+	 */
+	private void updateTime() {
+		int updatedTime;
+		if (this.isWayBack) {
+			updatedTime = driver.schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber()).getEndTime();
+			for (Person passenger : this.passengers) {
+				int passengerTime = passenger.schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber()).getEndTime();
+				updatedTime = Math.max(updatedTime, passengerTime);
+			}
+		} else {
+			updatedTime = driver.schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber()).getStartTime();
+			for (Person passenger : this.passengers) {
+				int passengerTime = passenger.schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber()).getStartTime();
+				updatedTime = Math.min(updatedTime, passengerTime);
+			}
+		}
+		this.time = updatedTime;
+		
 	}
 
 	/**
@@ -61,10 +84,17 @@ public class Party {
 			}
 		} catch (Exception e) {
 		}
+		this.updateTime();
 	}
 	
+	/**
+	 * Adds the passenger to the party and adapts the parties time if needed (can happen due to supervisions).
+	 * 
+	 * @param p the passenger to add to the party
+	 */
 	public void addPassenger(Person p) {
 		this.passengers.add(p);
+		this.updateTime();
 	}
 
 	public DayOfWeekABCombo getDayOfTheWeekABCombo() {
@@ -107,5 +137,10 @@ public class Party {
 		} else {
 			return "" + lesson;
 		}
+	}
+
+	public boolean removePassenger(Person swapper) {
+		return this.passengers.remove(swapper);
+		
 	}
 }

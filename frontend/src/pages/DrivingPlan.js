@@ -14,7 +14,7 @@ class DrivingPlan extends Component {
     componentDidMount() {}
 
     getWeekA() {
-        return (<div>
+        return (<tbody>
             <tr>
                 <td><b>Monday (A)</b></td>
                 <td><ToupleList touples={this.props.plan.dayPlans.MONDAY_A.partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
@@ -40,11 +40,11 @@ class DrivingPlan extends Component {
                 <td><ToupleList touples={this.props.plan.dayPlans.FRIDAY_A.partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
                 <td><ToupleList touples={this.props.plan.dayPlans.FRIDAY_A.partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
             </tr>
-        </div>)
+        </tbody>)
     }
 
     getWeekB() {
-        return (<div>
+        return (<tbody>
             <tr>
                 <td><b>Monday (B)</b></td>
                 <td><ToupleList touples={this.props.plan.dayPlans.MONDAY_B.partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
@@ -70,41 +70,48 @@ class DrivingPlan extends Component {
                 <td><ToupleList touples={this.props.plan.dayPlans.FRIDAY_B.partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
                 <td><ToupleList touples={this.props.plan.dayPlans.FRIDAY_B.partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
             </tr>
-        </div>)
+        </tbody>)
     }
 
     getCompletePlan() {
-        return (<table className="bp3-html-table bp3-html-table-striped bp3-small"><tbody>
-                <tr>
-                    <th></th>
-                    <th><center><b>Schoolbound</b></center></th>
-                    <th><center><b>Homebound</b></center></th>
-                </tr>
+        return (<table className="bp3-html-table bp3-html-table-striped bp3-small">
+                <tbody>
+                    <tr>
+                        <th></th>
+                        <th><center><b>Schoolbound</b></center></th>
+                        <th><center><b>Homebound</b></center></th>
+                    </tr>
+                </tbody>
                 {this.getWeekA()}
+                <tbody><tr><td colSpan={3}><center>----------------------------------------------------------------</center></td></tr></tbody>
                 {this.getWeekB()}
-            </tbody></table>)
+            </table>)
     }
 
     getPlanA() {
-        return (<table className="bp3-html-table bp3-html-table-striped bp3-small"><tbody>
-                <tr>
-                    <th></th>
-                    <th><center><b>Schoolbound</b></center></th>
-                    <th><center><b>Homebound</b></center></th>
-                </tr>
+        return (<table className="bp3-html-table bp3-html-table-striped bp3-small">
+                <tbody>
+                    <tr>
+                        <th></th>
+                        <th><center><b>Schoolbound</b></center></th>
+                        <th><center><b>Homebound</b></center></th>
+                    </tr>
+                </tbody>
                 {this.getWeekA()}
-            </tbody></table>)
+            </table>)
     }
 
     getPlanB() {
-        return (<table className="bp3-html-table bp3-html-table-striped bp3-small"><tbody>
-                <tr>
-                    <th></th>
-                    <th><center><b>Schoolbound</b></center></th>
-                    <th><center><b>Homebound</b></center></th>
-                </tr>
+        return (<table className="bp3-html-table bp3-html-table-striped bp3-small">
+                <tbody>
+                    <tr>
+                        <th></th>
+                        <th><center><b>Schoolbound</b></center></th>
+                        <th><center><b>Homebound</b></center></th>
+                    </tr>
+                </tbody>
                 {this.getWeekB()}
-            </tbody></table>)
+            </table>)
     }
 
     getSummaryHtml() {

@@ -1,5 +1,13 @@
 package com.thabok.util;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -9,7 +17,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.thabok.entities.CustomDay;
 import com.thabok.entities.DayOfWeekABCombo;
+import com.thabok.entities.Party;
+import com.thabok.entities.Person;
 import com.thabok.entities.Schedule;
 import com.thabok.entities.Teacher;
 import com.thabok.entities.TimingInfo;
@@ -115,22 +126,54 @@ public class Util {
 	 * <br><br>
 	 * The conversion considers the lessons start & end times and uses them as thresholds to
 	 * convert the continuous time values into discrete lesson numbers.   
-	 * 
+	 * @param person the person can override some parts of the schedule based on preferences
 	 * @param timetable the timetable object (continuous)
 	 * @return the schedule object (discrete)
 	 */
-	public static Schedule timetableToSchedule(Map<Integer, Period> timetable) {
+	public static Schedule timetableToSchedule(Person person, Map<Integer, Period> timetable) {
 		Schedule schedule = new Schedule();
 		Map<Integer, TimingInfo> timingInfoPerDay = new HashMap<>();
 		for (Entry<Integer, Period> entry : timetable.entrySet()) {
 			DayOfWeekABCombo dayOfWeekABCombo = getDayOfWeekABCombo(entry.getKey() /* date */);
 			TimingInfo dayInfo = new TimingInfo();
+			// apply first & last lesson based on the retrieved timetable
+			dayInfo.setStartTime(entry.getValue().startTime);
+			dayInfo.setEndTime(entry.getValue().endTime);
 			dayInfo.setFirstLesson(convertArrivingTimeToLesson(entry.getValue().startTime));
 			dayInfo.setLastLesson(convertLeavingTimeToLesson(entry.getValue().endTime));
+			
+			// the person may have custom preferences that override the timetable
+			applyCustomPreferencesToDayInfo(dayInfo, entry.getKey(), person);
+			
+			
 			timingInfoPerDay.put(dayOfWeekABCombo.getUniqueNumber(), dayInfo);
 		}
 		schedule.setTimingInfoPerDay(timingInfoPerDay);
 		return schedule;
+	}
+
+	private static void applyCustomPreferencesToDayInfo(TimingInfo dayInfo, int date, Person person) {
+		int daysBetween = getDaysBetweenDateAndReferenceWeekStartDate(date);
+		int customDayIndex = daysBetween > 4 ? daysBetween - 2 : daysBetween;
+		CustomDay customDayInfo = person.customDays.get(customDayIndex);
+		if (!customDayInfo.customStart.isBlank()) {
+			dayInfo.setStartTime(customDayInfo.getCustomStartTimeInteger());
+			int firstLesson = convertArrivingTimeToLesson(customDayInfo.getCustomStartTimeInteger());
+			dayInfo.setFirstLesson(firstLesson);
+		}
+		if (!customDayInfo.customEnd.isBlank()) {
+			dayInfo.setEndTime(customDayInfo.getCustomEndTimeInteger());
+			int lastLesson = convertArrivingTimeToLesson(customDayInfo.getCustomEndTimeInteger());
+			dayInfo.setLastLesson(lastLesson);
+		}
+	}
+	
+	private static int getDaysBetweenDateAndReferenceWeekStartDate(int dateNumber) {
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
+		LocalDate dateObj = LocalDate.parse(String.valueOf(dateNumber), dtf);
+		LocalDate startDate = LocalDate.parse(String.valueOf(Controller.referenceWeekStartDate), dtf);
+		int daysBetween = (int) java.time.Period.between(startDate, dateObj).getDays();
+		return daysBetween;
 	}
 
 	/**
@@ -141,10 +184,7 @@ public class Util {
 	 * @return the day of the week enum
 	 */
 	private static DayOfWeekABCombo getDayOfWeekABCombo(int dateNumber) {
-		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
-		LocalDate dateObj = LocalDate.parse(String.valueOf(dateNumber), dtf);
-		LocalDate startDate = LocalDate.parse(String.valueOf(Controller.referenceWeekStartDate), dtf);
-		int number = (int) java.time.Period.between(startDate, dateObj).getDays();
+		int number = getDaysBetweenDateAndReferenceWeekStartDate(dateNumber);
 		DayOfWeek dow = Controller.weekdays.get(number % 7);
 		boolean isA = number < 7;
 		return new DayOfWeekABCombo(dow, isA);
@@ -172,6 +212,10 @@ public class Util {
 	 * @return true if the period is relevant for the carpool planning. False if not.
 	 */
 	public static boolean isPeriodRelevant(Period period, String initials) {
+		// class trips, excursions, etc. are marked with the code "irregular"
+		if ("irregular".equals(period.code)) {
+			return false;
+		}
 		boolean foundDifferentOrgname = false;
 		boolean foundMatchingName = false;
 		for (Teacher teacher : period.te) {
@@ -191,4 +235,92 @@ public class Util {
 		boolean isIrrelevant = foundDifferentOrgname && !foundMatchingName;
 		return !isIrrelevant;
 	}
+
+	/**
+	 * Returns true if the party is generally available. This is not the case if the driver
+	 * has selected to have no passengers for the morning/afternoon.
+	 */
+	public static boolean partyIsAvailable(Party party) {
+		Person driver = party.getDriver();
+		int customPreferenceIndex = Util.dowComboToCustomDaysIndex(party.getDayOfTheWeekABCombo());
+		// in case of a partyThere: check if driver wants to be alone in the morning
+		if (!party.isWayBack() && driver.customDays.get(customPreferenceIndex).skipMorning) {
+			return false;
+		}
+		// in case of a partyBack: check if driver wants to be alone in the afternoon
+		if (party.isWayBack() && driver.customDays.get(customPreferenceIndex).skipAfternoon) {
+			return false;
+		}
+		return true;
+		
+	}
+
+	public static Map<Integer, CustomDay> initializeEmptyCustomDays() {
+		Map<Integer, CustomDay> map = new HashMap<>();
+		for (int i=0; i<10; i++) {
+			map.put(i, new CustomDay());
+		}
+		return map;
+	}
+
+	/**
+	 * Converts the {@link DayOfWeekABCombo} unique number into a customDayIndex
+	 * (0-based, without weekend gaps)
+	 * 
+	 * @param dayOfTheWeekABCombo
+	 * @return customDayIndex (0 - 9)
+	 */
+	public static int dowComboToCustomDaysIndex(DayOfWeekABCombo dayOfTheWeekABCombo) {
+		int customDaysIndex;
+		if (dayOfTheWeekABCombo.getUniqueNumber() <= 5) {
+			customDaysIndex = dayOfTheWeekABCombo.getUniqueNumber() - 1;
+		} else {
+			customDaysIndex = dayOfTheWeekABCombo.getUniqueNumber() - 3;
+		}
+		return customDaysIndex;
+	}
+	
+	/**
+     * Writes the given String to the specified file. Existing files will be
+     * overwritten.
+     *
+     * @param path
+     *            the path to the file
+     * @param content
+     *            the content to write
+     */
+    public static void writeStringToFile(String path, String content) {
+        // write file using utf-8 encoding
+        try (OutputStreamWriter osr = new OutputStreamWriter(new FileOutputStream(path), StandardCharsets.UTF_8);
+            BufferedWriter writer = new BufferedWriter(osr)) {
+            writer.write(content);
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * Returns the content of the file as a String.
+     *
+     * @param path
+     *            path to the file
+     * @return the content of the file as a String or an empty String if the file is
+     *         not available.
+     */
+    public static String readStringFromFile(String path) {
+        StringBuilder sb = new StringBuilder();
+        // Read file line by line using uft-8 encoding
+        try (InputStreamReader isr = new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8);
+            BufferedReader reader = new BufferedReader(isr);) {
+            while (reader.ready()) {
+                sb.append(reader.readLine()).append("\n");
+            }
+            isr.close();
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return sb.toString();
+    }
 }

@@ -31,3 +31,5 @@ bin
 node_modules
 .DS_Store
 members.json
+build
+.vscode

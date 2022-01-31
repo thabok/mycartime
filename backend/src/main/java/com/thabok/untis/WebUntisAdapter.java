@@ -28,6 +28,7 @@ public class WebUntisAdapter {
     private static final String APP_ACCESS_ID = "id1234";
     private static final String SCHOOL_NAME = "NG%20Wilhelmshaven";
     private static final String URL_SCHOOL_NGW = "https://cissa.webuntis.com/WebUntis/jsonrpc.do?school=" + SCHOOL_NAME;
+//	private static final String CACHE_FILE = "/Users/thabok/Git/mycartime/webuntis-cache.json";
     
     public static String sessionId = null;
     
@@ -97,6 +98,16 @@ public class WebUntisAdapter {
         params.put("password", password);
         params.put("client", "Java");
         
+        // load cache from file
+//        if (requestResultCache.isEmpty() && CACHE_FILE != null) {
+//        	String content = Util.readStringFromFile(CACHE_FILE);
+//        	if (content != null && !content.isBlank()) {
+//        		Type type = new TypeToken<Map<String, String>>() {
+//    			}.getType();
+//            	requestResultCache = new Gson().fromJson(content, type);
+//        	}
+//        }
+        
         String responseString = execute("authenticate", params);
         
         Map<?,?> m1 = new Gson().fromJson(responseString, Map.class);
@@ -117,20 +128,19 @@ public class WebUntisAdapter {
     
     public static String logout() throws Exception {
         
-        if (sessionId == null) throw new Exception("Not logged in!");
+//        if (sessionId == null) throw new Exception("Not logged in!");
         
         Map<String, Object> params = new HashMap<>();
         
-        Map<String, Object> obj = new HashMap<>();
-        
-        obj.put("method", "logout");
-        obj.put("id", APP_ACCESS_ID);
-        obj.put("jsonrpc", JSON_RPC_VERSION);
-        obj.put("params", params);
-        
-        String responseString = post(obj);
+        String responseString = execute("logout", params);
         
         sessionId = null;
+        
+        // store cache in file
+//        if (CACHE_FILE != null) {
+//        	String content = JsonUtil.toJson(requestResultCache);
+//        	Util.writeStringToFile(CACHE_FILE, content);
+//        }
         
         return responseString;
     }
@@ -144,16 +154,25 @@ public class WebUntisAdapter {
         obj.put("jsonrpc", JSON_RPC_VERSION);
         obj.put("params", params);
         
-        return post(obj);
+        String requestId = methodName;
+        try {
+        	if (params.get("options") != null) {
+        		requestId += "-" + ((Map<?,?>)((Map<?,?>)params.get("options")).get("element")).get("id");
+        		requestId += "-" + ((Map<?,?>)params.get("options")).get("startDate");
+        	}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+        
+        return post(obj, requestId);
     }
 
-    private static String post(Object payload) {
+    private static String post(Object payload, String requestId) {
     	// try cache
-    	String payloadKey = new Gson().toJson(payload);
-    	String cachedResult = requestResultCache.get(payloadKey);
-    	if (cachedResult != null) {
-    		return cachedResult;
-    	}
+//    	String cachedResult = requestResultCache.get(requestId);
+//    	if (cachedResult != null) {
+//    		return cachedResult;
+//    	}
     	// real request
         String responseString = null;
         HttpPost post = new HttpPost(URL_SCHOOL_NGW);
@@ -176,7 +195,7 @@ public class WebUntisAdapter {
             e.printStackTrace();
         }
         // cache result
-        requestResultCache.put(payloadKey, responseString);
+        requestResultCache.put(requestId, responseString);
         return responseString;
     }
     

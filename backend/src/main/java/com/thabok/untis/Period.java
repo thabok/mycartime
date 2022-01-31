@@ -17,6 +17,8 @@ public class Period {
 	
 	/**
 	 * Sometimes this attribute is present with a value of "cancelled". Should have no effect on the planning.
+	 * 
+	 * Code "irregular" seems to be used for class trips, etc.
 	 */
 	public String code;
 	

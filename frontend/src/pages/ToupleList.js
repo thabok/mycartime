@@ -16,11 +16,11 @@ class ToupleList extends Component {
             <ul>
                 {this.state.parties.map((party, index) => {
                     if (this.props.filterForPerson && this.props.filterForPerson !== '') {
-                        let found = party.driver.initials.indexOf(this.props.filterForPerson) !== -1
+                        let found = party.driver.initials.toLowerCase().indexOf(this.props.filterForPerson.toLowerCase()) !== -1
                         if (!found) {
                             if (party.passengers) {
                                 for (let i=0; i < party.passengers.length; i++) {
-                                    if (party.passengers[i].initials.indexOf(this.props.filterForPerson) !== -1) {
+                                    if (party.passengers[i].initials.toLowerCase().indexOf(this.props.filterForPerson.toLowerCase()) !== -1) {
                                         found = true
                                         break
                                     }

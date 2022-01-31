@@ -5,6 +5,9 @@ public class TimingInfo {
 	private int firstLesson;
 	private int lastLesson;
 	
+	private int startTime;
+	private int endTime;
+	
 	private boolean hasDutyBeforeFirstLesson;
 	private boolean hasDutyAfterLastLesson;
 	
@@ -31,6 +34,18 @@ public class TimingInfo {
 	}
 	public void setHasDutyAfterLastLesson(boolean hasDutyAfterLastLesson) {
 		this.hasDutyAfterLastLesson = hasDutyAfterLastLesson;
+	}
+	public int getStartTime() {
+		return startTime;
+	}
+	public void setStartTime(int startTime) {
+		this.startTime = startTime;
+	}
+	public int getEndTime() {
+		return endTime;
+	}
+	public void setEndTime(int endTime) {
+		this.endTime = endTime;
 	}
 	
 	

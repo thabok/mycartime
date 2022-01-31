@@ -74,7 +74,7 @@
           <configuration>
             <archive>
               <manifest>
-                <mainClass>com.thabok.webservice.Main</mainClass>
+                <mainClass>com.thabok.main.Main</mainClass>
               </manifest>
             </archive>
             <descriptorRefs>

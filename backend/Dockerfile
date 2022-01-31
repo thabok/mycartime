@@ -1,10 +1,11 @@
+FROM maven:alpine as BUILD
+
+COPY . .
+RUN mvn package
+
 FROM openjdk:8-jdk-alpine
-
-ARG JAR_FILE=target/my-car-time-1.0-SNAPSHOT-jar-with-dependencies.jar
-
 WORKDIR /app
-
-COPY ${JAR_FILE} app.jar
+COPY --from=BUILD target/my-car-time-1.0-SNAPSHOT-jar-with-dependencies.jar app.jar
 
 EXPOSE 1337
 
