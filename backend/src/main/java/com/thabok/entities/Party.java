@@ -139,8 +139,9 @@ public class Party {
 		}
 	}
 
-	public boolean removePassenger(Person swapper) {
-		return this.passengers.remove(swapper);
+	public void removePassenger(Person swapper) {
+		this.passengers.remove(swapper);
+		updateTime();
 		
 	}
 }

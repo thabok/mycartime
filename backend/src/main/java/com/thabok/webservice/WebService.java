@@ -87,7 +87,6 @@ public class WebService {
 			}
 			personCount++;
 			String msg = "Fetching timetable for " + person.firstName + " " + person.lastName + " (" + person.initials + ")";
-			System.out.println(msg);
 			float progressValue = (((float)personCount) / persons.size()) * 0.95f;
 			WebService.updateProgress(progressValue, msg);
 			Map<Integer, Period> timetable = WebUntisAdapter.getTimetable(person.initials, inputData.scheduleReferenceStartDate);
@@ -97,13 +96,15 @@ public class WebService {
 //		printScheduleStatistics(persons);
 		
 		// at this point we should be at a progress value of 0.95 (95%)
-		Controller controller = new Controller(persons);
-		TwoWeekPlan wp = controller.calculateGoodPlan(1000);
+		Controller controller = new Controller(persons, inputData.preset);
+		int iterations = inputData.preset != null ? 1 : 1000;
+		TwoWeekPlan wp = controller.calculateGoodPlan(iterations);
 		controller.summarizeNumberOfDrives(wp);
-//		WebUntisAdapter.logout();
 		return wp;
 	}
 
+	
+	@SuppressWarnings("unused")
 	private void printScheduleStatistics(List<Person> persons) {
 		List<DayOfWeek> weekdays = Arrays.asList(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY);
 		System.out.println("Between A and B week:");
@@ -194,7 +195,9 @@ public class WebService {
 			String reqBody = req.body();
 			String reqUrl = req.url();
 			String reqMethod = req.requestMethod();
-			System.out.println("Incoming " + reqMethod + " request to " + reqUrl + ": " + reqBody);
+			if (reqUrl != null && !reqUrl.contains("/progress")) {
+				System.out.println("Incoming " + reqMethod + " request to " + reqUrl + ": " + reqBody);
+			}
 		} catch (Exception e) {
 			System.err.println("Couldn't log incoming request. " + e.toString());
 		}

@@ -84,10 +84,8 @@ public class WebUntisAdapter {
     }
 
     public static Map<Integer, Period>  getTimetable(String teacherInitials, int scheduleReferenceStartDate) throws Exception {
-        System.out.println("Fetching timetable for A-week, starting from " + scheduleReferenceStartDate);
         Map<Integer, Period> timetable = getTimetableBasedOnStartDate(teacherInitials, scheduleReferenceStartDate);
         int bWeekStartDate = Util.calculateDateNumber(scheduleReferenceStartDate, 7);
-        System.out.println("Fetching timetable for B-week, starting from " + bWeekStartDate);
         timetable.putAll(getTimetableBasedOnStartDate(teacherInitials, bWeekStartDate));
 		return timetable;
     }
@@ -169,10 +167,10 @@ public class WebUntisAdapter {
 
     private static String post(Object payload, String requestId) {
     	// try cache
-//    	String cachedResult = requestResultCache.get(requestId);
-//    	if (cachedResult != null) {
-//    		return cachedResult;
-//    	}
+    	String cachedResult = requestResultCache.get(requestId);
+    	if (cachedResult != null) {
+    		return cachedResult;
+    	}
     	// real request
         String responseString = null;
         HttpPost post = new HttpPost(URL_SCHOOL_NGW);

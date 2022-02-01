@@ -163,7 +163,7 @@ public class Util {
 		}
 		if (!customDayInfo.customEnd.isBlank()) {
 			dayInfo.setEndTime(customDayInfo.getCustomEndTimeInteger());
-			int lastLesson = convertArrivingTimeToLesson(customDayInfo.getCustomEndTimeInteger());
+			int lastLesson = convertLeavingTimeToLesson(customDayInfo.getCustomEndTimeInteger());
 			dayInfo.setLastLesson(lastLesson);
 		}
 	}

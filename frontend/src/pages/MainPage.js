@@ -563,10 +563,31 @@ class MainPage extends Component {
             <legend style={{ padding: "5px 10px 5px 10px" }}>
                 Carpool Party Driving Plan
                 &nbsp;&nbsp;
-                <Icon
-                    style={{ cursor : "pointer" }}
-                    icon="cross"
+                <Button
+                    minimal={true}
+                    icon="trash"
                     onClick={() => this.updateState("drivingPlan", undefined)} />
+                &nbsp;&nbsp;
+                <Button
+                    icon="random"
+                    minimal={true}
+                    disabled={this.disableConnectionButton() || (this.state.ABWeekStartDate == null || this.state.ABWeekStartDate === '')}
+                    onClick={() => {
+                        this.updateState("drivingPlan", undefined)
+                        this.requestDrivingPlan()
+                    }} />
+                &nbsp;&nbsp;
+                <Button
+                    icon="repeat"
+                    minimal={true}
+                    disabled={(this.disableConnectionButton() || this.state.ABWeekStartDate == null || this.state.ABWeekStartDate === '')}
+                    onClick={() => {
+                        let preset = (this.state.drivingPlan !== undefined) ? this.state.drivingPlan.weekDayPermutation : undefined
+                        this.updateState("drivingPlan", undefined)
+                        this.requestDrivingPlan(preset)
+                    }} />
+                &nbsp;&nbsp;
+                
             </legend>
         )
     }
@@ -588,6 +609,7 @@ class MainPage extends Component {
                     <li><b>Initials: </b> {person.initials}</li>
                     <li><b>Number of Seats: </b> {person.numberOfSeats}</li>
                     <li><b>Car Type: </b> {person.isCarRoomy ? "roomy" : "small"}</li>
+                    {/*person.customDays !== this.getEmptyCustomDaysMap() ? <li>KEKS</li> : null*/}
                 </ul>
             </Card>
         )
@@ -656,11 +678,11 @@ class MainPage extends Component {
         this.stopProgressTimer()
     }
 
-    async requestDrivingPlan() {
+    async requestDrivingPlan(weekDayPermutation=undefined) {
         this.startProgressTimer()
         this.setState( { waitingForPlan: true, carpoolmembersCollapsed: true, isProgressDialogOpen: true })
         await this.login("login", true)
-        await this.calculatePlan()
+        await this.calculatePlan(weekDayPermutation)
         this.logout()
         this.stopProgressTimer()
         this.setState( { waitingForPlan: false, isProgressDialogOpen: false })
@@ -827,12 +849,13 @@ class MainPage extends Component {
      * REQUESTS TO BACKEND
      *****************************************************/ 
 
-    async calculatePlan() {
+    async calculatePlan(weekDayPermutation=undefined) {
         try {
             const referenceDate = (this.state.ABWeekStartDate.getFullYear() * 10000) + ((this.state.ABWeekStartDate.getMonth() + 1) * 100) + (this.state.ABWeekStartDate.getDate())
             const payload = {
                 persons: this.state.persons,
-                scheduleReferenceStartDate: referenceDate
+                scheduleReferenceStartDate: referenceDate,
+                preset: weekDayPermutation
             }
             await fetch(BACKEND_URL + '/calculatePlan', {
                 method: 'POST',

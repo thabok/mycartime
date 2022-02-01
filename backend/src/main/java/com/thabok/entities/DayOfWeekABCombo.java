@@ -52,5 +52,5 @@ public class DayOfWeekABCombo implements Comparable<DayOfWeekABCombo> {
             return this.dayOfWeek.compareTo(((DayOfWeekABCombo)o).dayOfWeek);
         }
     }
-
+    
 }
