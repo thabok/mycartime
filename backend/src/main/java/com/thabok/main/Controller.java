@@ -4,6 +4,7 @@ import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -28,12 +29,28 @@ import com.thabok.webservice.WebService;
 
 public class Controller {
 
+	private static final int EXPECTED_DRIVES_NUMBER = 4;
 	private static final float MIN_MAX_DIFF_PENALTY_FACTOR = 		 0.3f; // 0.3f;
 	private static final float AVERAGE_DRIVING_DAYS_PENALTY_FACTOR = 0.3f; // 0.3f;
 	private static final float MISSED_GUIDELINE_FACTOR = 			 0.5f; // 0.5f;
+	private static final Comparator<Party> SEATING_ORDER = new Comparator<Party>() {
+
+		@Override
+		public int compare(Party o1, Party o2) {
+			int freeSeats1 = o1.getDriver().getNoPassengerSeats() - o1.getPassengers().size();
+			int freeSeats2 = o2.getDriver().getNoPassengerSeats() - o2.getPassengers().size();
+			if (freeSeats1 == freeSeats2 && freeSeats1 == 1 && o1.getDriver().getNoPassengerSeats() == 4) {
+				return -1;
+			} else {
+				return Integer.compare(freeSeats1, freeSeats2);
+			}
+		}
+	};
 	
 	private List<Person> persons;
-    private Map<Person, Integer> numberOfDrives;
+	private Map<Person, Integer> numberOfDrives_Total;
+	private Map<Person, Integer> numberOfDrives_A;
+	private Map<Person, Integer> numberOfDrives_B;
     private List<Rule> rules = new ArrayList<>();
     private Map<DayOfWeekABCombo, DayPlanInput> inputsPerDay;
 	private List<DayOfWeekABCombo> preset;
@@ -42,14 +59,22 @@ public class Controller {
     
     public Controller(List<Person> persons) {
         this.persons = persons;
-        numberOfDrives = new HashMap<>();
-        persons.forEach(p -> numberOfDrives.put(p, 0));
+        numberOfDrives_Total = new HashMap<>();
+    	numberOfDrives_A = new HashMap<>();
+    	numberOfDrives_B = new HashMap<>();
+    	persons.forEach(p -> numberOfDrives_Total.put(p, 0));
+    	persons.forEach(p -> numberOfDrives_A.put(p, 0));
+    	persons.forEach(p -> numberOfDrives_B.put(p, 0));
     }
     
     public Controller(List<Person> persons, List<DayOfWeekABCombo> preset) {
     	this.persons = persons;
-        numberOfDrives = new HashMap<>();
-        persons.forEach(p -> numberOfDrives.put(p, 0));
+    	numberOfDrives_Total = new HashMap<>();
+    	numberOfDrives_A = new HashMap<>();
+    	numberOfDrives_B = new HashMap<>();
+        persons.forEach(p -> numberOfDrives_Total.put(p, 0));
+    	persons.forEach(p -> numberOfDrives_A.put(p, 0));
+    	persons.forEach(p -> numberOfDrives_B.put(p, 0));
         this.preset = preset;
 	}
 
@@ -77,14 +102,14 @@ public class Controller {
     
     public String summarizeNumberOfDrives(TwoWeekPlan wp) {
         String summary = "";
-        persons.forEach(p -> numberOfDrives.put(p, 0));
+        persons.forEach(p -> numberOfDrives_Total.put(p, 0));
         for (DayPlan dp : wp.getDayPlans().values()) {
             for (PartyTouple pt : dp.getPartyTouples()) {
-                numberOfDrives.put(pt.getDriver(), numberOfDrives.get(pt.getDriver()) + 1);
+                numberOfDrives_Total.put(pt.getDriver(), numberOfDrives_Total.get(pt.getDriver()) + 1);
             }
         }
-        for (Person p : numberOfDrives.keySet()) {
-            String s = "- " + p.getName() + ": " + numberOfDrives.get(p);
+        for (Person p : numberOfDrives_Total.keySet()) {
+            String s = "- " + p.getName() + ": " + numberOfDrives_Total.get(p);
             System.out.println(s);
             summary += s + "\n";
         }
@@ -125,7 +150,6 @@ public class Controller {
     	}
     	
         inputsPerDay = new HashMap<>();
-        persons.forEach(p -> numberOfDrives.put(p, 0));
         for (DayOfWeekABCombo dayOfWeekABCombo : Util.weekdayListAB) {
             DayPlanInput dpi = new DayPlanInput();
             dpi.personsByFirstLesson = getPersonsByFirstLesson(persons, dayOfWeekABCombo);
@@ -133,8 +157,8 @@ public class Controller {
             dpi.designatedDrivers = getDesignatedDrivers(dpi, persons, dayOfWeekABCombo);
             inputsPerDay.put(dayOfWeekABCombo, dpi);
             dpi.designatedDrivers.forEach(driver -> {
-                Integer number = numberOfDrives.get(driver);
-                numberOfDrives.put(driver, number + 1);
+                Map<Person, Integer> mapForThisWeek = getNumberOfDrivesMap(dayOfWeekABCombo.isWeekA());
+                incrementNumberOfDrives(mapForThisWeek, driver);
             });
         }
     }
@@ -156,6 +180,50 @@ public class Controller {
     }
 
     /**
+	     * Calculates the dayPlan. Tries to stay as close as possible to the referencePlan (same day in different A/B week).
+	     * @param dayOfWeekABCombo the dayOfWeekABCombo, will calculate a plan for this one 
+	     * @param referencePlan referencePlan for same day in different A/B week. May be null!
+	     * @return the calculated dayPlan.
+	     * @throws Exception
+	     */
+	    public DayPlan calculateDayPlan(DayOfWeekABCombo dayOfWeekABCombo, DayPlan referencePlan) throws Exception {
+	        DayPlan dayPlan = new DayPlan();
+	        DayPlanInput dpi = inputsPerDay.get(dayOfWeekABCombo);
+	        dayPlan.setDayOfWeekABCombo(dayOfWeekABCombo);
+	        
+	        List<Person> personsForThisDay = persons.stream().filter(p -> Util.isPersonActiveOnThisDay(p, dayOfWeekABCombo)).collect(Collectors.toList());
+	        
+	        /*
+	         * PART 1: Designated Drivers + Mirror days
+	         */
+	        Set<Person> coveredPersons = initialSoloPartyTouples(dayOfWeekABCombo, referencePlan, dayPlan, dpi, personsForThisDay);
+	        
+	        // TODO: only add solo parties for other persons if nobody else has a mirror-day-match
+	        
+	        /*
+	         * PART 2: There & back matches
+	         * - for each first & last lesson combo: find the set of people that match and are not designated drivers
+	         * - if set is not empty: create parties 
+	         */
+	        
+	        // This threshold defines how many drives a driver may already have to be considered. This will be increased in the while-loop if needed
+	        int driverConsiderationThreshold = getInitialDriverConsiderationThreshold(dayOfWeekABCombo.isWeekA());
+	        // Do this until all persons have been covered
+	        while (coveredPersons.size() < personsForThisDay.size()) {
+	    		for (Person remainingPerson : personsForThisDay) {
+	        		findPartyForPerson(remainingPerson, dayPlan, coveredPersons, driverConsiderationThreshold, dpi);
+	        	}
+	            // increases the driver consideration threshold to make sure we cover everyone eventually
+	            driverConsiderationThreshold++;
+	        }
+	        // Performs balancing to prevent one car
+	        // from filling up and the first person that doesn't
+	        // fit anymore drives alone while the other car is full
+	        balanceEquivalentParties(dayPlan, referencePlan, null);
+	        return dayPlan;
+	    }
+
+	/**
      * Massages the week plan to minimize the gap between
      * persons who drive often and those who drive rarely.
      * 
@@ -163,22 +231,10 @@ public class Controller {
      * @throws Exception 
      */
     private void balanceWeekPlan(TwoWeekPlan wp) throws Exception {
-    	Map<Person, Integer> drivingDaysPerPerson = new HashMap<>();
         Integer minDrivingDays = null;
         Integer maxDrivingDays = null;
-        for (DayPlan dayPlan : wp.getDayPlans().values()) {
-            for (PartyTouple pt : dayPlan.getPartyTouples()) {
-                Person driver = pt.getDriver();
-                Integer amount = drivingDaysPerPerson.get(driver);
-                if (amount == null) {
-                    drivingDaysPerPerson.put(driver, 1);
-                } else {
-                    drivingDaysPerPerson.put(driver, amount + 1);
-                }
-            }
-        }
         for (Person person : persons) {
-            Integer drivingDays = drivingDaysPerPerson.get(person);
+            Integer drivingDays = numberOfDrives_Total.get(person);
             drivingDays = drivingDays == null ? 0 : drivingDays;
             if (minDrivingDays == null || minDrivingDays > drivingDays) {
                 minDrivingDays = drivingDays;
@@ -195,7 +251,7 @@ public class Controller {
 			}
 			
 			// 1. identify persons with available mirror days (e.g. they drive on Mon-A but not on Mon-B)
-			createSoloPartiesForMirrorDays(wp, drivingDaysPerPerson, minDrivingDays);
+			createSoloPartiesForMirrorDays(wp, minDrivingDays);
 			
 			// 2. process left-over persons by using days with lowest number of partyTouples
 			if (minDrivingDays % 2 == 0 /* even value -> there may be some without mirror days */) {
@@ -206,12 +262,12 @@ public class Controller {
 			}
 			
 			// 3. rebalance parties accross all dayPlans while considering the preferredPartyPeople approach
-			balancePartiesOnWeekPlan(wp, drivingDaysPerPerson, maxDrivingDays);
+			balancePartiesOnWeekPlan(wp, maxDrivingDays);
 		}
 	}
 
-	private void balancePartiesOnWeekPlan(TwoWeekPlan wp, Map<Person, Integer> drivingDaysPerPerson, Integer maxDrivingDays) throws Exception {
-		Set<Person> frequentDrivers = drivingDaysPerPerson.entrySet().stream()
+	private void balancePartiesOnWeekPlan(TwoWeekPlan wp, Integer maxDrivingDays) throws Exception {
+		Set<Person> frequentDrivers = numberOfDrives_Total.entrySet().stream()
 				.filter(e -> e.getValue() == maxDrivingDays)
 				.map(e -> e.getKey()).collect(Collectors.toSet());
 		for (DayPlan dayPlan : wp.getDayPlans().values()) {
@@ -222,13 +278,13 @@ public class Controller {
 		
 	}
 
-	private void createSoloPartiesForMirrorDays(TwoWeekPlan wp, Map<Person, Integer> drivingDaysPerPerson, Integer minDrivingDays) throws Exception {
+	private void createSoloPartiesForMirrorDays(TwoWeekPlan wp, Integer minDrivingDays) throws Exception {
 		for (Person person : persons) {
-            Integer drivingDays = drivingDaysPerPerson.get(person);
+            Integer drivingDays = numberOfDrives_Total.get(person);
             drivingDays = drivingDays == null ? 0 : drivingDays;
             if (drivingDays == minDrivingDays) {
             	// list of days where person drives in the other week
-            	List<DayOfWeekABCombo> mirrorDays = findMirrorDay(wp, person);
+            	List<DayOfWeekABCombo> mirrorDays = Util.findMirrorDay(wp, person);
             	// attempt can fail if person has an empty schedule on that day
             	boolean mirrorDayPartyCreated = attemptToCreateMirrorDaySoloParty(wp, person, mirrorDays);
             	if (!mirrorDayPartyCreated) {
@@ -262,30 +318,6 @@ public class Controller {
 			}
 		}
 		return partyCreated;
-	}
-
-	private List<DayOfWeekABCombo> findMirrorDay(TwoWeekPlan wp, Person person) {
-		Set<DayOfWeekABCombo> drivingDaysAB = new HashSet<>();
-		for (DayPlan dayPlan : wp.getDayPlans().values()) {
-			for (PartyTouple pt : dayPlan.getPartyTouples()) {
-				if (person.equals(pt.getDriver())) {
-					// check if a combo of the same week day (different week) is present in the set
-					Optional<DayOfWeekABCombo> optMatch = drivingDaysAB.stream()
-							.filter(combo -> combo.getDayOfWeek().equals(dayPlan.getDayOfWeekABCombo().getDayOfWeek()))
-							.findAny();
-					if (optMatch.isPresent()) {
-						drivingDaysAB.remove(optMatch.get());
-					} else {            					
-						drivingDaysAB.add(dayPlan.getDayOfWeekABCombo());
-					}
-					break;
-				}
-			}
-		}
-		List<DayOfWeekABCombo> mirrorDays = drivingDaysAB.stream()
-				.map(combo -> new DayOfWeekABCombo(combo.getDayOfWeek(), !combo.isWeekA()))
-				.collect(Collectors.toList());
-		return mirrorDays;
 	}
 
 	/**
@@ -422,89 +454,89 @@ public class Controller {
         return true;
     }
 
-    /**
-     * Calculates the dayPlan. Tries to stay as close as possible to the referencePlan (same day in different A/B week).
-     * @param dayOfWeekABCombo the dayOfWeekABCombo, will calculate a plan for this one 
-     * @param referencePlan referencePlan for same day in different A/B week. May be null!
-     * @return the calculated dayPlan.
-     * @throws Exception
-     */
-    public DayPlan calculateDayPlan(DayOfWeekABCombo dayOfWeekABCombo, DayPlan referencePlan) throws Exception {
-        DayPlan dayPlan = new DayPlan();
-        DayPlanInput dpi = inputsPerDay.get(dayOfWeekABCombo);
-        dayPlan.setDayOfWeekABCombo(dayOfWeekABCombo);
-        
-        List<Person> personsForThisDay = persons.stream().filter(p -> p.schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber()) != null).collect(Collectors.toList());
-        
-        
-        /*
-         * PART 1: Solo drivers
-         */
-        
-        // add parties for solo drivers
-        addPartiesForDesignatedDrivers(dayPlan, dpi.designatedDrivers);
-
-        /*
-         * PART 2: There & back matches
-         * - for each first & last lesson combo: find the set of people that match and are not designated drivers
-         * - if set is not empty: create parties 
-         */
-        Set<Person> coveredPersons = new HashSet<>(dpi.designatedDrivers);
-        
-        // This threshold defines how many drives a driver may already have to be considered. This will be increased in the while-loop if needed
-        int driverConsiderationThreshold = getInitialDriverConsiderationThreshold();
-        // Do this until all persons have been covered
-        while (coveredPersons.size() < personsForThisDay.size()) {
-            for (Person remainingPerson : personsForThisDay) {
-                if (coveredPersons.contains(remainingPerson)) {
-                    continue;
-                }
-                List<PartyTouple> candidatesThere = new ArrayList<>();
-                List<PartyTouple> candidatesBack = new ArrayList<>();
-                for (PartyTouple pt : dayPlan.getPartyTouples()) {
-                    boolean timeThereMatches = remainingPerson.getLesson(dayOfWeekABCombo, false) == pt.getPartyThere().getLesson();
-                    boolean partyThereIsAvailable = Util.partyIsAvailable(pt.getPartyThere());
-                    if (timeThereMatches && partyThereIsAvailable) {
-                        // remaining person could join this party (->)
-                        candidatesThere.add(pt);
-                    }
-                    boolean timeBackMatches = remainingPerson.getLesson(dayOfWeekABCombo, true) == pt.getPartyBack().getLesson();
-                    boolean partyBackIsAvailable = Util.partyIsAvailable(pt.getPartyThere());
-                    if (timeBackMatches && partyBackIsAvailable) {
-                        // remaining person could join this party (<-)
-                        candidatesBack.add(pt);
-                    }
-                }
-                PartyTouple ptThere = getPreferredPartyTouple(remainingPerson, candidatesThere, false,
-                        dpi.designatedDrivers);
-                PartyTouple ptBack = getPreferredPartyTouple(remainingPerson, candidatesBack, true,
-                        dpi.designatedDrivers);
-                if (ptThere == null || ptBack == null) {
-                    if (numberOfDrives.get(remainingPerson) > driverConsiderationThreshold) {
-                        // this driver already has more drives than the threshold
-                        // look for another driver or reconsider when the threshold has been increased (while-loop)
-                        continue;
-                    }
-                    // no party available for one of the ways, create own party for others to join
-                    addSoloParty(dayPlan, remainingPerson, false);
-                    numberOfDrives.put(remainingPerson, numberOfDrives.get(remainingPerson) + 1);
-                } else {
-                    ptThere.getPartyThere().addPassenger(remainingPerson);
-                    ptBack.getPartyBack().addPassenger(remainingPerson);
-                }
-                coveredPersons.add(remainingPerson);
-            }
-            // increases the driver consideration threshold to make sure we cover everyone eventually
-            driverConsiderationThreshold++;
+    private Set<Person> initialSoloPartyTouples(DayOfWeekABCombo dayOfWeekABCombo, DayPlan referencePlan,
+			DayPlan dayPlan, DayPlanInput dpi, List<Person> personsForThisDay) throws Exception {
+		Set<Person> coveredPersons;
+		if (referencePlan == null) {
+        	addPartiesForDesignatedDrivers(dayPlan, dpi.designatedDrivers);
+        	coveredPersons = new HashSet<>(dpi.designatedDrivers);
+        } else {
+        	coveredPersons = new HashSet<>();
+        	for (Person p : personsForThisDay) {
+        		PartyTouple mirrorDayPartyTouple = Util.getMirrorDayPartyTouple(p, referencePlan);
+//        		boolean belowThreshold = numberOfDrives_Total.get(p) < EXPECTED_DRIVES_NUMBER;
+        		boolean belowThreshold = EXPECTED_DRIVES_NUMBER > getNumberOfDrives(p, dayOfWeekABCombo.isWeekA()); 
+        		boolean drivesOnRefDay = mirrorDayPartyTouple != null;
+        		boolean designatedDriver = dpi.designatedDrivers.contains(p);
+        		if (designatedDriver) {
+        			addSoloParty(dayPlan, p, true);
+        			coveredPersons.add(p);
+        		} else if (drivesOnRefDay && belowThreshold) {        			
+        			addSoloParty(dayPlan, p, false);
+        			Integer number = getNumberOfDrives(p, dayOfWeekABCombo.isWeekA());
+        			getNumberOfDrivesMap(dayOfWeekABCombo.isWeekA()).put(p, number + 1);
+        			coveredPersons.add(p);
+        		}
+        	}
         }
-        // Performs balancing to prevent one car
-        // from filling up and the first person that doesn't
-        // fit anymore drives alone while the other car is full
-        balanceEquivalentParties(dayPlan, referencePlan, null);
-        return dayPlan;
-    }
+		return coveredPersons;
+	}
 
-    /**
+    private void findPartyForPerson(Person person, DayPlan dayPlan, Set<Person> coveredPersons, int driverConsiderationThreshold, DayPlanInput dpi) throws Exception {
+    	if (coveredPersons.contains(person)) {
+    		return;
+    	}
+    	DayOfWeekABCombo dayOfWeekABCombo = dayPlan.getDayOfWeekABCombo();
+        List<PartyTouple> candidatesThere = new ArrayList<>();
+        List<PartyTouple> candidatesBack = new ArrayList<>();
+        for (PartyTouple pt : dayPlan.getPartyTouples()) {
+            boolean timeThereMatches = person.getLesson(dayOfWeekABCombo, false) == pt.getPartyThere().getLesson();
+            boolean partyThereIsAvailable = Util.partyIsAvailable(pt.getPartyThere());
+            if (timeThereMatches && partyThereIsAvailable) {
+                // remaining person could join this party (->)
+                candidatesThere.add(pt);
+            }
+            boolean timeBackMatches = person.getLesson(dayOfWeekABCombo, true) == pt.getPartyBack().getLesson();
+            boolean partyBackIsAvailable = Util.partyIsAvailable(pt.getPartyBack());
+            if (timeBackMatches && partyBackIsAvailable) {
+                // remaining person could join this party (<-)
+                candidatesBack.add(pt);
+            }
+        }
+        PartyTouple ptThere = getPreferredPartyTouple(person, candidatesThere, false,
+                dpi.designatedDrivers);
+        PartyTouple ptBack = getPreferredPartyTouple(person, candidatesBack, true,
+                dpi.designatedDrivers);
+        if (ptThere == null || ptBack == null) {
+            if ((getNumberOfDrives(person, dayOfWeekABCombo.isWeekA())) > driverConsiderationThreshold) {
+                // this driver already has more drives than the threshold
+                // look for another driver or reconsider when the threshold has been increased (while-loop)
+                return;
+            }
+            // no party available for one of the ways, create own party for others to join
+            addSoloParty(dayPlan, person, false);
+        } else {
+            ptThere.getPartyThere().addPassenger(person);
+            ptBack.getPartyBack().addPassenger(person);
+        }
+        coveredPersons.add(person);
+		
+	}
+
+    private Map<Person, Integer> getNumberOfDrivesMap(boolean weekA) {
+    	if (weekA) {
+			return numberOfDrives_A;
+		} else {
+			return numberOfDrives_B;
+		}
+    }
+    
+	private int getNumberOfDrives(Person person, boolean weekA) {
+		return getNumberOfDrivesMap(weekA).get(person);
+	}
+
+
+	/**
      * Finds equivalent parties (i.e., parties that drive at the same time) 
      * and balances the passenger load to prevent "the party-bus and the loner"
      * 
@@ -521,20 +553,23 @@ public class Controller {
         	
         	
             Party pt = touple.getPartyThere();
-            List<Party> partiesThereForCurrentLesson = wayTherePartiesByStartLesson.get(pt.getLesson());
-            if (partiesThereForCurrentLesson == null) {
-                partiesThereForCurrentLesson = new ArrayList<>();
-                wayTherePartiesByStartLesson.put(pt.getLesson(), partiesThereForCurrentLesson);
-            }
-            partiesThereForCurrentLesson.add(pt);
-            
+            if (Util.partyIsAvailable(pt)) {
+				List<Party> partiesThereForCurrentLesson = wayTherePartiesByStartLesson.get(pt.getLesson());
+				if (partiesThereForCurrentLesson == null) {
+					partiesThereForCurrentLesson = new ArrayList<>();
+					wayTherePartiesByStartLesson.put(pt.getLesson(), partiesThereForCurrentLesson);
+				}
+				partiesThereForCurrentLesson.add(pt);
+			}
             Party pb = touple.getPartyBack();
-            List<Party> partiesBackForCurrentLesson = wayBackPartiesByEndLesson.get(pb.getLesson());
-            if (partiesBackForCurrentLesson == null) {
-                partiesBackForCurrentLesson = new ArrayList<>();
-                wayBackPartiesByEndLesson.put(pb.getLesson(), partiesBackForCurrentLesson);
+            if (Util.partyIsAvailable(pb)) {
+            	List<Party> partiesBackForCurrentLesson = wayBackPartiesByEndLesson.get(pb.getLesson());
+            	if (partiesBackForCurrentLesson == null) {
+            		partiesBackForCurrentLesson = new ArrayList<>();
+            		wayBackPartiesByEndLesson.put(pb.getLesson(), partiesBackForCurrentLesson);
+            	}
+            	partiesBackForCurrentLesson.add(pb);            	
             }
-            partiesBackForCurrentLesson.add(pb);
             
             // help the overloaded workers!
             if (frequentDrivers != null && frequentDrivers.contains(touple.getDriver()) && !touple.isDesignatedDriver()) {
@@ -543,6 +578,7 @@ public class Controller {
             }
         }
         // process potential removals
+        // FIXME: if a party touple is dissolved, the driver sometimes gets lost :(
         processRemovalCandidates(dayPlan, wayTherePartiesByStartLesson, wayBackPartiesByEndLesson, removalCandidates);
         
         
@@ -576,7 +612,9 @@ public class Controller {
         	
         	// way back
         	List<Party> otherPartiesBack = wayBackPartiesByEndLesson.get(removalCandidate.getPartyBack().getLesson())
-        			.stream().filter(p -> !p.getDriver().equals(removalCandidate.getDriver()))
+        			.stream().filter(
+        					p -> 	!p.getDriver().equals(removalCandidate.getDriver()) &&
+        							Util.partyIsAvailable(p))
         			.collect(Collectors.toList());  // makes sure current drivers party is not considered an alternative -> recursion!
         	int totalFreeSeatsWayBack = 0;
         	for (Party otherParty : otherPartiesBack) {
@@ -647,17 +685,76 @@ public class Controller {
      * @param referencePlan reference plan, may be null
      */
     private void balanceEquivalentParties(Map<Integer, List<Party>> partiesByLesson, DayPlan referencePlan) {
-        for (List<Party> equivalentPartiesThere : partiesByLesson.values()) {
-            if (equivalentPartiesThere.size() > 1) {
+        for (List<Party> equivalentParties : partiesByLesson.values()) {
+            if (equivalentParties.size() > 1) {
                 // normal balancing based on number of passengers & free seats 
-                balanceListOfPartiesBasedOnNumbers(equivalentPartiesThere);
+                balanceListOfPartiesBasedOnNumbers(equivalentParties);
                 
                 // balance according to referencePlan
-                reorganizePartiesAccordingToReferencePlan(equivalentPartiesThere, referencePlan);
+                matchAandBWeek(equivalentParties, referencePlan);
             }
         }
     }
 
+    private void matchAandBWeek(List<Party> equivalentParties, DayPlan referencePlan) {
+        if (referencePlan != null) {
+        	Set<Person> virtualBufferCar = new HashSet<>();
+//        	System.out.println("Parsing " + equivalentParties.size() + " parties to bring people together, similar to the mirror day " + referencePlan.getDayOfWeekABCombo());
+        	for (Party party : equivalentParties) {
+        		PartyTouple pt = Util.getMirrorDayPartyTouple(party.getDriver(), referencePlan);
+        		if (pt == null) {
+        			continue;
+        		}
+        		Party mirrorParty = party.isWayBack() ? pt.getPartyBack() : pt.getPartyThere();
+        		if (!mirrorParty.getPassengers().isEmpty()) {
+					removeUnwantedPassengers(virtualBufferCar, party, mirrorParty);
+					findDesiredPassengersInEquivalentParties(equivalentParties, party, mirrorParty, virtualBufferCar);
+				}
+        	}
+//        	System.out.println("Bringing people together in a similar way to the mirror day left " + virtualBufferCar.size() + " people homeless!");
+        	
+        	while (!virtualBufferCar.isEmpty()) {
+        		Collections.sort(equivalentParties, SEATING_ORDER);
+        		Party partyWithFreeSeats = equivalentParties.get(0);
+        		Person nextRandomPerson = virtualBufferCar.iterator().next();
+        		virtualBufferCar.remove(nextRandomPerson);
+        		partyWithFreeSeats.addPassenger(nextRandomPerson);
+        	}
+        }
+    }
+
+	private void findDesiredPassengersInEquivalentParties(List<Party> equivalentParties, Party party,
+			Party mirrorParty, Set<Person> virtualBufferCar) {
+		// find passengers from mirror party
+		for (Person mirrorPartyPassenger : mirrorParty.getPassengers()) {
+			if (virtualBufferCar.contains(mirrorPartyPassenger)) {
+				virtualBufferCar.remove(mirrorPartyPassenger);
+				party.addPassenger(mirrorPartyPassenger);
+			} else {
+				Optional<Party> findFirst = equivalentParties.stream().filter(p -> p.getPassengers().contains(mirrorPartyPassenger)).findFirst();
+				if (findFirst.isPresent() && !findFirst.get().equals(party)) {
+					// remove the mirror passenger from the mirror party and add him to today's party
+					findFirst.get().removePassenger(mirrorPartyPassenger);
+					party.addPassenger(mirrorPartyPassenger);
+				}				
+			}
+		}
+	}
+
+	private void removeUnwantedPassengers(Set<Person> virtualBufferCar, Party party, Party mirrorParty) {
+		Set<Person> scheduledForRemovalFromParty = new HashSet<>();
+		for (Person passenger : party.getPassengers()) {
+			// remove any passengers that are not part of the mirror party
+			if (!mirrorParty.getPassengers().contains(passenger)) {
+				// he shouldn't be here
+				scheduledForRemovalFromParty.add(passenger);
+				// place him into the virtual buffer car for now
+				virtualBufferCar.add(passenger);
+			}
+		}
+		scheduledForRemovalFromParty.forEach(unwantedPerson -> party.removePassenger(unwantedPerson));
+	}
+    
     /**
      * 
      * @param equivalentParties list of equivalent parties, size must be > 1
@@ -681,13 +778,13 @@ public class Controller {
                         if (preferredParty != null) {
                             Person swappee = getSwapCandidateFromPreferredParty(preferredParty, referencePlan, personsScheduledForSwap);
                             if (swappee != null) {
-//                            	System.out.println();
-//                            	System.out.println("Swap plan:");
-//                            	System.out.println("Source party: " + party);
-//                            	System.out.println("Swap party: " + preferredParty);
-//                            	System.out.println(passenger.firstName + " prefers the other party: " + preferredParty);
-//                            	System.out.println("Planning to swap " + passenger.firstName + " with " + swappee.firstName);
-//                            	System.out.println();
+                            	System.out.println();
+                            	System.out.println("Swap plan:");
+                            	System.out.println("Source party: " + party);
+                            	System.out.println("Swap party: " + preferredParty);
+                            	System.out.println(passenger.firstName + " prefers the other party: " + preferredParty);
+                            	System.out.println("Planning to swap " + passenger.firstName + " with " + swappee.firstName);
+                            	System.out.println();
                                 // we have a swappee, let's go swap!
                                 swapJobs.add(new SwapJob(party, preferredParty, passenger, swappee));
                                 personsScheduledForSwap.add(passenger);
@@ -834,9 +931,9 @@ public class Controller {
      * 
      * @return the minimum number of drives a person currently has
      */
-    private int getInitialDriverConsiderationThreshold() {
+    private int getInitialDriverConsiderationThreshold(boolean weekA) {
         int min = 100;
-        for (int noDrives : numberOfDrives.values()) {
+        for (int noDrives : getNumberOfDrivesMap(weekA).values()) {
             min = Math.min(noDrives, min);
         }
         return min;
@@ -911,8 +1008,9 @@ public class Controller {
      * @param dayPlan the created solo party is added to this dayPlan
      * @param driver the driver
      * @param isDesignatedDriver true, if designatedDriver (must drive, no alternative)
+     * @return 
      */
-    private void addSoloParty(DayPlan dayPlan, Person driver, boolean isDesignatedDriver) throws Exception {
+    private PartyTouple addSoloParty(DayPlan dayPlan, Person driver, boolean isDesignatedDriver) throws Exception {
         PartyTouple partyTouple = new PartyTouple();
         
         Party partyThere = new Party();
@@ -936,6 +1034,12 @@ public class Controller {
         partyTouple.setPartyBack(partyBack);
         partyTouple.setDesignatedDriver(isDesignatedDriver);        
         dayPlan.addPartyTouple(partyTouple);
+        
+        if (!isDesignatedDriver) {
+			// increment number of drives (not needed for designated drivers)
+			incrementNumberOfDrives(getNumberOfDrivesMap(dayPlan.getDayOfWeekABCombo().isWeekA()), driver);
+		}
+		return partyTouple;
     }
 
     /**
@@ -1021,5 +1125,15 @@ public class Controller {
         }
         return designatedDrivers;
     }
+    
+    private void incrementNumberOfDrives(Map<Person, Integer> numberOfDrivesMap, Person driver) {
+		// map for specific week
+    	Integer number = numberOfDrivesMap.get(driver);
+        numberOfDrivesMap.put(driver, number + 1);
+        
+        // total map
+        number = numberOfDrives_Total.get(driver);
+        numberOfDrives_Total.put(driver, number + 1);
+	}
 
 }

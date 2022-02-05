@@ -36,6 +36,8 @@ public class Person {
     
     /**
      * Returns the one-based lesson number that depends on the dayOfTheWeekABCombo and whether it's the way there or back.
+     * <br><br>
+     * <b>ONLY CALL IF YOU'RE SURE THE PERSON IS ACTIVE FOR THAT DAY!</b>
      * 
      * @param dayOfWeekABCombo day of the week ab combo (e.g. Monday-A)
      * @param isWayBack true if way back, false otherwise

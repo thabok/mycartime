@@ -13,17 +13,24 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.Optional;
+import java.util.Set;
 
 import com.thabok.entities.CustomDay;
 import com.thabok.entities.DayOfWeekABCombo;
+import com.thabok.entities.DayPlan;
 import com.thabok.entities.Party;
+import com.thabok.entities.PartyTouple;
 import com.thabok.entities.Person;
 import com.thabok.entities.Schedule;
 import com.thabok.entities.Teacher;
 import com.thabok.entities.TimingInfo;
+import com.thabok.entities.TwoWeekPlan;
 import com.thabok.main.Controller;
 import com.thabok.untis.Period;
 
@@ -52,12 +59,11 @@ public class Util {
 			1025, //  4th lesson
 			1140, //  5th lesson
 			1225, //  6th lesson
-			1310, //  7th lesson
-			1400, //  8th lesson
-			1445, //  9th lesson
-			1540, // 10th lesson
-			1625, // 11th lesson
-			1730  // 12th lesson
+		  //1310, //  lunch break
+			1400, //  7th lesson
+			1445, //  8th lesson
+			1540, //  9th lesson
+			1625, // 10th lesson
 	};
 
 	/**
@@ -91,12 +97,11 @@ public class Util {
 			1140, //  4th lesson
 			1225, //  5th lesson
 			1310, //  6th lesson
-			1400, //  7th lesson
-			1445, //  8th lesson
-			1540, //  9th lesson
-			1625, // 10th lesson
-			1730, // 11th lesson
-			1815, // 12th lesson
+			//1400, //  lunch break
+			1445, //  7th lesson
+			1530, //  8th lesson
+			1625, // 9th lesson
+			1710, // 10th lesson
 	};
 	
 	/**
@@ -323,4 +328,73 @@ public class Util {
         }
         return sb.toString();
     }
+
+	public static boolean drivesOnMirrorDay(Person person, DayPlan referencePlan) {
+		return getMirrorDayPartyTouple(person, referencePlan) != null;
+	}
+
+	public static PartyTouple getMirrorDayPartyTouple(Person person, DayPlan referencePlan) {
+		Optional<PartyTouple> optional = referencePlan.getPartyTouples()
+		.stream().filter(refTouple -> person.equals(refTouple.getDriver()))
+		.findAny();
+		if (optional.isPresent()) {
+			return optional.get();
+		} else {
+			return null;
+		}
+	}
+	
+	public static PartyTouple getPartyToupleByDriver(DayPlan dayPlan, Person driver) {
+		for (PartyTouple pt : dayPlan.getPartyTouples()) {
+			if (pt.getDriver().equals(driver)) {
+				return pt;
+			}
+		}
+		return null;
+		
+	}
+
+	public static Person getDriverWithLowestNumberOfDrives(Set<Person> possibleDrivers,
+			Map<Person, Integer> numberOfDrives) {
+		Person minNoOfDrivesPerson = possibleDrivers.iterator().next();
+		for (Person p : possibleDrivers) {
+			if (numberOfDrives.get(p) < numberOfDrives.get(minNoOfDrivesPerson)) {
+				minNoOfDrivesPerson = p;
+			}
+		}
+		return minNoOfDrivesPerson;
+	}
+	
+	public static boolean isPersonActiveOnThisDay(Person p, DayOfWeekABCombo dayOfWeekABCombo) {
+		return getTimingInfoForDay(p, dayOfWeekABCombo) != null;
+	}
+	
+	public static TimingInfo getTimingInfoForDay(Person p, DayOfWeekABCombo dayOfWeekABCombo) {
+		return p.schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber());
+	}
+
+	public static List<DayOfWeekABCombo> findMirrorDay(TwoWeekPlan wp, Person person) {
+		Set<DayOfWeekABCombo> drivingDaysAB = new HashSet<>();
+		for (DayPlan dayPlan : wp.getDayPlans().values()) {
+			for (PartyTouple pt : dayPlan.getPartyTouples()) {
+				if (person.equals(pt.getDriver())) {
+					// check if a combo of the same week day (different week) is present in the set
+					Optional<DayOfWeekABCombo> optMatch = drivingDaysAB.stream()
+							.filter(combo -> combo.getDayOfWeek().equals(dayPlan.getDayOfWeekABCombo().getDayOfWeek()))
+							.findAny();
+					if (optMatch.isPresent()) {
+						drivingDaysAB.remove(optMatch.get());
+					} else {            					
+						drivingDaysAB.add(dayPlan.getDayOfWeekABCombo());
+					}
+					break;
+				}
+			}
+		}
+		List<DayOfWeekABCombo> mirrorDays = drivingDaysAB.stream()
+				.map(combo -> new DayOfWeekABCombo(combo.getDayOfWeek(), !combo.isWeekA()))
+				.collect(Collectors.toList());
+		return mirrorDays;
+	}
+	
 }
