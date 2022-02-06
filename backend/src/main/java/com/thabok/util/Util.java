@@ -11,15 +11,17 @@ import java.nio.charset.StandardCharsets;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.thabok.entities.CustomDay;
 import com.thabok.entities.DayOfWeekABCombo;
@@ -354,7 +356,7 @@ public class Util {
 		
 	}
 
-	public static Person getDriverWithLowestNumberOfDrives(Set<Person> possibleDrivers,
+	public static Person getDriverWithLowestNumberOfDrives(Collection<Person> possibleDrivers,
 			Map<Person, Integer> numberOfDrives) {
 		Person minNoOfDrivesPerson = possibleDrivers.iterator().next();
 		for (Person p : possibleDrivers) {
@@ -396,5 +398,76 @@ public class Util {
 				.collect(Collectors.toList());
 		return mirrorDays;
 	}
+
+	/**
+	 * Additional Planned days are mirror days that have not been processed yet.
+	 * The number shall be considered in the planning so that the driver doesn't start parties on other
+	 * days and eventually overcaps on driving days.
+	 * 
+	 * @param wp the week plan
+	 * @param weekA true if week a, false if week b
+	 * @param persons 
+	 * @return a map of persons to the number of additional days to plan with for the specified week
+	 */
+	public static Map<Person, Integer> calculatePlannedDaysForWeek(TwoWeekPlan wp, boolean weekA, List<Person> persons) {
+		Map<Person, List<DayOfWeekABCombo>> personsToDrivingDays = new HashMap<>();
+		Map<Person, Integer> plannedDaysForWeek = new HashMap<>();
+		// initialize plannedDaysForWeek map
+		persons.forEach(p -> {
+			plannedDaysForWeek.put(p, 0);
+		});
+		
+		// collect person driving days
+		for (DayOfWeekABCombo combo : wp.getWeekDayPermutation()) {
+			DayPlan dayPlan  = wp.getDayPlans().get(combo);
+			if (dayPlan != null) {
+				for (PartyTouple pt : dayPlan.getPartyTouples()) {
+					List<DayOfWeekABCombo> list = personsToDrivingDays.get(pt.getDriver());
+					if (list == null) {
+						list = new ArrayList<>();
+					}
+					list.add(dayPlan.getDayOfWeekABCombo());
+					personsToDrivingDays.put(pt.getDriver(), list);
+				}
+			}
+		}
+		
+		// check where a mirror day will appear
+		for (Entry<Person, List<DayOfWeekABCombo>> entry : personsToDrivingDays.entrySet()) {
+			int additionalPlannedDays = 0;
+			for (DayOfWeekABCombo combo : wp.getWeekDayPermutation()) {
+				// other week
+				if (combo.isWeekA() != weekA && entry.getValue().contains(combo)) {
+					boolean mirrorComboAvailable = doesListContainDayOfWeekABCombo(entry.getValue(), combo);
+					if (!mirrorComboAvailable) {
+						additionalPlannedDays++;
+					}
+				}
+			}
+			plannedDaysForWeek.put(entry.getKey(), additionalPlannedDays);
+		}
+		return plannedDaysForWeek;
+	}
+	
+	private static boolean doesListContainDayOfWeekABCombo(List<DayOfWeekABCombo> list, DayOfWeekABCombo combo) {
+		for (DayOfWeekABCombo item : list) {
+			if (combo.getUniqueNumber() == item.getUniqueNumber()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static DayOfWeekABCombo getMirrorCombo(TwoWeekPlan wp, DayOfWeekABCombo combo) {
+		for (DayOfWeekABCombo c : wp.getWeekDayPermutation()) {
+			if (c.getDayOfWeek().equals(combo.getDayOfWeek()) && c.isWeekA() != combo.isWeekA()) {
+				return c;
+			}
+		}
+		return null;
+	}
+	
+	// NEW STUFF
+	
 	
 }

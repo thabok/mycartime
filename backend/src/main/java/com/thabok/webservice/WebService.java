@@ -87,7 +87,7 @@ public class WebService {
 			}
 			personCount++;
 			String msg = "Fetching timetable for " + person.firstName + " " + person.lastName + " (" + person.initials + ")";
-			float progressValue = (((float)personCount) / persons.size()) * 0.95f;
+			float progressValue = (((float)personCount) / persons.size()) * 0.5f;
 			WebService.updateProgress(progressValue, msg);
 			Map<Integer, Period> timetable = WebUntisAdapter.getTimetable(person.initials, inputData.scheduleReferenceStartDate);
 			person.schedule = Util.timetableToSchedule(person, timetable);
@@ -95,7 +95,7 @@ public class WebService {
 		
 //		printScheduleStatistics(persons);
 		
-		// at this point we should be at a progress value of 0.95 (95%)
+		// at this point we should be at a progress value of 0.5 (50%)
 		Controller controller = new Controller(persons, inputData.preset);
 		int iterations = inputData.preset != null ? 1 : 1000;
 		TwoWeekPlan wp = controller.calculateGoodPlan(iterations);

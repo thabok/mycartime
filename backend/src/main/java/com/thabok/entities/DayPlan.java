@@ -22,7 +22,11 @@ public class DayPlan {
 	}
 	public void addPartyTouple(PartyTouple partyTouple) {
 		this.partyTouples.add(partyTouple);
-	} 
+	}
+	
+	public boolean isWeekA() {
+		return this.dayOfWeekABCombo.isWeekA();
+	}
 	
     public String toString() {
     	String s = "[" + dayOfWeekABCombo + "]\n";
