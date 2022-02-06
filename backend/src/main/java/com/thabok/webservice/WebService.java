@@ -93,8 +93,6 @@ public class WebService {
 			person.schedule = Util.timetableToSchedule(person, timetable);
 		}
 		
-//		printScheduleStatistics(persons);
-		
 		// at this point we should be at a progress value of 0.5 (50%)
 		Controller controller = new Controller(persons, inputData.preset);
 		int iterations = inputData.preset != null ? 1 : 1000;

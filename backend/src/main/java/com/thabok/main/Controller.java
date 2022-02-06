@@ -95,7 +95,7 @@ public class Controller {
                 bestScore = fitness;
                 bestPlan = weekPlan;
             }
-            float progressValue = 0.95f + (((float) (i+1) / iterations) * 0.05f);
+            float progressValue = 0.5f + (((float) (i+1) / iterations) * 0.5f);
             WebService.updateProgress(progressValue, msg);
         }
         System.out.println("Best Score: " + bestScore);
