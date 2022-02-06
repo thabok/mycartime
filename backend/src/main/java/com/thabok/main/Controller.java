@@ -30,20 +30,23 @@ import com.thabok.webservice.WebService;
 public class Controller {
 
 	private static final int EXPECTED_DRIVES_NUMBER = 4;
-	private static final float MIN_MAX_DIFF_PENALTY_FACTOR = 		 0.3f; // 0.3f;
+	private static final float MIN_MAX_DIFF_PENALTY_FACTOR = 		 0.5f; // 0.3f;
 	private static final float AVERAGE_DRIVING_DAYS_PENALTY_FACTOR = 0.3f; // 0.3f;
 	private static final float MISSED_GUIDELINE_FACTOR = 			 0.5f; // 0.5f;
 	private static final Comparator<Party> SEATING_ORDER = new Comparator<Party>() {
 
 		@Override
 		public int compare(Party o1, Party o2) {
+			int r = 0;
 			int freeSeats1 = o1.getDriver().getNoPassengerSeats() - o1.getPassengers().size();
 			int freeSeats2 = o2.getDriver().getNoPassengerSeats() - o2.getPassengers().size();
 			if (freeSeats1 == freeSeats2 && freeSeats1 == 1 && o1.getDriver().getNoPassengerSeats() == 4) {
-				return -1;
+				r = -1;
 			} else {
-				return Integer.compare(freeSeats1, freeSeats2);
+				r = Integer.compare(freeSeats1, freeSeats2);
 			}
+			// multiple with -1 to have the list sorted descending (by free seats), not ascending
+			return r * (-1);
 		}
 	};
 	
@@ -95,7 +98,6 @@ public class Controller {
             float progressValue = 0.95f + (((float) (i+1) / iterations) * 0.05f);
             WebService.updateProgress(progressValue, msg);
         }
-        
         System.out.println("Best Score: " + bestScore);
         return bestPlan;
     }
@@ -164,7 +166,9 @@ public class Controller {
     }
     
     public TwoWeekPlan calculateWeekPlan() throws Exception {
-        initialize();
+//        Date start = new Date();
+    	
+    	initialize();
         TwoWeekPlan wp = new TwoWeekPlan();
         wp.setWeekDayPermutation(new ArrayList<>(Util.weekdayListAB));
         for (DayOfWeekABCombo dayOfWeekABCombo : wp.getWeekDayPermutation()) {
@@ -173,8 +177,17 @@ public class Controller {
             wp.put(dayOfWeekABCombo, calculateDayPlan(dayOfWeekABCombo, referencePlan));
         }
         
+//        Date middle = new Date();
+        
         // final polishing
         balanceWeekPlan(wp);
+        
+//        Date end = new Date();
+        
+//        System.out.println();
+//        System.out.println("Phase 1 (week plan): " + (middle.getTime() - start.getTime()) + " ms");
+//        System.out.println("Phase 2 (balancing): " + (end.getTime() - middle.getTime()) + " ms");
+//        System.out.println("Total              : " + (end.getTime() - start.getTime()) + " ms");
         
         return wp;
     }
@@ -465,18 +478,23 @@ public class Controller {
         	for (Person p : personsForThisDay) {
         		PartyTouple mirrorDayPartyTouple = Util.getMirrorDayPartyTouple(p, referencePlan);
 //        		boolean belowThreshold = numberOfDrives_Total.get(p) < EXPECTED_DRIVES_NUMBER;
-        		boolean belowThreshold = EXPECTED_DRIVES_NUMBER > getNumberOfDrives(p, dayOfWeekABCombo.isWeekA()); 
+        		boolean belowWeekThreshold = getNumberOfDrives(p, dayOfWeekABCombo.isWeekA()) < (EXPECTED_DRIVES_NUMBER / 2); 
+        		boolean belowTotalThreshold = numberOfDrives_Total.get(p) < EXPECTED_DRIVES_NUMBER;
         		boolean drivesOnRefDay = mirrorDayPartyTouple != null;
         		boolean designatedDriver = dpi.designatedDrivers.contains(p);
         		if (designatedDriver) {
         			addSoloParty(dayPlan, p, true);
         			coveredPersons.add(p);
-        		} else if (drivesOnRefDay && belowThreshold) {        			
+        		} else if (drivesOnRefDay && belowWeekThreshold && belowTotalThreshold) {        			
         			addSoloParty(dayPlan, p, false);
         			Integer number = getNumberOfDrives(p, dayOfWeekABCombo.isWeekA());
         			getNumberOfDrivesMap(dayOfWeekABCombo.isWeekA()).put(p, number + 1);
         			coveredPersons.add(p);
-        		}
+        		}/* else {
+        			if (drivesOnRefDay) {
+        				System.out.println(p.firstName + " not picked because belowWeekThreshold: " + belowWeekThreshold + ", belowTotalThreshold: " + belowTotalThreshold);
+        			}
+        		}*/
         	}
         }
 		return coveredPersons;
@@ -508,7 +526,7 @@ public class Controller {
         PartyTouple ptBack = getPreferredPartyTouple(person, candidatesBack, true,
                 dpi.designatedDrivers);
         if (ptThere == null || ptBack == null) {
-            if ((getNumberOfDrives(person, dayOfWeekABCombo.isWeekA())) > driverConsiderationThreshold) {
+            if (alreadyDrivesTooMuch(person, driverConsiderationThreshold, dayOfWeekABCombo)) {
                 // this driver already has more drives than the threshold
                 // look for another driver or reconsider when the threshold has been increased (while-loop)
                 return;
@@ -521,6 +539,13 @@ public class Controller {
         }
         coveredPersons.add(person);
 		
+	}
+
+	private boolean alreadyDrivesTooMuch(Person person, int driverConsiderationThreshold,
+			DayOfWeekABCombo dayOfWeekABCombo) {
+		boolean weekThresholdMet = getNumberOfDrives(person, dayOfWeekABCombo.isWeekA()) > (driverConsiderationThreshold / 2);
+		boolean totalThresholdMet = numberOfDrives_Total.get(person) >= driverConsiderationThreshold;
+		return weekThresholdMet || totalThresholdMet;
 	}
 
     private Map<Person, Integer> getNumberOfDrivesMap(boolean weekA) {
@@ -1019,7 +1044,6 @@ public class Controller {
         partyThere.setWayBack(false);
         int firstLesson = driver.schedule.getTimingInfoPerDay().get(dayPlan.getDayOfWeekABCombo().getUniqueNumber()).getFirstLesson();
         partyThere.setLesson(firstLesson);
-//        partyThere.setTime(Util.lessonStartTimes[firstLesson - 1]);
         partyThere.setTime(driver.schedule.getTimingInfoPerDay().get(dayPlan.getDayOfWeekABCombo().getUniqueNumber()).getStartTime());
         partyTouple.setPartyThere(partyThere);
         
@@ -1029,7 +1053,6 @@ public class Controller {
         partyBack.setWayBack(true);
         int lastLesson = driver.getLesson(dayPlan.getDayOfWeekABCombo(), true);
         partyBack.setLesson(lastLesson);
-//        partyBack.setTime(Util.lessonEndTimes[lastLesson - 1]);
         partyBack.setTime(driver.schedule.getTimingInfoPerDay().get(dayPlan.getDayOfWeekABCombo().getUniqueNumber()).getEndTime());
         partyTouple.setPartyBack(partyBack);
         partyTouple.setDesignatedDriver(isDesignatedDriver);        

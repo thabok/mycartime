@@ -79,6 +79,7 @@ class MainPage extends Component {
                 {this.getCarpoolMembersFieldset()}
                 <br/>
                 {this.getDrivingPlanFieldset()}
+                <br/><br/>
             </div>
         );
     }
@@ -890,6 +891,8 @@ class MainPage extends Component {
             })
         } catch (err) {
             console.log(err)
+            const msg = "Calculation of Driving Plan failed: " + err
+            toast.show({message: msg, intent: "danger", icon: "error"})
         }
     }
 

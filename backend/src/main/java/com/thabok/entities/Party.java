@@ -93,6 +93,9 @@ public class Party {
 	 * @param p the passenger to add to the party
 	 */
 	public void addPassenger(Person p) {
+		if (passengers.size() >= driver.getNoPassengerSeats()) {
+			throw new IllegalStateException("Cannot add a passenger to " + driver + "'s car, it's already full!");
+		}
 		this.passengers.add(p);
 		this.updateTime();
 	}

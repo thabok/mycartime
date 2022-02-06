@@ -167,10 +167,10 @@ public class WebUntisAdapter {
 
     private static String post(Object payload, String requestId) {
     	// try cache
-    	String cachedResult = requestResultCache.get(requestId);
-    	if (cachedResult != null) {
-    		return cachedResult;
-    	}
+//    	String cachedResult = requestResultCache.get(requestId);
+//    	if (cachedResult != null) {
+//    		return cachedResult;
+//    	}
     	// real request
         String responseString = null;
         HttpPost post = new HttpPost(URL_SCHOOL_NGW);
