@@ -362,6 +362,47 @@ public class Controller {
      * @return fitness
      */
     public float getFitness(TwoWeekPlan weekPlan, boolean print) {
+    	
+    	// FIXME: DEBUGGING TO FIND MISSING KEY!
+    	for (DayPlan dayPlan : weekPlan.getDayPlans().values()) {
+    		if (dayPlan.getDayOfWeekABCombo().getUniqueNumber() == 1) {
+    			// MONDAY-A
+    			boolean b1 = false, b2 = false, b3 = false, b4 = false, b5 = false, b6 = false, b7 = false;
+    			for (PartyTouple pt : dayPlan.getPartyTouples()) {
+    				switch (pt.getDriver().initials) {
+    				case "Wr":
+						b1 = true;
+						break;
+    				case "Fd":
+						b2 = true;
+						break;
+    				case "Ul":
+						b3 = true;
+						break;
+    				case "Gz":
+						b4 = true;
+						break;
+    				case "Wg":
+						b1 = true;
+						break;
+    				case "Di":
+						b1 = true;
+						break;
+    				case "Ne":
+						b1 = true;
+						break;
+					default:
+						return 0;
+					}
+    			}
+    			if (b1 && b2 && b3 && b4 && b5 && b6 && b7) {
+    				System.out.println("Found it! \n" + weekPlan.getWeekDayPermutation());
+    				return 1;
+    			}
+    		}
+    	}
+    	// FIXME: DEBUGGING TO FIND MISSING KEY!
+    	
         // Rules
         List<Rule> nonGlobalRules = rules.stream().filter(rule -> rule.isMandatory && "GLOBAL".equals(rule.scope)).collect(Collectors.toList());
         for (Rule rule : nonGlobalRules) {
