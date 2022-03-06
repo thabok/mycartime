@@ -12,19 +12,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CancellationException;
 
-import org.apache.commons.codec.binary.Base64;
-
 import com.google.gson.Gson;
-import com.thabok.entities.MasterPlan;
 import com.thabok.entities.Person;
 import com.thabok.entities.ProgressObject;
 import com.thabok.entities.TimingInfo;
+import com.thabok.entities.TwoWeekPlan;
 import com.thabok.main.Controller;
 import com.thabok.untis.Period;
 import com.thabok.untis.WebUntisAdapter;
 import com.thabok.util.JsonUtil;
 import com.thabok.util.PlanInputData;
 import com.thabok.util.Util;
+
+import org.apache.commons.codec.binary.Base64;
 
 import spark.Request;
 import spark.Response;
@@ -94,14 +94,11 @@ public class WebService {
 		}
 		
 		// at this point we should be at a progress value of 0.5 (50%)
-		Controller controller = new Controller(persons);
-		MasterPlan mp;
-		if (inputData.preset == null) {
-			mp = controller.calculateWeekPlan();
-		} else {
-			mp = controller.adaptPreset(inputData.preset);
-		}
-		return mp;
+		Controller controller = new Controller(persons, inputData.preset);
+		int iterations = inputData.preset != null ? 1 : 1000;
+		TwoWeekPlan wp = controller.calculateGoodPlan(iterations);
+		controller.summarizeNumberOfDrives(wp);
+		return wp;
 	}
 
 	
@@ -113,8 +110,8 @@ public class WebService {
 			int daysWithSameStartAndEnd = 0;
 			for (DayOfWeek dow : weekdays) {
 				try {
-					TimingInfo timingInfoA = person.schedule.get(dow.getValue());
-					TimingInfo timingInfoB = person.schedule.get(dow.getValue() + 7);
+					TimingInfo timingInfoA = person.schedule.getTimingInfoPerDay().get(dow.getValue());
+					TimingInfo timingInfoB = person.schedule.getTimingInfoPerDay().get(dow.getValue() + 7);
 					if (timingInfoA.getFirstLesson() == timingInfoB.getFirstLesson() && timingInfoA.getLastLesson() == timingInfoB.getLastLesson()) {
 						daysWithSameStartAndEnd++;
 					}

@@ -8,6 +8,11 @@ public class DayPlan {
 	private DayOfWeekABCombo dayOfWeekABCombo;
 	private List<PartyTouple> partyTouples = new ArrayList<>();
 	
+	public DayPlan() {
+	}
+	public DayPlan(DayOfWeekABCombo combo) {
+		this.dayOfWeekABCombo = combo;
+	}
 	public DayOfWeekABCombo getDayOfWeekABCombo() {
 		return dayOfWeekABCombo;
 	}

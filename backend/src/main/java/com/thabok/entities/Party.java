@@ -55,15 +55,15 @@ public class Party {
 	private void updateTime() {
 		int updatedTime;
 		if (this.isWayBack) {
-			updatedTime = driver.schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber()).getEndTime();
+			updatedTime = driver.schedule.get(dayOfWeekABCombo.getUniqueNumber()).getEndTime();
 			for (Person passenger : this.passengers) {
-				int passengerTime = passenger.schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber()).getEndTime();
+				int passengerTime = passenger.schedule.get(dayOfWeekABCombo.getUniqueNumber()).getEndTime();
 				updatedTime = Math.max(updatedTime, passengerTime);
 			}
 		} else {
-			updatedTime = driver.schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber()).getStartTime();
+			updatedTime = driver.schedule.get(dayOfWeekABCombo.getUniqueNumber()).getStartTime();
 			for (Person passenger : this.passengers) {
-				int passengerTime = passenger.schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber()).getStartTime();
+				int passengerTime = passenger.schedule.get(dayOfWeekABCombo.getUniqueNumber()).getStartTime();
 				updatedTime = Math.min(updatedTime, passengerTime);
 			}
 		}
@@ -126,10 +126,10 @@ public class Party {
 //	public int getLesson() {
 //		if (isWayBack) {
 //			// way back
-//			return driver.schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber()).getLastLesson();
+//			return driver.schedule.get(dayOfWeekABCombo.getUniqueNumber()).getLastLesson();
 //		} else {
 //			// way there
-//			return driver.schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber()).getFirstLesson();
+//			return driver.schedule.get(dayOfWeekABCombo.getUniqueNumber()).getFirstLesson();
 //		}
 //	}
 //	

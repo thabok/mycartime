@@ -1,5 +1,6 @@
 package com.thabok.entities;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import com.thabok.util.Util;
@@ -13,7 +14,7 @@ public class Person {
     public boolean isPartTime;
     public boolean isCarRoomy;
     public int numberOfSeats;
-    public Schedule schedule;
+    public Map<Integer, TimingInfo> schedule = new HashMap<>();
 
     /**
      * Integer keys from 0-9 indicate days from Monday-A thru Friday-B.
@@ -45,9 +46,9 @@ public class Person {
      */
     public int getLesson(DayOfWeekABCombo dayOfWeekABCombo, boolean isWayBack) {
     	if (isWayBack) {
-    		return schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber()).getLastLesson();
+    		return schedule.get(dayOfWeekABCombo.getUniqueNumber()).getLastLesson();
     	} else {
-    		return schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber()).getFirstLesson();
+    		return schedule.get(dayOfWeekABCombo.getUniqueNumber()).getFirstLesson();
     	}
     }
 }

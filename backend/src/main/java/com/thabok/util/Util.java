@@ -26,6 +26,8 @@ import java.util.stream.Collectors;
 import com.thabok.entities.CustomDay;
 import com.thabok.entities.DayOfWeekABCombo;
 import com.thabok.entities.DayPlan;
+import com.thabok.entities.DayPlanInput;
+import com.thabok.entities.MasterPlan;
 import com.thabok.entities.Party;
 import com.thabok.entities.PartyTouple;
 import com.thabok.entities.Person;
@@ -38,6 +40,8 @@ import com.thabok.untis.Period;
 
 public class Util {
 
+	public static final List<DayOfWeek> weekdays = Arrays.asList(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY);
+	
 	public static List<DayOfWeekABCombo> weekdayListAB = Arrays.asList(
 		new DayOfWeekABCombo(DayOfWeek.MONDAY, true),
 		new DayOfWeekABCombo(DayOfWeek.TUESDAY, true),
@@ -137,9 +141,8 @@ public class Util {
 	 * @param timetable the timetable object (continuous)
 	 * @return the schedule object (discrete)
 	 */
-	public static Schedule timetableToSchedule(Person person, Map<Integer, Period> timetable) {
-		Schedule schedule = new Schedule();
-		Map<Integer, TimingInfo> timingInfoPerDay = new HashMap<>();
+	public static Map<Integer, TimingInfo> timetableToSchedule(Person person, Map<Integer, Period> timetable) {
+		Map<Integer, TimingInfo> schedule = new HashMap<>();
 		for (Entry<Integer, Period> entry : timetable.entrySet()) {
 			DayOfWeekABCombo dayOfWeekABCombo = getDayOfWeekABCombo(entry.getKey() /* date */);
 			TimingInfo dayInfo = new TimingInfo();
@@ -153,9 +156,8 @@ public class Util {
 			applyCustomPreferencesToDayInfo(dayInfo, entry.getKey(), person);
 			
 			
-			timingInfoPerDay.put(dayOfWeekABCombo.getUniqueNumber(), dayInfo);
+			schedule.put(dayOfWeekABCombo.getUniqueNumber(), dayInfo);
 		}
-		schedule.setTimingInfoPerDay(timingInfoPerDay);
 		return schedule;
 	}
 
@@ -192,7 +194,7 @@ public class Util {
 	 */
 	private static DayOfWeekABCombo getDayOfWeekABCombo(int dateNumber) {
 		int number = getDaysBetweenDateAndReferenceWeekStartDate(dateNumber);
-		DayOfWeek dow = Controller.weekdays.get(number % 7);
+		DayOfWeek dow = Util.weekdays.get(number % 7);
 		boolean isA = number < 7;
 		return new DayOfWeekABCombo(dow, isA);
 	}
@@ -372,7 +374,7 @@ public class Util {
 	}
 	
 	public static TimingInfo getTimingInfoForDay(Person p, DayOfWeekABCombo dayOfWeekABCombo) {
-		return p.schedule.getTimingInfoPerDay().get(dayOfWeekABCombo.getUniqueNumber());
+		return p.schedule.get(dayOfWeekABCombo.getUniqueNumber());
 	}
 
 	public static List<DayOfWeekABCombo> findMirrorDay(TwoWeekPlan wp, Person person) {
@@ -458,8 +460,8 @@ public class Util {
 		return false;
 	}
 
-	public static DayOfWeekABCombo getMirrorCombo(TwoWeekPlan wp, DayOfWeekABCombo combo) {
-		for (DayOfWeekABCombo c : wp.getWeekDayPermutation()) {
+	public static DayOfWeekABCombo getMirrorCombo(DayOfWeekABCombo combo) {
+		for (DayOfWeekABCombo c : weekdayListAB) {
 			if (c.getDayOfWeek().equals(combo.getDayOfWeek()) && c.isWeekA() != combo.isWeekA()) {
 				return c;
 			}
@@ -469,5 +471,172 @@ public class Util {
 	
 	// NEW STUFF
 	
+	/**
+     * Returns a map of persons grouped by their first lesson.
+     * 
+     * @param dayOfWeek the day of the week needed to query the persons' schedules
+     * @return a map of persons grouped by their first lesson
+     */
+    public static Map<Integer, List<Person>> getPersonsByFirstLesson(List<Person> persons, DayOfWeekABCombo dayOfWeekABCombo) {
+        Map<Integer, List<Person>> personsByFirstLesson = new HashMap<>(); 
+        // place persons into groups based on first-lesson
+        for (Person person : persons) {
+            TimingInfo timingInfo = person.schedule.get(dayOfWeekABCombo.getUniqueNumber());
+            if (timingInfo != null) {
+                int firstLesson = timingInfo.getFirstLesson();
+                if (!personsByFirstLesson.containsKey(firstLesson)) {
+                    List<Person> list = new ArrayList<>();
+                    personsByFirstLesson.put(firstLesson, list);
+                }
+                personsByFirstLesson.get(firstLesson).add(person);
+            }
+        }
+        return personsByFirstLesson;
+    }
+
+    /**
+     * Returns a map of persons grouped by their last lesson.
+     * 
+     * @param dayOfWeek the day of the week needed to query the persons' schedules
+     * @return a map of persons grouped by their last lesson
+     */
+    public static Map<Integer, List<Person>> getPersonsByLastLesson(List<Person> persons, DayOfWeekABCombo dayOfWeekABCombo) {
+        Map<Integer, List<Person>> personsByLastLesson = new HashMap<>(); 
+        // place persons into groups based on first-lesson
+        for (Person person : persons) {
+            TimingInfo timingInfo = person.schedule.get(dayOfWeekABCombo.getUniqueNumber());
+            if (timingInfo != null) {
+                int lastLesson = timingInfo.getLastLesson();
+                if (!personsByLastLesson.containsKey(lastLesson)) {
+                    List<Person> list = new ArrayList<>();
+                    personsByLastLesson.put(lastLesson, list);
+                }
+                personsByLastLesson.get(lastLesson).add(person);
+            }
+        }
+        return personsByLastLesson;
+    }
+    
+    /**
+     * Returns a set of persons that need to drive anyway because they are the only one in a time slot
+     * or have custom preferences that say so.
+     * 
+     * @param personsByFirstLesson map with persons by first lesson slot
+     * @param personsByLastLesson map with persons by last lesson slot
+     * @param allPersonsForThisDay list of all persons for this day to extract custom preferences 
+     * @param dayOfTheWeekABCombo to know which day it is
+     * @return a set of persons that need to drive anyway because they are the only one in a time slot
+     */
+    public static Set<Person> getDesignatedDrivers(DayPlanInput dpi, List<Person> allPersonsForThisDay, DayOfWeekABCombo dayOfTheWeekABCombo) {
+        Set<Person> designatedDrivers = new HashSet<>();
+
+        // 1. add persons who are alone to their first lesson
+        for (List<Person> persons : dpi.personsByFirstLesson.values()) {
+            if (persons.size() == 1) {
+                designatedDrivers.add(persons.iterator().next());
+            }
+        }
+        
+        // 2. add persons who are alone from their last lesson
+        for (List<Person> persons : dpi.personsByLastLesson.values()) {
+            if (persons.size() == 1) {
+                designatedDrivers.add(persons.iterator().next());
+            }
+        }
+        
+        // 3. Add persons based on custom preferences
+        // pay attention: key is 0 based while uniqueNumber is 1 based
+        int customDaysIndex = Util.dowComboToCustomDaysIndex(dayOfTheWeekABCombo);
+        for (Person person : allPersonsForThisDay) {
+            if (person.customDays.get(customDaysIndex).needsCar) {
+                designatedDrivers.add(person);
+            }
+        }
+        return designatedDrivers;
+    }
+    
+    /**
+     * Creates a solo party for each designatedDriver (isDesignatedDriver=true) and adds them to the dayPlan.
+     * 
+     * @param dayPlan the solo parties are added to this dayPlan
+     * @param designatedDrivers set of designatedDrivers (must drive, no alternative)
+     * @throws Exception 
+     */
+    public static void addPartiesForDesignatedDrivers(DayPlan dayPlan, Set<Person> designatedDrivers) throws Exception {
+        for (Person driver : designatedDrivers ) {
+            addSoloParty(dayPlan, driver, true);
+        }
+    }
+    
+    /**
+     * Creates a solo party for the given driver and adds it to the dayPlan
+     * @param dayPlan the created solo party is added to this dayPlan
+     * @param driver the driver
+     * @param isDesignatedDriver true, if designatedDriver (must drive, no alternative)
+     * @return 
+     * @throws Exception 
+     */
+    public static PartyTouple addSoloParty(DayPlan dayPlan, Person driver, boolean isDesignatedDriver) throws Exception {
+        PartyTouple partyTouple = new PartyTouple();
+        
+        Party partyThere = new Party();
+        partyThere.setDayOfTheWeekABCombo(dayPlan.getDayOfWeekABCombo());
+        partyThere.setDriver(driver);
+        partyThere.setWayBack(false);
+        int firstLesson = driver.schedule.get(dayPlan.getDayOfWeekABCombo().getUniqueNumber()).getFirstLesson();
+        partyThere.setLesson(firstLesson);
+        partyThere.setTime(driver.schedule.get(dayPlan.getDayOfWeekABCombo().getUniqueNumber()).getStartTime());
+        partyTouple.setPartyThere(partyThere);
+        
+        Party partyBack = new Party();
+        partyBack.setDayOfTheWeekABCombo(dayPlan.getDayOfWeekABCombo());
+        partyBack.setDriver(driver);
+        partyBack.setWayBack(true);
+        int lastLesson = driver.getLesson(dayPlan.getDayOfWeekABCombo(), true);
+        partyBack.setLesson(lastLesson);
+        partyBack.setTime(driver.schedule.get(dayPlan.getDayOfWeekABCombo().getUniqueNumber()).getEndTime());
+        partyTouple.setPartyBack(partyBack);
+        partyTouple.setDesignatedDriver(isDesignatedDriver);
+        
+        dayPlan.addPartyTouple(partyTouple);
+
+        return partyTouple;
+    }
+    
+    /**
+     * Adds designated drivers as mirror drivers on the mirror day if they are not already designated drivers there
+     * 
+     * @param inputsPerDay
+     * @param combo
+     * @param dpi
+     */
+	public static void registerMirrorDrivers(Map<Integer, DayPlanInput> inputsPerDay, DayOfWeekABCombo combo,
+			DayPlanInput dpi) {
+		DayOfWeekABCombo mirrorCombo = Util.getMirrorCombo(combo);
+		DayPlanInput mirrorDayInput = inputsPerDay.get(mirrorCombo.getUniqueNumber());
+		for (Person designatedDriver : dpi.designatedDrivers) {
+			if (!mirrorDayInput.designatedDrivers.contains(designatedDriver)) {
+				mirrorDayInput.mirrorDrivers.add(designatedDriver);
+			}
+		}
+	}
+	
+	public static String summarizeNumberOfDrives(MasterPlan mp, List<Person> persons) {
+		Map<Person, Integer> numberOfDrives_Total = new HashMap<>();
+        String summary = "";
+        persons.forEach(p -> numberOfDrives_Total.put(p, 0));
+        for (DayPlan dp : mp.getDayPlans().values()) {
+            for (PartyTouple pt : dp.getPartyTouples()) {
+                numberOfDrives_Total.put(pt.getDriver(), numberOfDrives_Total.get(pt.getDriver()) + 1);
+            }
+        }
+        for (Person p : numberOfDrives_Total.keySet()) {
+            String s = "- " + p.getName() + ": " + numberOfDrives_Total.get(p);
+            System.out.println(s);
+            summary += s + "\n";
+        }
+        mp.summary = summary;
+        return summary;
+    }
 	
 }
