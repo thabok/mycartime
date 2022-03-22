@@ -1,9 +1,6 @@
-package com.thabok.util;
+package com.thabok.entities;
 
 import java.util.List;
-
-import com.thabok.entities.MasterPlan;
-import com.thabok.entities.Person;
 
 public class PlanInputData {
 

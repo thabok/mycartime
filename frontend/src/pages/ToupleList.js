@@ -42,7 +42,7 @@ class ToupleList extends Component {
             passengerStrings.push(p.firstName + " (" + p.initials + ")")
         }
         return (<li key={index}>
-            <b>[{party.lesson}]</b> [{this.timeToString(party.time)}] <b>{party.isDesignatedDriver ? "*" : " "}{party.driver.firstName + " (" + party.driver.initials + ")"}</b> {(party.passengers.length > 0 ? " - " + passengerStrings.join(" - ") : "" )}
+            [{this.timeToString(party.time)}] <b>{party.isDesignatedDriver ? "*" : " "}{party.driver.firstName + " (" + party.driver.initials + ")"}</b> {(party.passengers.length > 0 ? " - " + passengerStrings.join(" - ") : "" )}
         </li>)
     }
 

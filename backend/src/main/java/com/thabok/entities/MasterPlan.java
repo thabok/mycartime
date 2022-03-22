@@ -3,6 +3,7 @@ package com.thabok.entities;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.thabok.helper.PartyHelper;
 import com.thabok.util.Util;
 
 public class MasterPlan {
@@ -17,11 +18,11 @@ public class MasterPlan {
 	 */
 	public MasterPlan(Map<Integer, DayPlanInput> inputsPerDay) {
 		for (DayOfWeekABCombo combo : Util.weekdayListAB) {
-			DayPlanInput dpi = inputsPerDay.get(combo.getUniqueNumber());
 			DayPlan dayPlan = new DayPlan(combo);
-			try { Util.addPartiesForDesignatedDrivers(dayPlan, dpi.designatedDrivers); } catch (Exception e) {}
 			dayPlans.put(combo.getUniqueNumber(), dayPlan);
-			Util.registerMirrorDrivers(inputsPerDay, combo, dpi);
+		}
+		for (DayPlan dayPlan : dayPlans.values()) {
+			try { PartyHelper.addPartiesForDesignatedDrivers(dayPlan, inputsPerDay, dayPlans); } catch (Exception e) { e.printStackTrace(); }
 		}
 	}
 

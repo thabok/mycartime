@@ -17,28 +17,28 @@ class DrivingPlan extends Component {
         return (<tbody>
             <tr>
                 <td><b>Monday (A)</b></td>
-                <td><ToupleList touples={this.props.plan.dayPlans.MONDAY_A.partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
-                <td><ToupleList touples={this.props.plan.dayPlans.MONDAY_A.partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[1].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[1].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
             </tr>
             <tr>
                 <td><b>Tuesday (A)</b></td>
-                <td><ToupleList touples={this.props.plan.dayPlans.TUESDAY_A.partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
-                <td><ToupleList touples={this.props.plan.dayPlans.TUESDAY_A.partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[2].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[2].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
             </tr>
             <tr>
                 <td><b>Wednesday (A)</b></td>
-                <td><ToupleList touples={this.props.plan.dayPlans.WEDNESDAY_A.partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
-                <td><ToupleList touples={this.props.plan.dayPlans.WEDNESDAY_A.partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[3].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[3].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
             </tr>
             <tr>
                 <td><b>Thursday (A)</b></td>
-                <td><ToupleList touples={this.props.plan.dayPlans.THURSDAY_A.partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
-                <td><ToupleList touples={this.props.plan.dayPlans.THURSDAY_A.partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[4].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[4].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
             </tr>
             <tr>
                 <td><b>Friday (A)</b></td>
-                <td><ToupleList touples={this.props.plan.dayPlans.FRIDAY_A.partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
-                <td><ToupleList touples={this.props.plan.dayPlans.FRIDAY_A.partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[5].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[5].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
             </tr>
         </tbody>)
     }
@@ -47,28 +47,28 @@ class DrivingPlan extends Component {
         return (<tbody>
             <tr>
                 <td><b>Monday (B)</b></td>
-                <td><ToupleList touples={this.props.plan.dayPlans.MONDAY_B.partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
-                <td><ToupleList touples={this.props.plan.dayPlans.MONDAY_B.partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[8].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[8].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
             </tr>
             <tr>
                 <td><b>Tuesday (B)</b></td>
-                <td><ToupleList touples={this.props.plan.dayPlans.TUESDAY_B.partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
-                <td><ToupleList touples={this.props.plan.dayPlans.TUESDAY_B.partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[9].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[9].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
             </tr>
             <tr>
                 <td><b>Wednesday (B)</b></td>
-                <td><ToupleList touples={this.props.plan.dayPlans.WEDNESDAY_B.partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
-                <td><ToupleList touples={this.props.plan.dayPlans.WEDNESDAY_B.partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[10].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[10].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
             </tr>
             <tr>
                 <td><b>Thursday (B)</b></td>
-                <td><ToupleList touples={this.props.plan.dayPlans.THURSDAY_B.partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
-                <td><ToupleList touples={this.props.plan.dayPlans.THURSDAY_B.partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[11].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[11].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
             </tr>
             <tr>
                 <td><b>Friday (B)</b></td>
-                <td><ToupleList touples={this.props.plan.dayPlans.FRIDAY_B.partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
-                <td><ToupleList touples={this.props.plan.dayPlans.FRIDAY_B.partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[12].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[12].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
             </tr>
         </tbody>)
     }

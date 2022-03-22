@@ -65,7 +65,7 @@ class MainPage extends Component {
             username: ls.get("username") || "",
             persons: ls.get("persons") || [],
             drivingPlan: ls.get("drivingPlan") || undefined,
-            ABWeekStartDate: new Date(ls.get("ABWeekStartDate")),
+            ABWeekStartDate: new Date(ls.get("ABWeekStartDate")) || new Date(),
         })
     }
 

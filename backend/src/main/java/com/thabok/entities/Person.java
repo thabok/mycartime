@@ -44,11 +44,11 @@ public class Person {
      * @param isWayBack true if way back, false otherwise
      * @return one-based number of the first or last lesson (depends on wayThere/wayBack)
      */
-    public int getLesson(DayOfWeekABCombo dayOfWeekABCombo, boolean isWayBack) {
+    public int getTimeForDowCombo(DayOfWeekABCombo dayOfWeekABCombo, boolean isWayBack) {
     	if (isWayBack) {
-    		return schedule.get(dayOfWeekABCombo.getUniqueNumber()).getLastLesson();
+    		return schedule.get(dayOfWeekABCombo.getUniqueNumber()).getEndTime();
     	} else {
-    		return schedule.get(dayOfWeekABCombo.getUniqueNumber()).getFirstLesson();
+    		return schedule.get(dayOfWeekABCombo.getUniqueNumber()).getStartTime();
     	}
     }
 }

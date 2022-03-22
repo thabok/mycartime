@@ -3,25 +3,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.thabok.util.Util;
+
 public class Party {
 
 	private DayOfWeekABCombo dayOfWeekABCombo;
 	private boolean isWayBack;
 	private Person driver;
 	private int time;
-	private int lesson;
 	private List<Person> passengers = new ArrayList<>();
 
 	public Person getDriver() {
 		return driver;
-	}
-
-	public int getLesson() {
-		return lesson;
-	}
-
-	public void setLesson(int lesson) {
-		this.lesson = lesson;
 	}
 
 	public int getTime() {
@@ -118,28 +111,24 @@ public class Party {
 
 	public String toString() {
 		return (isWayBack ? "[<-] " : "[->] ")
-				+ "[" + getLessonAsTwoCharacters() +  "] "
+				+ "[" + getTimeAsString() +  "] "
 				+ driver.getName()
 				+ (passengers.isEmpty() ? "" : " (" + String.join(", ", passengers.stream().map(p -> p.getName()).collect(Collectors.toList())) + ")");
 	}
 	
-//	public int getLesson() {
-//		if (isWayBack) {
-//			// way back
-//			return driver.schedule.get(dayOfWeekABCombo.getUniqueNumber()).getLastLesson();
-//		} else {
-//			// way there
-//			return driver.schedule.get(dayOfWeekABCombo.getUniqueNumber()).getFirstLesson();
-//		}
-//	}
-//	
-	public String getLessonAsTwoCharacters() {
-		int lesson = getLesson();
-		if (lesson < 10) {
-			return " " + lesson;
-		} else {
-			return "" + lesson;
+	public int getNumberOfFreeSeats() {
+		if (driver == null) {
+			throw new IllegalStateException("Cannot query free seats for a party without a driver. Was it properly initialized?!");
 		}
+		return driver.getNoPassengerSeats() - passengers.size();
+	}
+	
+	public boolean hasAFreeSeat() {
+		return getNumberOfFreeSeats() > 0;
+	}
+
+	public String getTimeAsString() {
+		return Util.getTimeAsString(time);
 	}
 
 	public void removePassenger(Person swapper) {

@@ -17,14 +17,14 @@ import org.apache.commons.codec.binary.Base64;
 import com.google.gson.Gson;
 import com.thabok.entities.MasterPlan;
 import com.thabok.entities.Person;
+import com.thabok.entities.PlanInputData;
 import com.thabok.entities.ProgressObject;
 import com.thabok.entities.TimingInfo;
+import com.thabok.helper.TimetableHelper;
 import com.thabok.main.Controller;
 import com.thabok.untis.Period;
 import com.thabok.untis.WebUntisAdapter;
 import com.thabok.util.JsonUtil;
-import com.thabok.util.PlanInputData;
-import com.thabok.util.Util;
 
 import spark.Request;
 import spark.Response;
@@ -90,7 +90,7 @@ public class WebService {
 			float progressValue = (((float)personCount) / persons.size()) * 0.5f;
 			WebService.updateProgress(progressValue, msg);
 			Map<Integer, Period> timetable = WebUntisAdapter.getTimetable(person.initials, inputData.scheduleReferenceStartDate);
-			person.schedule = Util.timetableToSchedule(person, timetable);
+			person.schedule = TimetableHelper.timetableToSchedule(person, timetable);
 		}
 		
 		// at this point we should be at a progress value of 0.5 (50%)
@@ -115,7 +115,7 @@ public class WebService {
 				try {
 					TimingInfo timingInfoA = person.schedule.get(dow.getValue());
 					TimingInfo timingInfoB = person.schedule.get(dow.getValue() + 7);
-					if (timingInfoA.getFirstLesson() == timingInfoB.getFirstLesson() && timingInfoA.getLastLesson() == timingInfoB.getLastLesson()) {
+					if (timingInfoA.getStartTime() == timingInfoB.getStartTime() && timingInfoA.getEndTime() == timingInfoB.getEndTime()) {
 						daysWithSameStartAndEnd++;
 					}
 				} catch (Exception e) {

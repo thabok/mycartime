@@ -19,6 +19,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import com.google.gson.Gson;
+import com.thabok.helper.TimetableHelper;
 import com.thabok.util.Util;
 
 public class WebUntisAdapter {
@@ -57,7 +58,7 @@ public class WebUntisAdapter {
         Map<Integer, Period> comingAndGoing = new HashMap<>();
         try {
         	List<Period> relevantPeriods = timetableWrapper.result.stream()
-        			.filter(p -> Util.isPeriodRelevant(p, teacherInitials))
+        			.filter(p -> TimetableHelper.isPeriodRelevant(p, teacherInitials))
         			.collect(Collectors.toList());
             for (Period item : relevantPeriods) {
                 Period timetableItem = comingAndGoing.get(item.date);
@@ -194,6 +195,19 @@ public class WebUntisAdapter {
         }
         // cache result
         requestResultCache.put(requestId, responseString);
+        
+//        if (requestId != null && requestId.contains("Kl")) {
+//        	System.err.println();
+//        	System.err.println("Request ID:");
+//            System.err.println(requestId);
+//            System.err.println("Cached Result:");
+//            System.err.println(cachedResult);
+//            System.err.println("Retrieved Result:");
+//            System.err.println(responseString);
+//            System.err.println(responseString.equals(cachedResult));
+//            System.err.println();
+//        }
+        
         return responseString;
     }
     

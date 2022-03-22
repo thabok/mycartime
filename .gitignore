@@ -33,3 +33,6 @@ node_modules
 members.json
 build
 .vscode
+*.json
+*.png
+*.DS_Store

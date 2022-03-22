@@ -549,13 +549,13 @@ public class Controller_OLD {
         List<PartyTouple> candidatesThere = new ArrayList<>();
         List<PartyTouple> candidatesBack = new ArrayList<>();
         for (PartyTouple pt : dayPlan.getPartyTouples()) {
-            boolean timeThereMatches = person.getLesson(dayOfWeekABCombo, false) == pt.getPartyThere().getLesson();
+            boolean timeThereMatches = person.getTimeForDowCombo(dayOfWeekABCombo, false) == pt.getPartyThere().getLesson();
             boolean partyThereIsAvailable = Util.partyIsAvailable(pt.getPartyThere());
             if (timeThereMatches && partyThereIsAvailable) {
                 // remaining person could join this party (->)
                 candidatesThere.add(pt);
             }
-            boolean timeBackMatches = person.getLesson(dayOfWeekABCombo, true) == pt.getPartyBack().getLesson();
+            boolean timeBackMatches = person.getTimeForDowCombo(dayOfWeekABCombo, true) == pt.getPartyBack().getLesson();
             boolean partyBackIsAvailable = Util.partyIsAvailable(pt.getPartyBack());
             if (timeBackMatches && partyBackIsAvailable) {
                 // remaining person could join this party (<-)
@@ -1092,7 +1092,7 @@ public class Controller_OLD {
         partyBack.setDayOfTheWeekABCombo(dayPlan.getDayOfWeekABCombo());
         partyBack.setDriver(driver);
         partyBack.setWayBack(true);
-        int lastLesson = driver.getLesson(dayPlan.getDayOfWeekABCombo(), true);
+        int lastLesson = driver.getTimeForDowCombo(dayPlan.getDayOfWeekABCombo(), true);
         partyBack.setLesson(lastLesson);
         partyBack.setTime(driver.schedule.get(dayPlan.getDayOfWeekABCombo().getUniqueNumber()).getEndTime());
         partyTouple.setPartyBack(partyBack);
