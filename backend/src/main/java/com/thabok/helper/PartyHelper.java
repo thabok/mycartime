@@ -112,7 +112,19 @@ public class PartyHelper {
 			return false;
 		}
 		return true;
-		
+	}
+	
+	public static boolean canDriverTakePersons(Person driver, DayOfWeekABCombo combo, boolean isWayBack) {
+		int customPreferenceIndex = Util.dowComboToCustomDaysIndex(combo);
+		// in case of a partyThere: check if driver wants to be alone in the morning
+		if (!isWayBack && driver.customDays.get(customPreferenceIndex).skipMorning) {
+			return false;
+		}
+		// in case of a partyBack: check if driver wants to be alone in the afternoon
+		if (isWayBack && driver.customDays.get(customPreferenceIndex).skipAfternoon) {
+			return false;
+		}
+		return true;
 	}
 	
 	public static PartyTouple getPartyToupleByPersonAndDay(Person person, DayPlan referencePlan) {
@@ -148,11 +160,11 @@ public class PartyHelper {
 	}
 	
 	/**
-	 * Finds the person(s) best suited to create a party and adds the frequenDriverPerson as a passenger.
+	 * Finds the person(s) best suited to create a party and adds the personToBeSeated as a passenger.
 	 * @param persons 
 	 */
 	public static void createPartiesThisPersonCanJoin(MasterPlan theMasterPlan, Map<Integer, DayPlanInput> inputsPerDay, NumberOfDrivesStatus nods,
-			Person frequentDriverPerson, DayPlan dayPlan, boolean coveredOnWayThere, boolean coveredOnWayBack, List<Person> persons) throws Exception {
+			Person personToBeSeated, DayPlan dayPlan, boolean coveredOnWayThere, boolean coveredOnWayBack, List<Person> persons) throws Exception {
 		DayOfWeekABCombo combo = dayPlan.getDayOfWeekABCombo();
 
 		// set initial conditions based on requirements 
@@ -161,77 +173,65 @@ public class PartyHelper {
 		
 		// find best-suited person(s)
 		List<Person> driverCandidates = nods.getPersonsSortedByNumberOfDrivesForGivenDay(combo);
-		
-		// FIXME: find out why this creates parties for Svenja who's already driving a lot!
-		//         (maybe consider global drives, not just current week...)
-		
-		if (checkWayThere) {
-			for (Person driverCandidate : driverCandidates) {
-				/*
-				 * Skip persons who:
-				 * - have already been covered in the dayPlan
-				 * - are the same person as the frequent driver we try to seat
-				 * - are not active on this day (as per their schedule)
-				 */
-				if (frequentDriverPerson.equals(driverCandidate) || !TimetableHelper.isPersonActiveOnThisDay(driverCandidate, combo) || Util.alreadyCoveredOnGivenDay(driverCandidate, dayPlan)) {
-					continue;
-				}
-	
+		Person driverForWayThere = null;
+		Person driverForWayBack = null;
+		for (Person driverCandidate : driverCandidates) {
+			/*
+			 * Skip persons who:
+			 * - have already been covered in the dayPlan
+			 * - are not active on this day (as per their schedule)
+			 */
+			if (!TimetableHelper.isPersonActiveOnThisDay(driverCandidate, combo) || Util.alreadyCoveredOnGivenDay(driverCandidate, dayPlan)) {
+				continue;
+			}
+
+			if (checkWayThere) {
 				int candidateStartTime = driverCandidate.getTimeForDowCombo(combo, false);
-				int candidateEndTime = driverCandidate.getTimeForDowCombo(combo, true);
-			
-				if (frequentDriverPerson.getTimeForDowCombo(combo, false) == candidateStartTime) {
-					// Create party for person and add frequentDriver
-					PartyTouple newPartyTouple = PartyHelper.addSoloParty(dayPlan, driverCandidate, false, inputsPerDay, theMasterPlan.getDayPlans());
-					if (!partyIsAvailable(newPartyTouple.getPartyThere())) {
-						System.out.println(String.format("  - New party driven by %s [-->] doesn't take passengers.", driverCandidate));
-						continue;
-					}
-					System.out.println(String.format("  - Successfully placed %s into a new party. Driver: %s [-->]", frequentDriverPerson, driverCandidate));
-					newPartyTouple.getPartyThere().addPassenger(frequentDriverPerson);
-					checkWayThere = false;
-					// Check if by chance this also satisfies the frequentDriver's way-back-needs
-					if (checkWayBack && newPartyTouple.getPartyBack().getTime() == candidateEndTime) {
-						newPartyTouple.getPartyBack().addPassenger(frequentDriverPerson);
-						checkWayBack = false;
-						System.out.println(String.format("  - Successfully placed %s into a new party. Driver: %s [<--]", frequentDriverPerson, driverCandidate));
-					}
-					break;
-				}
-			}
-		}
-		
-		// always keep up to date!
-		nods.update(theMasterPlan, persons);
-		driverCandidates = nods.getPersonsSortedByNumberOfDrivesForGivenDay(combo);
-		
-		if (checkWayBack) {
-			for (Person driverCandidate : driverCandidates) {
-				/*
-				 * Skip persons who:
-				 * - have already been covered in the dayPlan
-				 * - are the same person as the frequent driver we try to seat
-				 * - are not active on this day (as per their schedule)
-				 */
-				if (frequentDriverPerson.equals(driverCandidate) || !TimetableHelper.isPersonActiveOnThisDay(driverCandidate, combo) || Util.alreadyCoveredOnGivenDay(driverCandidate, dayPlan)) {
+				if (!canDriverTakePersons(driverCandidate, combo, false)) {
+					System.out.println(String.format("  - Driver %s [-->] doesn't take passengers.", driverCandidate));
 					continue;
 				}
-	
-				int candidateEndTime = driverCandidate.getTimeForDowCombo(combo, true);
-				
-				if (frequentDriverPerson.getTimeForDowCombo(combo, true) == candidateEndTime) {
-					// Create party for person and add frequentDriver
-					PartyTouple newPartyTouple = PartyHelper.addSoloParty(dayPlan, driverCandidate, false, inputsPerDay, theMasterPlan.getDayPlans());
-					if (!partyIsAvailable(newPartyTouple.getPartyThere())) {
-						System.out.println(String.format("  - New party driven by %s [-->] doesn't take passengers.", driverCandidate));
-						continue;
-					}
-					System.out.println(String.format("  - Successfully placed %s into a new party. Driver: %s [<--]", frequentDriverPerson, driverCandidate));
-					newPartyTouple.getPartyThere().addPassenger(frequentDriverPerson);
-					checkWayBack = false;
-					break;
+				if (personToBeSeated.getTimeForDowCombo(combo, false) == candidateStartTime) {
+					driverForWayThere = driverCandidate;
+					checkWayThere = false; // don't search any further
 				}
 			}
+			
+			if (checkWayBack) {
+				int candidateEndTime = driverCandidate.getTimeForDowCombo(combo, true);
+				if (!canDriverTakePersons(driverCandidate, combo, true)) {
+					System.out.println(String.format("  - Driver %s [-->] doesn't take passengers.", driverCandidate));
+					continue;
+				}
+				if (personToBeSeated.getTimeForDowCombo(combo, true) == candidateEndTime) {
+					driverForWayBack = driverCandidate;
+					checkWayBack = false; // don't search any further
+				}
+			}
+				
+		}
+
+		/*
+		 * Create parties based on driverForWayThere & driverForWayBack
+		 */
+		if (driverForWayThere == null || driverForWayBack == null) {
+			// desperate situation...
+			System.err.println(String.format("No one found to take %s along -> creating new solo party.", personToBeSeated));
+			PartyHelper.addSoloParty(dayPlan, personToBeSeated, false, inputsPerDay, theMasterPlan.getDayPlans());
+		} else if (personToBeSeated.equals(driverForWayThere) || personToBeSeated.equals(driverForWayBack)) {
+			// person to be seated seems to be the best candidate for a new party!
+			PartyHelper.addSoloParty(dayPlan, personToBeSeated, false, inputsPerDay, theMasterPlan.getDayPlans());
+		} else if (driverForWayThere.equals(driverForWayBack)) {
+			// same person for there and back
+			PartyTouple partyTouple = PartyHelper.addSoloParty(dayPlan, driverForWayThere, false, inputsPerDay, theMasterPlan.getDayPlans());
+			partyTouple.getPartyThere().addPassenger(personToBeSeated);
+			partyTouple.getPartyBack().addPassenger(personToBeSeated);
+		} else {
+			// different persons driving there and back
+			PartyTouple partyToupleThere = PartyHelper.addSoloParty(dayPlan, driverForWayThere, false, inputsPerDay, theMasterPlan.getDayPlans());
+			partyToupleThere.getPartyThere().addPassenger(personToBeSeated);
+			PartyTouple partyToupleBack = PartyHelper.addSoloParty(dayPlan, driverForWayBack, false, inputsPerDay, theMasterPlan.getDayPlans());
+			partyToupleBack.getPartyBack().addPassenger(personToBeSeated);
 		}
 		
 		// always keep up to date!

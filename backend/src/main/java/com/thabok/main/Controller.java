@@ -85,56 +85,56 @@ public class Controller {
 		Set<Person> coveredPersons = new HashSet<>(persons.size());
 		while (coveredPersons.size() < persons.size()) {
 			List<Person> frequentDriversSortedDesc = nods.getPersonsSortedByNumberOfDrive(false);
-			Person frequentDriverPerson = Util.getNextUnhandledDriver(frequentDriversSortedDesc, coveredPersons);
+			Person person = Util.getNextUnhandledDriver(frequentDriversSortedDesc, coveredPersons);
 			System.out.println();
-			System.out.println(String.format(">>> %s (%s/%s) <<<", frequentDriverPerson, (coveredPersons.size() + 1), persons.size()));
+			System.out.println(String.format(">>> %s (%s/%s) <<<", person, (coveredPersons.size() + 1), persons.size()));
 			System.out.println();
 			// iterate over the days
 			for (DayOfWeekABCombo combo : Util.weekdayListAB) {
 				// skip irrelevant or already covered days
 				DayPlan dayPlan = theMasterPlan.get(combo.getUniqueNumber());
-				boolean activeOnThisDay = TimetableHelper.isPersonActiveOnThisDay(frequentDriverPerson, combo);
-				boolean coveredOnWayThere = Util.alreadyCoveredOnGivenDay(frequentDriverPerson, dayPlan, false);
-				boolean coveredOnWayBack = Util.alreadyCoveredOnGivenDay(frequentDriverPerson, dayPlan, true);
+				boolean activeOnThisDay = TimetableHelper.isPersonActiveOnThisDay(person, combo);
+				boolean coveredOnWayThere = Util.alreadyCoveredOnGivenDay(person, dayPlan, false);
+				boolean coveredOnWayBack = Util.alreadyCoveredOnGivenDay(person, dayPlan, true);
 				boolean alreadyCoveredOnThisDay = coveredOnWayThere && coveredOnWayBack;
 				if (!activeOnThisDay || alreadyCoveredOnThisDay) {
 					continue;
 				}
-				System.out.print(String.format("Trying to place %s (%s): ", frequentDriverPerson, combo));
+				System.out.print(String.format("Trying to place %s (%s): ", person, combo));
 				System.out.println("[" + (!coveredOnWayThere ? "-->" : "   ") + "|" + (!coveredOnWayThere ? "<--" : "   ") + "]");
 				
 				// try to find parties for this person
 				for (PartyTouple pt : dayPlan.getPartyTouples()) {
 					if (!coveredOnWayThere) {
-						int startTime = frequentDriverPerson.getTimeForDowCombo(combo, false);
+						int startTime = person.getTimeForDowCombo(combo, false);
 						// check if start time matches, etc.
 						Party partyThere = pt.getPartyThere();
 						if (partyThere.getTime() == startTime && PartyHelper.partyIsAvailable(partyThere) && partyThere.hasAFreeSeat()) {
-							partyThere.addPassenger(frequentDriverPerson);
+							partyThere.addPassenger(person);
 							coveredOnWayThere = true;
-							System.out.println(String.format("  - Successfully placed %s with %s [-->]", frequentDriverPerson, pt.getDriver()));
+							System.out.println(String.format("  - Successfully placed %s with %s [-->]", person, pt.getDriver()));
 						}
 					}
 					if (!coveredOnWayBack) {
-						int endTime = frequentDriverPerson.getTimeForDowCombo(combo, true);
+						int endTime = person.getTimeForDowCombo(combo, true);
 						// check if end time matches, etc.
 						Party partyBack = pt.getPartyBack();
 						if (partyBack.getTime() == endTime && PartyHelper.partyIsAvailable(partyBack) && partyBack.hasAFreeSeat()) {
-							partyBack.addPassenger(frequentDriverPerson);
+							partyBack.addPassenger(person);
 							coveredOnWayBack = true;
-							System.out.println(String.format("  - Successfully placed %s with %s [<--]", frequentDriverPerson, pt.getDriver()));
+							System.out.println(String.format("  - Successfully placed %s with %s [<--]", person, pt.getDriver()));
 						}
 					}
 				}
 				
 				// if not possible -> find 1-2 persons who can create a party (from the list of lazyDrivers)
 				if (!coveredOnWayThere || !coveredOnWayBack) {
-					System.out.println(String.format("  - %s could not be placed for there and back. Searching for a suitable person to start a new party:", frequentDriverPerson));
-					PartyHelper.createPartiesThisPersonCanJoin(theMasterPlan, inputsPerDay, nods, frequentDriverPerson, dayPlan, coveredOnWayThere, coveredOnWayBack, persons);
+					System.out.println(String.format("  - %s could not be placed for there and back. Searching for a suitable person to start a new party:", person));
+					PartyHelper.createPartiesThisPersonCanJoin(theMasterPlan, inputsPerDay, nods, person, dayPlan, coveredOnWayThere, coveredOnWayBack, persons);
 				}
 				
 				// add frequentDriverPerson to covered persons
-				coveredPersons.add(frequentDriverPerson);
+				coveredPersons.add(person);
 			}
 		}
 	}
