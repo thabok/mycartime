@@ -136,8 +136,9 @@ public class Util {
     }
 
 	public static boolean drivesOnGivenDay(Person person, DayPlan referencePlan) {
-		return PartyHelper.getPartyToupleByPersonAndDay(person, referencePlan) != null;
+		return PartyHelper.getPartyToupleByDriver(referencePlan, person) != null;
 	}
+	
 
 	public static boolean alreadyCoveredOnGivenDay(Person person, DayPlan referencePlan, boolean isWayBack) {
 		boolean isDriver = drivesOnGivenDay(person, referencePlan);
@@ -263,7 +264,7 @@ public class Util {
 		personsByLastName.sort((p1, p2) -> p1.lastName.compareTo(p2.lastName));
         for (Person p : personsByLastName) {
             String s = "- " + p.getName() + ": " + numberOfDrives_Total.get(p);
-            System.out.println(s);
+//            System.out.println(s);
             summary += s + "\n";
         }
         mp.summary = summary;
@@ -293,6 +294,65 @@ public class Util {
 	public static Person getNextUnhandledDriver(List<Person> frequentDriversSortedDesc, Set<Person> coveredPersons) {
 		Optional<Person> findFirst = frequentDriversSortedDesc.stream().filter(p -> !coveredPersons.contains(p)).findFirst();
 		return findFirst.get();
+	}
+
+
+	public static void printDrivingDaysAbMap(MasterPlan theMasterPlan, List<Person> persons) {
+		Map<Person, Integer> numberOfDrives = new NumberOfDrivesStatus(theMasterPlan, persons).getNumberOfDrives();
+		List<Person> personsByLastName = new ArrayList<>(persons);
+		// sort by last name
+		personsByLastName.sort((p1, p2) -> p1.lastName.compareTo(p2.lastName));
+		for (Person person : personsByLastName) {
+			String spaces = "";
+			for (int i=0; i<(19 - person.firstName.length()); i++) {
+				spaces += " ";
+			}
+			System.out.println(String.format("|  %s: %s%s|", person, numberOfDrives.get(person), spaces));
+			PartyTouple pt = PartyHelper.getPartyToupleByDriver(theMasterPlan.getDayPlans().get(1), person);
+			boolean monA = pt != null;
+			boolean desigMonA = pt != null && pt.isDesignatedDriver();
+			pt = PartyHelper.getPartyToupleByDriver(theMasterPlan.getDayPlans().get(2), person);
+			boolean tueA = pt != null;
+			boolean desigTueA = pt != null && pt.isDesignatedDriver();
+			pt = PartyHelper.getPartyToupleByDriver(theMasterPlan.getDayPlans().get(3), person);
+			boolean wedA = pt != null;
+			boolean desigWedA = pt != null && pt.isDesignatedDriver();
+			pt = PartyHelper.getPartyToupleByDriver(theMasterPlan.getDayPlans().get(4), person);
+			boolean thuA = pt != null;
+			boolean desigThuA = pt != null && pt.isDesignatedDriver();
+			pt = PartyHelper.getPartyToupleByDriver(theMasterPlan.getDayPlans().get(5), person);
+			boolean friA = pt != null;
+			boolean desigFriA = pt != null && pt.isDesignatedDriver();
+			pt = PartyHelper.getPartyToupleByDriver(theMasterPlan.getDayPlans().get(8), person);
+			boolean monB = pt != null;
+			boolean desigMonB = pt != null && pt.isDesignatedDriver();
+			pt = PartyHelper.getPartyToupleByDriver(theMasterPlan.getDayPlans().get(9), person);
+			boolean tueB = pt != null;
+			boolean desigTueB = pt != null && pt.isDesignatedDriver();
+			pt = PartyHelper.getPartyToupleByDriver(theMasterPlan.getDayPlans().get(10), person);
+			boolean wedB = pt != null;
+			boolean desigWedB = pt != null && pt.isDesignatedDriver();
+			pt = PartyHelper.getPartyToupleByDriver(theMasterPlan.getDayPlans().get(11), person);
+			boolean thuB = pt != null;
+			boolean desigThuB = pt != null && pt.isDesignatedDriver();
+			pt = PartyHelper.getPartyToupleByDriver(theMasterPlan.getDayPlans().get(12), person);
+			boolean friB = pt != null;
+			boolean desigFriB = pt != null && pt.isDesignatedDriver();
+			System.out.println("| MON | TUE | WED | THU | FRI |");
+			System.out.println(String.format("|  %s  |  %s  |  %s  |  %s  |  %s  |", getAbMapMark(monA, desigMonA), getAbMapMark(tueA, desigTueA), getAbMapMark(wedA, desigWedA), getAbMapMark(thuA, desigThuA) ,getAbMapMark(friA, desigFriA)));
+			System.out.println(String.format("|  %s  |  %s  |  %s  |  %s  |  %s  |", getAbMapMark(monB, desigMonB), getAbMapMark(tueB, desigTueB), getAbMapMark(wedB, desigWedB), getAbMapMark(thuB, desigThuB) ,getAbMapMark(friB, desigFriB)));
+			System.out.println();
+		}
+	}
+	
+	private static String getAbMapMark(boolean isDriving, boolean isDesignatedDriver) {
+		if (isDesignatedDriver) {
+			return "*";
+		} else if (isDriving) {
+			return "x";
+		} else {
+			return " ";
+		}
 	}
 
 

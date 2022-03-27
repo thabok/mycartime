@@ -63,7 +63,7 @@ public class AlternativeDriverHelper {
 				// pDD now contains all days with prio days in the front
 				Person alternativeDriver = tryToFindAlternativeDriver(theMasterPlan, sirDrivesALot, prioritizedDrivingDays, persons, inputsPerDay);
 				if (alternativeDriver == null) {
-					System.err.println("Didn't find anyone to take over for " + sirDrivesALot);
+					System.out.println("Didn't find anyone to take over for " + sirDrivesALot);
 				}
 			}
 		}

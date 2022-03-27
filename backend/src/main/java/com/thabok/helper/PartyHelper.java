@@ -2,7 +2,6 @@ package com.thabok.helper;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import com.thabok.entities.DayOfWeekABCombo;
@@ -50,7 +49,7 @@ public class PartyHelper {
      * @throws Exception 
      */
     public static PartyTouple addSoloParty(DayPlan dayPlan, Person driver, boolean isDesignatedDriver, Map<Integer, DayPlanInput> inputsPerDay, Map<Integer, DayPlan> dayPlans) throws Exception {
-        // create party touple
+    	// create party touple
     	PartyTouple partyTouple = new PartyTouple();
         
     	// - way there
@@ -127,28 +126,30 @@ public class PartyHelper {
 		return true;
 	}
 	
-	public static PartyTouple getPartyToupleByPersonAndDay(Person person, DayPlan referencePlan) {
-		Optional<PartyTouple> optional = referencePlan.getPartyTouples()
-				.stream().filter(refTouple -> person.equals(refTouple.getDriver()))
-				.findAny();
-		if (optional.isPresent()) {
-			return optional.get();
-		} else {
-			return null;
-		}
-	}
-	
-	public static PartyTouple getPartyToupleByPassengerAndDay(Person person, DayPlan referencePlan, boolean isWayBack) {
+	public static Party getPartyToupleByPassengerAndDay(Person person, DayPlan referencePlan, boolean isWayBack) {
 		for (PartyTouple pt : referencePlan.getPartyTouples()) {
 			if (isWayBack && pt.getPartyBack().getPassengers().contains(person)) {
-				return pt;
+				return pt.getPartyBack();
 			} else if (pt.getPartyThere().getPassengers().contains(person)) {
-				return pt;
+				return pt.getPartyThere();
 			}
 		}
 		return null;
 	}
 
+	/**
+	 * Returns the party the given person is driving with (as a driver or passenger). May return null
+	 */
+	public static Party getParty(DayPlan dayPlan, Person person, boolean isWayBack) {
+		PartyTouple partyToupleByDriver = getPartyToupleByDriver(dayPlan, person);
+		Party party = null;
+		if (partyToupleByDriver != null) {
+			party = isWayBack ? partyToupleByDriver.getPartyBack() : partyToupleByDriver.getPartyThere();
+		} else {
+			party = getPartyToupleByPassengerAndDay(person, dayPlan, isWayBack);
+		}
+		return party;
+	}
 
 	public static PartyTouple getPartyToupleByDriver(DayPlan dayPlan, Person driver) {
 		for (PartyTouple pt : dayPlan.getPartyTouples()) {
@@ -164,12 +165,12 @@ public class PartyHelper {
 	 * @param persons 
 	 */
 	public static void createPartiesThisPersonCanJoin(MasterPlan theMasterPlan, Map<Integer, DayPlanInput> inputsPerDay, NumberOfDrivesStatus nods,
-			Person personToBeSeated, DayPlan dayPlan, boolean coveredOnWayThere, boolean coveredOnWayBack, List<Person> persons) throws Exception {
+			Person personToBeSeated, DayPlan dayPlan, Party partyThere, Party partyBack, List<Person> persons) throws Exception {
 		DayOfWeekABCombo combo = dayPlan.getDayOfWeekABCombo();
 
 		// set initial conditions based on requirements 
-		boolean checkWayThere = !coveredOnWayThere;
-		boolean checkWayBack = !coveredOnWayBack;
+		boolean checkWayThere = partyThere == null;
+		boolean checkWayBack = partyBack == null;
 		
 		// find best-suited person(s)
 		List<Person> driverCandidates = nods.getPersonsSortedByNumberOfDrivesForGivenDay(combo);
@@ -214,28 +215,58 @@ public class PartyHelper {
 		/*
 		 * Create parties based on driverForWayThere & driverForWayBack
 		 */
-		if (driverForWayThere == null || driverForWayBack == null) {
+		if ((partyThere == null && driverForWayThere == null) || (partyBack == null && driverForWayBack == null)) {
 			// desperate situation...
-			System.err.println(String.format("No one found to take %s along -> creating new solo party.", personToBeSeated));
+			System.out.println(String.format("  - No one found to take %s along -> creating new solo party.", personToBeSeated));
+		
+			// remove person from any previous parties
+			removePersonFromParties(personToBeSeated, partyThere, partyBack);
+			// create solo party
 			PartyHelper.addSoloParty(dayPlan, personToBeSeated, false, inputsPerDay, theMasterPlan.getDayPlans());
+
 		} else if (personToBeSeated.equals(driverForWayThere) || personToBeSeated.equals(driverForWayBack)) {
 			// person to be seated seems to be the best candidate for a new party!
+			
+			// remove person from any previous parties
+			removePersonFromParties(personToBeSeated, partyThere, partyBack);
+			// create solo party
 			PartyHelper.addSoloParty(dayPlan, personToBeSeated, false, inputsPerDay, theMasterPlan.getDayPlans());
-		} else if (driverForWayThere.equals(driverForWayBack)) {
+			System.out.println(String.format("  - who would have though: %s is the best candidate for a new party -> creating new solo party.", personToBeSeated));
+			
+		} else if (driverForWayThere != null && driverForWayThere.equals(driverForWayBack)) {
 			// same person for there and back
+			
 			PartyTouple partyTouple = PartyHelper.addSoloParty(dayPlan, driverForWayThere, false, inputsPerDay, theMasterPlan.getDayPlans());
 			partyTouple.getPartyThere().addPassenger(personToBeSeated);
 			partyTouple.getPartyBack().addPassenger(personToBeSeated);
+			System.out.println(String.format("  - %s creates a new party, %s can join in the morning and afternoon.", driverForWayThere, personToBeSeated));
+			
 		} else {
 			// different persons driving there and back
-			PartyTouple partyToupleThere = PartyHelper.addSoloParty(dayPlan, driverForWayThere, false, inputsPerDay, theMasterPlan.getDayPlans());
-			partyToupleThere.getPartyThere().addPassenger(personToBeSeated);
-			PartyTouple partyToupleBack = PartyHelper.addSoloParty(dayPlan, driverForWayBack, false, inputsPerDay, theMasterPlan.getDayPlans());
-			partyToupleBack.getPartyBack().addPassenger(personToBeSeated);
+			if (driverForWayThere != null) {
+				PartyTouple partyToupleThere = PartyHelper.addSoloParty(dayPlan, driverForWayThere, false, inputsPerDay, theMasterPlan.getDayPlans());
+				partyToupleThere.getPartyThere().addPassenger(personToBeSeated);
+				System.out.println(String.format("  - %s creates a new party, %s can join in the morning.", driverForWayThere, personToBeSeated));
+			}
+			if (driverForWayBack != null) {
+				PartyTouple partyToupleBack = PartyHelper.addSoloParty(dayPlan, driverForWayBack, false, inputsPerDay, theMasterPlan.getDayPlans());
+				partyToupleBack.getPartyBack().addPassenger(personToBeSeated);
+				System.out.println(String.format("  - %s creates a new party, %s can join in the afternoon.", driverForWayBack, personToBeSeated));
+			}
+			
 		}
 		
 		// always keep up to date!
 		nods.update(theMasterPlan, persons);
+	}
+
+
+	public static void removePersonFromParties(Person personToRemove, Party ... parties) {
+		for (Party party : parties) {
+			if (party != null) {
+				party.removePassenger(personToRemove);
+			}
+		}
 	}
 	
 }

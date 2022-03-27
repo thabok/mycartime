@@ -61,14 +61,21 @@ public class Controller {
 		 */
 		AlternativeDriverHelper.findAlternativeForSirDrivesALots(theMasterPlan, persons, inputsPerDay);
 		
+		System.out.println("");
+		System.out.println("designated drivers");
+		Util.summarizeNumberOfDrives(theMasterPlan, persons);
+		System.out.println();
+		
 		/*
 		 * Next up, we add people to existing parties _if possible_ and create new parties _when needed_
 		 */
 		coreAlgorithm(theMasterPlan);
 		
-		// TODO: Evaluate if "createPartyForPersonsWithZeroDrives(...)" is still needed / helps / hurts
 		System.out.println();
 		System.out.println(theMasterPlan);
+		System.out.println();
+		Util.printDrivingDaysAbMap(theMasterPlan, persons);		
+		System.out.println();
 		Util.summarizeNumberOfDrives(theMasterPlan, persons);
 		System.out.println();
 		
@@ -94,43 +101,47 @@ public class Controller {
 				// skip irrelevant or already covered days
 				DayPlan dayPlan = theMasterPlan.get(combo.getUniqueNumber());
 				boolean activeOnThisDay = TimetableHelper.isPersonActiveOnThisDay(person, combo);
-				boolean coveredOnWayThere = Util.alreadyCoveredOnGivenDay(person, dayPlan, false);
-				boolean coveredOnWayBack = Util.alreadyCoveredOnGivenDay(person, dayPlan, true);
-				boolean alreadyCoveredOnThisDay = coveredOnWayThere && coveredOnWayBack;
+				Party partyThere = PartyHelper.getParty(dayPlan, person, false);
+				Party partyBack = PartyHelper.getParty(dayPlan, person, true);
+				boolean alreadyCoveredOnThisDay = (partyThere != null) && (partyBack != null);
 				if (!activeOnThisDay || alreadyCoveredOnThisDay) {
 					continue;
 				}
-				System.out.print(String.format("Trying to place %s (%s): ", person, combo));
-				System.out.println("[" + (!coveredOnWayThere ? "-->" : "   ") + "|" + (!coveredOnWayThere ? "<--" : "   ") + "]");
+				System.out.print(String.format("[%s] Trying to place %s (%s): ", combo, person, nods.getNumberOfDrives().get(person)));
+				System.out.println("[" + (!((partyThere != null)) ? "-->" : "   ") + "|" + (!((partyBack != null)) ? "<--" : "   ") + "]");
 				
 				// try to find parties for this person
 				for (PartyTouple pt : dayPlan.getPartyTouples()) {
-					if (!coveredOnWayThere) {
+					if (partyThere == null) {
 						int startTime = person.getTimeForDowCombo(combo, false);
 						// check if start time matches, etc.
-						Party partyThere = pt.getPartyThere();
+						partyThere = pt.getPartyThere();
 						if (partyThere.getTime() == startTime && PartyHelper.partyIsAvailable(partyThere) && partyThere.hasAFreeSeat()) {
 							partyThere.addPassenger(person);
-							coveredOnWayThere = true;
-							System.out.println(String.format("  - Successfully placed %s with %s [-->]", person, pt.getDriver()));
+							System.out.println(String.format("  - %s can ride with %s in the morning", person, pt.getDriver()));
+						} else {
+							partyThere = null;
 						}
 					}
-					if (!coveredOnWayBack) {
+					if ((partyBack == null)) {
 						int endTime = person.getTimeForDowCombo(combo, true);
 						// check if end time matches, etc.
-						Party partyBack = pt.getPartyBack();
+						partyBack = pt.getPartyBack();
 						if (partyBack.getTime() == endTime && PartyHelper.partyIsAvailable(partyBack) && partyBack.hasAFreeSeat()) {
 							partyBack.addPassenger(person);
-							coveredOnWayBack = true;
-							System.out.println(String.format("  - Successfully placed %s with %s [<--]", person, pt.getDriver()));
+							System.out.println(String.format("  - %s  can ride with %s in the afternoon", person, pt.getDriver()));
+						} else {
+							partyBack = null;
 						}
 					}
 				}
 				
 				// if not possible -> find 1-2 persons who can create a party (from the list of lazyDrivers)
-				if (!coveredOnWayThere || !coveredOnWayBack) {
-					System.out.println(String.format("  - %s could not be placed for there and back. Searching for a suitable person to start a new party:", person));
-					PartyHelper.createPartiesThisPersonCanJoin(theMasterPlan, inputsPerDay, nods, person, dayPlan, coveredOnWayThere, coveredOnWayBack, persons);
+				if ((partyThere == null) || (partyBack == null)) {
+					if (partyThere == null) System.out.println("  - Didn't find a party to join for the morning.");
+					if (partyBack == null) System.out.println("  - Didn't find a party to join for the afternoon.");
+					System.out.println("  - Searching for a suitable person to start a new party...");
+					PartyHelper.createPartiesThisPersonCanJoin(theMasterPlan, inputsPerDay, nods, person, dayPlan, partyThere, partyBack, persons);
 				}
 				
 				// add frequentDriverPerson to covered persons
