@@ -17,10 +17,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -32,7 +30,6 @@ import com.thabok.entities.MasterPlan;
 import com.thabok.entities.NumberOfDrivesStatus;
 import com.thabok.entities.PartyTouple;
 import com.thabok.entities.Person;
-import com.thabok.entities.TwoWeekPlan;
 import com.thabok.helper.PartyHelper;
 
 public class Util {
@@ -167,90 +164,6 @@ public class Util {
 		return minNoOfDrivesPerson;
 	}
 	
-
-	public static List<DayOfWeekABCombo> findMirrorDay(TwoWeekPlan wp, Person person) {
-		Set<DayOfWeekABCombo> drivingDaysAB = new HashSet<>();
-		for (DayPlan dayPlan : wp.getDayPlans().values()) {
-			for (PartyTouple pt : dayPlan.getPartyTouples()) {
-				if (person.equals(pt.getDriver())) {
-					// check if a combo of the same week day (different week) is present in the set
-					Optional<DayOfWeekABCombo> optMatch = drivingDaysAB.stream()
-							.filter(combo -> combo.getDayOfWeek().equals(dayPlan.getDayOfWeekABCombo().getDayOfWeek()))
-							.findAny();
-					if (optMatch.isPresent()) {
-						drivingDaysAB.remove(optMatch.get());
-					} else {            					
-						drivingDaysAB.add(dayPlan.getDayOfWeekABCombo());
-					}
-					break;
-				}
-			}
-		}
-		List<DayOfWeekABCombo> mirrorDays = drivingDaysAB.stream()
-				.map(combo -> new DayOfWeekABCombo(combo.getDayOfWeek(), !combo.isWeekA()))
-				.collect(Collectors.toList());
-		return mirrorDays;
-	}
-
-	/**
-	 * Additional Planned days are mirror days that have not been processed yet.
-	 * The number shall be considered in the planning so that the driver doesn't start parties on other
-	 * days and eventually overcaps on driving days.
-	 * 
-	 * @param wp the week plan
-	 * @param weekA true if week a, false if week b
-	 * @param persons 
-	 * @return a map of persons to the number of additional days to plan with for the specified week
-	 */
-	public static Map<Person, Integer> calculatePlannedDaysForWeek(TwoWeekPlan wp, boolean weekA, List<Person> persons) {
-		Map<Person, List<DayOfWeekABCombo>> personsToDrivingDays = new HashMap<>();
-		Map<Person, Integer> plannedDaysForWeek = new HashMap<>();
-		// initialize plannedDaysForWeek map
-		persons.forEach(p -> {
-			plannedDaysForWeek.put(p, 0);
-		});
-		
-		// collect person driving days
-		for (DayOfWeekABCombo combo : wp.getWeekDayPermutation()) {
-			DayPlan dayPlan  = wp.getDayPlans().get(combo);
-			if (dayPlan != null) {
-				for (PartyTouple pt : dayPlan.getPartyTouples()) {
-					List<DayOfWeekABCombo> list = personsToDrivingDays.get(pt.getDriver());
-					if (list == null) {
-						list = new ArrayList<>();
-					}
-					list.add(dayPlan.getDayOfWeekABCombo());
-					personsToDrivingDays.put(pt.getDriver(), list);
-				}
-			}
-		}
-		
-		// check where a mirror day will appear
-		for (Entry<Person, List<DayOfWeekABCombo>> entry : personsToDrivingDays.entrySet()) {
-			int additionalPlannedDays = 0;
-			for (DayOfWeekABCombo combo : wp.getWeekDayPermutation()) {
-				// other week
-				if (combo.isWeekA() != weekA && entry.getValue().contains(combo)) {
-					boolean mirrorComboAvailable = doesListContainDayOfWeekABCombo(entry.getValue(), combo);
-					if (!mirrorComboAvailable) {
-						additionalPlannedDays++;
-					}
-				}
-			}
-			plannedDaysForWeek.put(entry.getKey(), additionalPlannedDays);
-		}
-		return plannedDaysForWeek;
-	}
-	
-	private static boolean doesListContainDayOfWeekABCombo(List<DayOfWeekABCombo> list, DayOfWeekABCombo combo) {
-		for (DayOfWeekABCombo item : list) {
-			if (combo.getUniqueNumber() == item.getUniqueNumber()) {
-				return true;
-			}
-		}
-		return false;
-	}
-
 	public static DayOfWeekABCombo getMirrorCombo(DayOfWeekABCombo combo) {
 		for (DayOfWeekABCombo c : weekdayListAB) {
 			if (c.getDayOfWeek().equals(combo.getDayOfWeek()) && c.isWeekA() != combo.isWeekA()) {
@@ -259,8 +172,6 @@ public class Util {
 		}
 		return null;
 	}
-	
-	// NEW STUFF
 	
 	public static String getTimeAsString(int time) {
 		String timeAs4Chars = String.format("%04d", time);
