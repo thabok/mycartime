@@ -1,7 +1,10 @@
 package com.thabok.helper;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import com.thabok.entities.DayOfWeekABCombo;
@@ -31,7 +34,7 @@ public class PartyHelper {
     public static void addPartiesForDesignatedDrivers(DayPlan dayPlan, Map<Integer, DayPlanInput> inputsPerDay, Map<Integer, DayPlan> dayPlans) throws Exception {
         Set<Person> designatedDrivers = inputsPerDay.get(dayPlan.getDayOfWeekABCombo().getUniqueNumber()).designatedDrivers;
     	for (Person driver : designatedDrivers ) {
-            addSoloParty(dayPlan, driver, true, inputsPerDay, dayPlans);
+            addSoloParty(dayPlan, driver, true, inputsPerDay);
         }
     }
     
@@ -48,7 +51,7 @@ public class PartyHelper {
      * @return 
      * @throws Exception 
      */
-    public static PartyTouple addSoloParty(DayPlan dayPlan, Person driver, boolean isDesignatedDriver, Map<Integer, DayPlanInput> inputsPerDay, Map<Integer, DayPlan> dayPlans) throws Exception {
+    public static PartyTouple addSoloParty(DayPlan dayPlan, Person driver, boolean isDesignatedDriver, Map<Integer, DayPlanInput> inputsPerDay) throws Exception {
     	// create party touple
     	PartyTouple partyTouple = new PartyTouple();
         
@@ -74,24 +77,6 @@ public class PartyHelper {
         // add party touple to day plan
         dayPlan.addPartyTouple(partyTouple);
 
-        /*
-         *  FIXME: ----------------- Consider to remove this ---------------------
-         */
-        // register mirror day driver on mirror day
-//        DayOfWeekABCombo mirrorCombo = Util.getMirrorCombo(dayPlan.getDayOfWeekABCombo());
-//        DayPlan mirrorDayPlan = dayPlans.get(mirrorCombo.getUniqueNumber());
-//        boolean driverDrivesOnMirrorDay = TimetableHelper.isPersonActiveOnThisDay(driver, mirrorCombo) && Util.drivesOnGivenDay(driver, mirrorDayPlan);
-//        if (!driverDrivesOnMirrorDay) {
-//        	DayPlanInput mirrorDayPlanInput = inputsPerDay.get(mirrorCombo.getUniqueNumber());
-//        	mirrorDayPlanInput.mirrorDrivers.add(driver);
-//        }
-//        
-//        // de-register mirror day driver for this day
-//        inputsPerDay.get(dayPlan.getDayOfWeekABCombo().getUniqueNumber()).mirrorDrivers.remove(driver);
-        /*
-         *  FIXME: ---------------------- End of section ------------------------
-         */
-        
         return partyTouple;
     }
     
@@ -165,7 +150,7 @@ public class PartyHelper {
 	 * @param persons 
 	 */
 	public static void createPartiesThisPersonCanJoin(MasterPlan theMasterPlan, Map<Integer, DayPlanInput> inputsPerDay, NumberOfDrivesStatus nods,
-			Person personToBeSeated, DayPlan dayPlan, Party partyThere, Party partyBack, List<Person> persons) throws Exception {
+			Person personToBeSeated, DayPlan dayPlan, Party partyThere, Party partyBack) throws Exception {
 		DayOfWeekABCombo combo = dayPlan.getDayOfWeekABCombo();
 
 		// set initial conditions based on requirements 
@@ -189,24 +174,24 @@ public class PartyHelper {
 			if (checkWayThere) {
 				int candidateStartTime = driverCandidate.getTimeForDowCombo(combo, false);
 				if (!canDriverTakePersons(driverCandidate, combo, false)) {
-					System.out.println(String.format("  - Driver %s [-->] doesn't take passengers.", driverCandidate));
-					continue;
-				}
-				if (personToBeSeated.getTimeForDowCombo(combo, false) == candidateStartTime) {
-					driverForWayThere = driverCandidate;
-					checkWayThere = false; // don't search any further
+					Util.out.println(String.format("  - Driver %s [-->] doesn't take passengers.", driverCandidate));
+				} else {
+					if (personToBeSeated.getTimeForDowCombo(combo, false) == candidateStartTime) {
+						driverForWayThere = driverCandidate;
+						checkWayThere = false; // don't search any further
+					}
 				}
 			}
 			
 			if (checkWayBack) {
 				int candidateEndTime = driverCandidate.getTimeForDowCombo(combo, true);
 				if (!canDriverTakePersons(driverCandidate, combo, true)) {
-					System.out.println(String.format("  - Driver %s [-->] doesn't take passengers.", driverCandidate));
-					continue;
-				}
-				if (personToBeSeated.getTimeForDowCombo(combo, true) == candidateEndTime) {
-					driverForWayBack = driverCandidate;
-					checkWayBack = false; // don't search any further
+					Util.out.println(String.format("  - Driver %s [-->] doesn't take passengers.", driverCandidate));
+				} else {
+					if (personToBeSeated.getTimeForDowCombo(combo, true) == candidateEndTime) {
+						driverForWayBack = driverCandidate;
+						checkWayBack = false; // don't search any further
+					}
 				}
 			}
 				
@@ -217,12 +202,12 @@ public class PartyHelper {
 		 */
 		if ((partyThere == null && driverForWayThere == null) || (partyBack == null && driverForWayBack == null)) {
 			// desperate situation...
-			System.out.println(String.format("  - No one found to take %s along -> creating new solo party.", personToBeSeated));
+			Util.out.println(String.format("  - No one found to take %s along -> creating new solo party.", personToBeSeated));
 		
 			// remove person from any previous parties
 			removePersonFromParties(personToBeSeated, partyThere, partyBack);
 			// create solo party
-			PartyHelper.addSoloParty(dayPlan, personToBeSeated, false, inputsPerDay, theMasterPlan.getDayPlans());
+			addSoloParty(dayPlan, personToBeSeated, false, inputsPerDay);
 
 		} else if (personToBeSeated.equals(driverForWayThere) || personToBeSeated.equals(driverForWayBack)) {
 			// person to be seated seems to be the best candidate for a new party!
@@ -230,34 +215,34 @@ public class PartyHelper {
 			// remove person from any previous parties
 			removePersonFromParties(personToBeSeated, partyThere, partyBack);
 			// create solo party
-			PartyHelper.addSoloParty(dayPlan, personToBeSeated, false, inputsPerDay, theMasterPlan.getDayPlans());
-			System.out.println(String.format("  - who would have though: %s is the best candidate for a new party -> creating new solo party.", personToBeSeated));
+			addSoloParty(dayPlan, personToBeSeated, false, inputsPerDay);
+			Util.out.println(String.format("  - who would have though: %s is the best candidate for a new party -> creating new solo party.", personToBeSeated));
 			
 		} else if (driverForWayThere != null && driverForWayThere.equals(driverForWayBack)) {
 			// same person for there and back
 			
-			PartyTouple partyTouple = PartyHelper.addSoloParty(dayPlan, driverForWayThere, false, inputsPerDay, theMasterPlan.getDayPlans());
+			PartyTouple partyTouple = addSoloParty(dayPlan, driverForWayThere, false, inputsPerDay);
 			partyTouple.getPartyThere().addPassenger(personToBeSeated);
 			partyTouple.getPartyBack().addPassenger(personToBeSeated);
-			System.out.println(String.format("  - %s creates a new party, %s can join in the morning and afternoon.", driverForWayThere, personToBeSeated));
+			Util.out.println(String.format("  - %s creates a new party, %s can join in the morning and afternoon.", driverForWayThere, personToBeSeated));
 			
 		} else {
 			// different persons driving there and back
 			if (driverForWayThere != null) {
-				PartyTouple partyToupleThere = PartyHelper.addSoloParty(dayPlan, driverForWayThere, false, inputsPerDay, theMasterPlan.getDayPlans());
+				PartyTouple partyToupleThere = addSoloParty(dayPlan, driverForWayThere, false, inputsPerDay);
 				partyToupleThere.getPartyThere().addPassenger(personToBeSeated);
-				System.out.println(String.format("  - %s creates a new party, %s can join in the morning.", driverForWayThere, personToBeSeated));
+				Util.out.println(String.format("  - %s creates a new party, %s can join in the morning.", driverForWayThere, personToBeSeated));
 			}
 			if (driverForWayBack != null) {
-				PartyTouple partyToupleBack = PartyHelper.addSoloParty(dayPlan, driverForWayBack, false, inputsPerDay, theMasterPlan.getDayPlans());
+				PartyTouple partyToupleBack = addSoloParty(dayPlan, driverForWayBack, false, inputsPerDay);
 				partyToupleBack.getPartyBack().addPassenger(personToBeSeated);
-				System.out.println(String.format("  - %s creates a new party, %s can join in the afternoon.", driverForWayBack, personToBeSeated));
+				Util.out.println(String.format("  - %s creates a new party, %s can join in the afternoon.", driverForWayBack, personToBeSeated));
 			}
 			
 		}
 		
 		// always keep up to date!
-		nods.update(theMasterPlan, persons);
+		nods.update(theMasterPlan);
 	}
 
 
@@ -268,5 +253,35 @@ public class PartyHelper {
 			}
 		}
 	}
+	
+    public static Map<Integer, List<Party>> getPartiesByStartOrEndTime(List<Party> parties, boolean applyTolerances) {
+    	Map<Integer, List<Party>> partiesByStartOrEndTime = new HashMap<>(); 
+        // place persons into groups based on start/end time
+        for (Party party : parties) {
+        	if (PartyHelper.partyIsAvailable(party)) {
+	            if (!partiesByStartOrEndTime.containsKey(party.getTime())) {
+	                List<Party> list = new ArrayList<>();
+	                partiesByStartOrEndTime.put(party.getTime(), list);
+	            }
+	            partiesByStartOrEndTime.get(party.getTime()).add(party);
+        	}
+        }
+        if (!applyTolerances) {
+        	return partiesByStartOrEndTime;
+        }
+        // merge stuff if tolerance shall be considered
+        Map<Integer, List<Party>> partiesByTimeMerged = new HashMap<>();
+        int lastReferenceTime = 0;
+        List<Entry<Integer, List<Party>>> sortedEntries = new ArrayList<>(partiesByStartOrEndTime.entrySet());
+        sortedEntries.sort((e1, e2) -> e1.getKey().compareTo(e2.getKey()));
+        for (Entry<Integer, List<Party>> entry : sortedEntries) {
+        	if (!Util.isTimeDifferenceAcceptable(entry.getKey(), lastReferenceTime)) {
+                lastReferenceTime = entry.getKey();
+                partiesByTimeMerged.put(lastReferenceTime, new ArrayList<>());
+            }
+        	partiesByTimeMerged.get(lastReferenceTime).addAll(entry.getValue());
+        }
+        return partiesByTimeMerged;
+    }
 	
 }

@@ -10,16 +10,13 @@ import com.thabok.util.Util;
 public class NumberOfDrivesStatus {
 
 	private MasterPlan masterPlan;
-	private List<Person> persons;
 
-	public NumberOfDrivesStatus(MasterPlan masterPlan, List<Person> persons) {
+	public NumberOfDrivesStatus(MasterPlan masterPlan) {
 		this.masterPlan = masterPlan;
-		this.persons = persons;
 	}
 
-	public void update(MasterPlan masterPlan, List<Person> persons) {
+	public void update(MasterPlan masterPlan) {
 		this.masterPlan = masterPlan;
-		this.persons = persons;
 	}
 
 	public Map<Person, Integer> getNumberOfDrives() {
@@ -28,7 +25,7 @@ public class NumberOfDrivesStatus {
 
 	public Map<Person, Integer> getNumberOfDrives(Boolean isWeekA) {
 		Map<Person, Integer> numberOfDrives = new HashMap<>();
-		persons.forEach(p -> numberOfDrives.put(p, 0));
+		masterPlan.persons.forEach(p -> numberOfDrives.put(p, 0));
 		for (DayPlan dp : masterPlan.getDayPlans().values()) {
 			boolean skip = (isWeekA != null) && ((dp.getDayOfWeekABCombo().getUniqueNumber() < 8) != isWeekA);
 			if (skip)
@@ -47,7 +44,7 @@ public class NumberOfDrivesStatus {
 	public List<Person> getPersonsSortedByNumberOfDrive(boolean sortAscending, Boolean isWeekA) {
 		Map<Person, Integer> numberOfDrives = getNumberOfDrives(isWeekA);
 		int sortingFactor = sortAscending ? 1 : -1; // controls asc vs. desc
-		List<Person> personsSorted = persons.stream()
+		List<Person> personsSorted = masterPlan.persons.stream()
 				.sorted((p1, p2) -> numberOfDrives.get(p1).compareTo(numberOfDrives.get(p2)) * sortingFactor)
 				.collect(Collectors.toList());
 		return personsSorted;
@@ -66,7 +63,7 @@ public class NumberOfDrivesStatus {
 	public List<Person> getPersonsSortedByNumberOfDrivesForGivenDay(DayOfWeekABCombo combo) {
 		boolean isWeekA = combo.getUniqueNumber() < 8;
 		Map<Person, Integer> numberOfDrives = getNumberOfDrives(isWeekA);
-		List<Person> personsSorted = persons.stream().sorted((p1, p2) -> {
+		List<Person> personsSorted = masterPlan.persons.stream().sorted((p1, p2) -> {
 			int compare = numberOfDrives.get(p1).compareTo(numberOfDrives.get(p2));
 			if (compare == 0) {
 				// equal... noDrives for the given week. How about mirror days?

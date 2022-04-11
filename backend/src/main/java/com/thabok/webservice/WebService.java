@@ -8,6 +8,7 @@ import static spark.Spark.post;
 
 import java.time.DayOfWeek;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CancellationException;
@@ -16,6 +17,7 @@ import org.apache.commons.codec.binary.Base64;
 
 import com.google.gson.Gson;
 import com.thabok.entities.MasterPlan;
+import com.thabok.entities.NumberOfDrivesStatus;
 import com.thabok.entities.Person;
 import com.thabok.entities.PlanInputData;
 import com.thabok.entities.ProgressObject;
@@ -25,6 +27,7 @@ import com.thabok.main.Controller;
 import com.thabok.untis.Period;
 import com.thabok.untis.WebUntisAdapter;
 import com.thabok.util.JsonUtil;
+import com.thabok.util.Util;
 
 import spark.Request;
 import spark.Response;
@@ -94,10 +97,16 @@ public class WebService {
 		}
 		
 		// at this point we should be at a progress value of 0.5 (50%)
-		Controller controller = new Controller(persons);
+		Controller controller = new Controller();
 		MasterPlan mp;
 		if (inputData.preset == null) {
-			mp = controller.calculateWeekPlan();
+			mp = findBestWeekPlan(controller, persons, 1000);
+			// calculate the winning plan once more (for debugging, tracability, etc.)
+			MasterPlan mp2 = controller.calculateWeekPlan(mp);
+			Util.summarizeNumberOfDrives(mp);
+			Util.summarizeNumberOfDrives(mp2);
+			assert mp.summary.equals(mp2.summary);
+			
 		} else {
 			mp = controller.adaptPreset(inputData.preset);
 		}
@@ -105,6 +114,41 @@ public class WebService {
 	}
 
 	
+	private MasterPlan findBestWeekPlan(Controller controller, List<Person> persons, int iterations) throws Exception {
+		MasterPlan mp = null;
+		int lowestNoPersonsWithMoreThan4Drives = 100;
+		for (int i=0; i<iterations; i++) {
+			List<Person> lPersons = persons;
+			Collections.shuffle(lPersons);
+			float progressValue = 0.5f + ((float) i / iterations) * 0.5f;
+			WebService.updateProgress(progressValue, "Calculating plan");
+			MasterPlan mpCandidate = controller.calculateWeekPlan(lPersons);
+			int gt4 = calculateNumberOfPersonsAbove4Drives(mpCandidate);
+			if (gt4 < lowestNoPersonsWithMoreThan4Drives) {
+				System.out.println("Found a better plan: " + lowestNoPersonsWithMoreThan4Drives + " -> " + gt4);
+				lowestNoPersonsWithMoreThan4Drives = gt4;
+				mp = mpCandidate;
+			}
+		}
+		System.out.println();
+		System.out.println(mp);
+		System.out.println();
+		Util.printDrivingDaysAbMap(mp);		
+		System.out.println();
+		Util.summarizeNumberOfDrives(mp);
+		System.out.println();
+		return mp;
+	}
+
+	private int calculateNumberOfPersonsAbove4Drives(MasterPlan mpCandidate) {
+		NumberOfDrivesStatus nods = new NumberOfDrivesStatus(mpCandidate);
+		int gt4 = 0;
+		for (int noDrives : nods.getNumberOfDrives().values()) {
+			if (noDrives > 4) gt4++; 
+		}
+		return gt4;
+	}
+
 	@SuppressWarnings("unused")
 	private void printScheduleStatistics(List<Person> persons) {
 		List<DayOfWeek> weekdays = Arrays.asList(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY);

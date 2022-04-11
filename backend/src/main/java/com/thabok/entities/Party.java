@@ -134,6 +134,11 @@ public class Party {
 	public void removePassenger(Person swapper) {
 		this.passengers.remove(swapper);
 		updateTime();
-		
+	}
+
+	public List<Person> removePassengers() {
+		List<Person> removedPassengers = this.passengers;
+		this.passengers = new ArrayList<>();
+		return removedPassengers;
 	}
 }

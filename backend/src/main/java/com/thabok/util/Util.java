@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -14,6 +15,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -35,20 +37,24 @@ import com.thabok.helper.PartyHelper;
 
 public class Util {
 
+	public static int maximumWaitingTimeInMinutes = 30;
+	
 	public static final List<DayOfWeek> weekdays = Arrays.asList(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY);
 
 	public static List<DayOfWeekABCombo> weekdayListAB = Arrays.asList(
-		new DayOfWeekABCombo(DayOfWeek.MONDAY, true),
-		new DayOfWeekABCombo(DayOfWeek.TUESDAY, true),
-		new DayOfWeekABCombo(DayOfWeek.WEDNESDAY, true),
-		new DayOfWeekABCombo(DayOfWeek.THURSDAY, true),
-		new DayOfWeekABCombo(DayOfWeek.FRIDAY, true),
-		new DayOfWeekABCombo(DayOfWeek.MONDAY, false),
-		new DayOfWeekABCombo(DayOfWeek.TUESDAY, false),
-		new DayOfWeekABCombo(DayOfWeek.WEDNESDAY, false),
-		new DayOfWeekABCombo(DayOfWeek.THURSDAY, false),
-		new DayOfWeekABCombo(DayOfWeek.FRIDAY, false)
-	);
+			new DayOfWeekABCombo(DayOfWeek.MONDAY, true),
+			new DayOfWeekABCombo(DayOfWeek.TUESDAY, true),
+			new DayOfWeekABCombo(DayOfWeek.WEDNESDAY, true),
+			new DayOfWeekABCombo(DayOfWeek.THURSDAY, true),
+			new DayOfWeekABCombo(DayOfWeek.FRIDAY, true),
+			new DayOfWeekABCombo(DayOfWeek.MONDAY, false),
+			new DayOfWeekABCombo(DayOfWeek.TUESDAY, false),
+			new DayOfWeekABCombo(DayOfWeek.WEDNESDAY, false),
+			new DayOfWeekABCombo(DayOfWeek.THURSDAY, false),
+			new DayOfWeekABCombo(DayOfWeek.FRIDAY, false)
+		);
+
+	public static PrintStream out;
 
 	
 	/**
@@ -150,7 +156,7 @@ public class Util {
 		return alreadyCoveredOnGivenDay(person, referencePlan, false) && alreadyCoveredOnGivenDay(person, referencePlan, true);
 	}
 
-	public static Person getDriverWithLowestNumberOfDrives(Collection<Person> possibleDrivers,
+	public static Person getPersonWithLowestNumberOfDrives(Collection<Person> possibleDrivers,
 			Map<Person, Integer> numberOfDrives) {
 		Person minNoOfDrivesPerson = possibleDrivers.iterator().next();
 		for (Person p : possibleDrivers) {
@@ -256,21 +262,6 @@ public class Util {
 	
 	// NEW STUFF
 	
-	public static String summarizeNumberOfDrives(MasterPlan mp, List<Person> persons) {
-		String summary = "";
-		Map<Person, Integer> numberOfDrives_Total = new NumberOfDrivesStatus(mp, persons).getNumberOfDrives();
-		List<Person> personsByLastName = new ArrayList<>(numberOfDrives_Total.keySet());
-		// sort by last name
-		personsByLastName.sort((p1, p2) -> p1.lastName.compareTo(p2.lastName));
-        for (Person p : personsByLastName) {
-            String s = "- " + p.getName() + ": " + numberOfDrives_Total.get(p);
-//            System.out.println(s);
-            summary += s + "\n";
-        }
-        mp.summary = summary;
-        return summary;
-    }
-
 	public static String getTimeAsString(int time) {
 		String timeAs4Chars = String.format("%04d", time);
 		String timeString = String.format("%s:%sh", timeAs4Chars.subSequence(0, 2), timeAs4Chars.substring(2, 4));
@@ -296,18 +287,87 @@ public class Util {
 		return findFirst.get();
 	}
 
+	/**
+	 * Returns a list of days where the given person<br>
+	 * - drives<br>
+	 * - is not the designated driver<br>
+	 * - doesn't drive on the mirror day<br>
+	 * 
+	 * @param theMasterPlan
+	 * @param p
+	 * @return list of day plans, may be empty
+	 */
+	public static List<DayPlan> getNonMirroredDays(MasterPlan theMasterPlan, Person p) {
+		List<DayPlan> nonMirroredDays = theMasterPlan.getDayPlans().values().stream().filter(dp -> {
+				DayPlan mirrorDp = theMasterPlan.getDayPlans().get(Util.getMirrorCombo(dp.getDayOfWeekABCombo()).getUniqueNumber());
+				PartyTouple pt = PartyHelper.getPartyToupleByDriver(dp, p);
+				boolean drivesOnThisDay = pt != null;
+				boolean isDesignatedDriverOnThisDay = pt != null && pt.isDesignatedDriver();
+				boolean drivesOnMirrorDay = Util.drivesOnGivenDay(p, mirrorDp);
+				return drivesOnThisDay && !isDesignatedDriverOnThisDay && drivesOnMirrorDay;
+			}).collect(Collectors.toList());
+		return nonMirroredDays;
+	}
+	
+	/**
+	 * Returns a list of days where the given person<br>
+	 * - doesn't drive<br>
+	 * - but drives on the mirror day<br>
+	 * 
+	 * @param theMasterPlan
+	 * @param p
+	 * @return list of day plans, may be empty
+	 */
+	public static List<DayPlan> getMissingMirrorDays(MasterPlan theMasterPlan, Person p) {
+		List<DayPlan> missingMirrorDays = theMasterPlan.getDayPlans().values().stream().filter(dp -> {
+				DayPlan mirrorDp = theMasterPlan.getDayPlans().get(Util.getMirrorCombo(dp.getDayOfWeekABCombo()).getUniqueNumber());
+				PartyTouple pt = PartyHelper.getPartyToupleByDriver(dp, p);
+				boolean drivesOnThisDay = pt != null;
+				boolean drivesOnMirrorDay = Util.drivesOnGivenDay(p, mirrorDp);
+				return !drivesOnThisDay && drivesOnMirrorDay;
+			}).collect(Collectors.toList());
+		return missingMirrorDays;
+	}
+	
 
-	public static void printDrivingDaysAbMap(MasterPlan theMasterPlan, List<Person> persons) {
-		Map<Person, Integer> numberOfDrives = new NumberOfDrivesStatus(theMasterPlan, persons).getNumberOfDrives();
-		List<Person> personsByLastName = new ArrayList<>(persons);
+	public static String summarizeNumberOfDrives(MasterPlan mp) {
+		String summary = "";
+		Map<Person, Integer> numberOfDrives_Total = new NumberOfDrivesStatus(mp).getNumberOfDrives();
+		List<Person> personsByLastName = new ArrayList<>(numberOfDrives_Total.keySet());
 		// sort by last name
-		personsByLastName.sort((p1, p2) -> p1.lastName.compareTo(p2.lastName));
+		personsByLastName.sort((p1, p2) -> {
+			int comp = numberOfDrives_Total.get(p1).compareTo(numberOfDrives_Total.get(p2));
+			if (comp == 0) {
+				comp = p1.lastName.compareTo(p2.lastName);
+			}
+			return comp;
+		});
+        for (Person p : personsByLastName) {
+            String s = "- " + p.toString() + ": " + numberOfDrives_Total.get(p);
+            summary += s + "\n";
+        }
+        mp.summary = summary;
+        return summary;
+    }
+
+
+	public static void printDrivingDaysAbMap(MasterPlan theMasterPlan) {
+		Map<Person, Integer> numberOfDrives = new NumberOfDrivesStatus(theMasterPlan).getNumberOfDrives();
+		List<Person> personsByLastName = new ArrayList<>(theMasterPlan.persons);
+		// sort by last name
+		personsByLastName.sort((p1, p2) -> {
+			int comp = numberOfDrives.get(p1).compareTo(numberOfDrives.get(p2));
+			if (comp == 0) {
+				comp = p1.lastName.compareTo(p2.lastName);
+			}
+			return comp;
+		});
 		for (Person person : personsByLastName) {
 			String spaces = "";
 			for (int i=0; i<(19 - person.firstName.length()); i++) {
 				spaces += " ";
 			}
-			System.out.println(String.format("|  %s: %s%s|", person, numberOfDrives.get(person), spaces));
+			out.println(String.format("|  %s: %s%s|", person, numberOfDrives.get(person), spaces));
 			PartyTouple pt = PartyHelper.getPartyToupleByDriver(theMasterPlan.getDayPlans().get(1), person);
 			boolean monA = pt != null;
 			boolean desigMonA = pt != null && pt.isDesignatedDriver();
@@ -338,10 +398,10 @@ public class Util {
 			pt = PartyHelper.getPartyToupleByDriver(theMasterPlan.getDayPlans().get(12), person);
 			boolean friB = pt != null;
 			boolean desigFriB = pt != null && pt.isDesignatedDriver();
-			System.out.println("| MON | TUE | WED | THU | FRI |");
-			System.out.println(String.format("|  %s  |  %s  |  %s  |  %s  |  %s  |", getAbMapMark(monA, desigMonA), getAbMapMark(tueA, desigTueA), getAbMapMark(wedA, desigWedA), getAbMapMark(thuA, desigThuA) ,getAbMapMark(friA, desigFriA)));
-			System.out.println(String.format("|  %s  |  %s  |  %s  |  %s  |  %s  |", getAbMapMark(monB, desigMonB), getAbMapMark(tueB, desigTueB), getAbMapMark(wedB, desigWedB), getAbMapMark(thuB, desigThuB) ,getAbMapMark(friB, desigFriB)));
-			System.out.println();
+			out.println("| MON | TUE | WED | THU | FRI |");
+			out.println(String.format("|  %s  |  %s  |  %s  |  %s  |  %s  |", getAbMapMark(monA, desigMonA), getAbMapMark(tueA, desigTueA), getAbMapMark(wedA, desigWedA), getAbMapMark(thuA, desigThuA) ,getAbMapMark(friA, desigFriA)));
+			out.println(String.format("|  %s  |  %s  |  %s  |  %s  |  %s  |", getAbMapMark(monB, desigMonB), getAbMapMark(tueB, desigTueB), getAbMapMark(wedB, desigWedB), getAbMapMark(thuB, desigThuB) ,getAbMapMark(friB, desigFriB)));
+			out.println();
 		}
 	}
 	
@@ -356,4 +416,50 @@ public class Util {
 	}
 
 
+	/**
+	 * Returns true if the difference between time1 and time2 is less or equal to the maximumWaitingTimeInMinutes (default 30)
+	 */
+	public static boolean isTimeDifferenceAcceptable(int time1, int time2) {
+		return maximumWaitingTimeInMinutes >= getTimeDifference(time1, time2);
+	}
+
+	/**
+	 * Returns the time difference between time1 and time 2 while considering that there are 5 minutes between 755 and 800, not 45.
+	 * @param time1 int value of time1
+	 * @param time2 int value of time2
+	 * @return netto diff value in minutes
+	 */
+	public static int getTimeDifference(int time1, int time2) {
+		int biggy = time1 > time2 ? time1 : time2;
+		int lowie = time1 < time2 ? time1 : time2;
+		int diff = biggy - lowie;
+		int factor = 0;
+		if ((lowie % 100) > (biggy % 100)) {
+			factor++;
+		}
+		if (diff >= 40) {
+			diff = diff - ((diff / 100) + factor) * 40;
+		}
+		return diff;		
+	}
+
+	public static List<Person> getListThatContainsThisPerson(Map<Integer, List<Person>> personsByFirstLesson,
+			Person person) {
+		for (List<Person> list : personsByFirstLesson.values()) {
+			if (list.contains(person)) {
+				return list;
+			}
+		}
+		return Collections.emptyList();
+		
+	}
+
+
+    public static int getRefComboInt(int uniqueNumber) {
+        return uniqueNumber > 5 ? uniqueNumber - 7 : uniqueNumber + 7;
+    }
+
+
+//	public static void main(String[] args) {
+//	}
 }

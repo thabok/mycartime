@@ -1,14 +1,23 @@
 package com.thabok.entities;
 
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.thabok.helper.ControllerInitHelper;
 import com.thabok.helper.PartyHelper;
 import com.thabok.util.Util;
 
 public class MasterPlan {
 
+	public List<Person> persons;
+	public Map<Integer, DayPlanInput> inputsPerDay;
 	public String summary;
+	public List<DayOfWeekABCombo> key;
 	private Map<Integer, DayPlan> dayPlans = new TreeMap<>();
 
 	/**
@@ -16,7 +25,18 @@ public class MasterPlan {
 	 * 
 	 * @param inputsPerDay the inputs per day (for designated drivers)
 	 */
-	public MasterPlan(Map<Integer, DayPlanInput> inputsPerDay) {
+	public MasterPlan(List<Person> persons, MasterPlan preset) {
+		this.persons = persons;
+		initialize(persons);
+		if (preset == null) {
+			Collections.shuffle(Util.weekdayListAB);
+			Util.out = new PrintStream(OutputStream.nullOutputStream());
+			key = Util.weekdayListAB;
+		} else {
+			key = preset.key;
+			Util.weekdayListAB = preset.key;
+			Util.out = System.out;
+		}
 		for (DayOfWeekABCombo combo : Util.weekdayListAB) {
 			DayPlan dayPlan = new DayPlan(combo);
 			dayPlans.put(combo.getUniqueNumber(), dayPlan);
@@ -24,6 +44,17 @@ public class MasterPlan {
 		for (DayPlan dayPlan : dayPlans.values()) {
 			try { PartyHelper.addPartiesForDesignatedDrivers(dayPlan, inputsPerDay, dayPlans); } catch (Exception e) { e.printStackTrace(); }
 		}
+	}
+
+	private void initialize(List<Person> persons2) {
+		inputsPerDay = new HashMap<>();
+        for (DayOfWeekABCombo dayOfWeekABCombo : Util.weekdayListAB) {
+            DayPlanInput dpi = new DayPlanInput();
+            dpi.personsByFirstLesson = ControllerInitHelper.getPersonsByStartTime(persons, dayOfWeekABCombo, true);
+            dpi.personsByLastLesson = ControllerInitHelper.getPersonsByEndTime(persons, dayOfWeekABCombo, true);
+            dpi.designatedDrivers = ControllerInitHelper.getDesignatedDrivers(dpi, persons, dayOfWeekABCombo);
+            inputsPerDay.put(dayOfWeekABCombo.getUniqueNumber(), dpi);
+        }
 	}
 
 	public Map<Integer, DayPlan> getDayPlans() {

@@ -1,6 +1,7 @@
 package com.thabok.helper;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -34,8 +35,8 @@ public class AlternativeDriverHelper {
 	 * @param inputsPerDay
 	 * @throws Exception 
 	 */
-	public static void findAlternativeForSirDrivesALots(MasterPlan theMasterPlan, List<Person> persons, Map<Integer, DayPlanInput> inputsPerDay) throws Exception {
-		Map<Person, Integer> numberOfDrives = new NumberOfDrivesStatus(theMasterPlan, persons).getNumberOfDrives();
+	public static void findAlternativeForSirDrivesALots(MasterPlan theMasterPlan) throws Exception {
+		Map<Person, Integer> numberOfDrives = new NumberOfDrivesStatus(theMasterPlan).getNumberOfDrives();
 		for (Entry<Person, Integer> entry : numberOfDrives.entrySet()) {
 			Integer drivingDays = entry.getValue();
 			if (drivingDays > Constants.EXPECTED_DRIVING_DAYS_THRESHOLD) { // persons a lot of drives
@@ -61,9 +62,9 @@ public class AlternativeDriverHelper {
 				}
 				prioritizedDrivingDays.addAll(otherDrivingDays);
 				// pDD now contains all days with prio days in the front
-				Person alternativeDriver = tryToFindAlternativeDriver(theMasterPlan, sirDrivesALot, prioritizedDrivingDays, persons, inputsPerDay);
+				Person alternativeDriver = tryToFindAlternativeDriver(theMasterPlan, sirDrivesALot, prioritizedDrivingDays, theMasterPlan.persons, theMasterPlan.inputsPerDay);
 				if (alternativeDriver == null) {
-					System.out.println("Didn't find anyone to take over for " + sirDrivesALot);
+					Util.out.println("Didn't find anyone to take over for " + sirDrivesALot);
 				}
 			}
 		}
@@ -90,53 +91,43 @@ public class AlternativeDriverHelper {
 		for (DayPlan dayPlan : prioritizedDrivingDays) {
 			DayOfWeekABCombo combo = dayPlan.getDayOfWeekABCombo();
 			DayPlanInput dpi = inputsPerDay.get(combo.getUniqueNumber());
-			int personsWithSameLastLesson = dpi.personsByLastLesson.get(sirDrivesALot.getTimeForDowCombo(combo, true)).size();
+			int personsWithSameFirstLesson = Util.getListThatContainsThisPerson(dpi.personsByFirstLesson, sirDrivesALot).size();
+			int personsWithSameLastLesson = Util.getListThatContainsThisPerson(dpi.personsByFirstLesson, sirDrivesALot).size();
 			int startTime = sirDrivesALot.getTimeForDowCombo(combo, false);
-			boolean startsAtFirstLessonOrEarlier = startTime <= Constants.FIRST_LESSON_START_TIME;
+			int endTime = sirDrivesALot.getTimeForDowCombo(combo, true);
 			boolean firstLessonIsTheReasonSirDrivesALotMustDrive = personsWithSameLastLesson > 1;
+			boolean lastLessonIsTheReasonSirDrivesALotMustDrive = personsWithSameFirstLesson > 1;
 			// if the criteria is met, collect alternative candidates
-			if (startsAtFirstLessonOrEarlier && firstLessonIsTheReasonSirDrivesALotMustDrive) {
-				List<AlternativeDriverConfig> alternateDriverCandidates = new ArrayList<>();
-				for (Person alternativeDriverCandidate : persons) {
-					boolean notActiveOnThatDay = !TimetableHelper.isPersonActiveOnThisDay(alternativeDriverCandidate, combo);
-					boolean samePerson = alternativeDriverCandidate.equals(sirDrivesALot);
-					boolean alreadyDrivingTooOften = new NumberOfDrivesStatus(theMasterPlan, persons).getNumberOfDrives().get(alternativeDriverCandidate) > Constants.EXPECTED_DRIVING_DAYS_THRESHOLD;
-					if (samePerson || notActiveOnThatDay || alreadyDrivingTooOften) {
-						// alternativeDriver is not suitable:
-						continue;
-					}
-					int altStartTime = alternativeDriverCandidate.getTimeForDowCombo(combo, false);
-					if (altStartTime <= Constants.FIRST_LESSON_START_TIME) {
-						// found an alternative driver
-						AlternativeDriverConfig cfg = new AlternativeDriverConfig();
-						cfg.alternativeDriver = alternativeDriverCandidate;
-						cfg.dayPlan = dayPlan;
-						cfg.originalStartTime = startTime;
-						cfg.altStartTime = altStartTime;
-						alternateDriverCandidates.add(cfg);
-					}
-				}
-				// if candidates are available: pick the candidate with the lowest number of drives
-				if (!alternateDriverCandidates.isEmpty()) {
-					// sort so that candidates with low number of drives are at the beginning
-					alternateDriverCandidates.sort((c1, c2) -> {
-						Map<Person, Integer> numberOfDrives = new NumberOfDrivesStatus(theMasterPlan, persons).getNumberOfDrives();;
-						return numberOfDrives.get(c1.alternativeDriver).compareTo(numberOfDrives.get(c2.alternativeDriver));
-					});
-					alternativeDriverCfg = alternateDriverCandidates.get(0);
-					break;
-				}
-			} // else: ignore, only merge early hall duty with normal first lesson starts
+			List<AlternativeDriverConfig> alternateDriverCandidates = Collections.emptyList();
+			if (personsWithSameFirstLesson == 1 && personsWithSameLastLesson == 1) {
+				Util.out.print(sirDrivesALot + " is alone in the morning AND afternoon.");
+			} else if (firstLessonIsTheReasonSirDrivesALotMustDrive) {
+				alternateDriverCandidates = findAlternateDriverCandidates(theMasterPlan, sirDrivesALot, 
+					persons, dayPlan, combo, startTime, false);
+			} else if (lastLessonIsTheReasonSirDrivesALotMustDrive) {
+				alternateDriverCandidates = findAlternateDriverCandidates(theMasterPlan, sirDrivesALot, 
+					persons, dayPlan, combo, endTime, true);
+			}
+			// if candidates are available: pick the candidate with the lowest number of drives
+			if (!alternateDriverCandidates.isEmpty()) {
+				// sort so that candidates with low number of drives are at the beginning
+				alternateDriverCandidates.sort((c1, c2) -> {
+					Map<Person, Integer> numberOfDrives = new NumberOfDrivesStatus(theMasterPlan).getNumberOfDrives();;
+					return numberOfDrives.get(c1.alternativeDriver).compareTo(numberOfDrives.get(c2.alternativeDriver));
+				});
+				alternativeDriverCfg = alternateDriverCandidates.get(0);
+				break;
+			}
 		}
 		
 		// if we have an alternativeDriver
 		if (alternativeDriverCfg != null) {
 			DayPlan relevantPlan = alternativeDriverCfg.dayPlan;
 			Person alternativeDriver = alternativeDriverCfg.alternativeDriver;
-			System.out.println(String.format("Found an alternative driver: %s (%s) can take over for %s (%s) on %s",
-					alternativeDriver, Util.getTimeAsString(alternativeDriverCfg.altStartTime), 
-					sirDrivesALot, Util.getTimeAsString(alternativeDriverCfg.originalStartTime),
-					relevantPlan.getDayOfWeekABCombo()));
+//			System.out.println(String.format("Found an alternative driver: %s (%s) can take over for %s (%s) on %s",
+//					alternativeDriver, Util.getTimeAsString(alternativeDriverCfg.altStartTime), 
+//					sirDrivesALot, Util.getTimeAsString(alternativeDriverCfg.originalStartTime),
+//					relevantPlan.getDayOfWeekABCombo()));
 			// Get PartyTouple of SirDrivesALot to remove it:
 			Optional<PartyTouple> optional = relevantPlan.getPartyTouples().stream().filter(pt -> pt.getDriver().equals(sirDrivesALot)).findAny();
 			if (optional.isEmpty()) {
@@ -146,11 +137,37 @@ public class AlternativeDriverHelper {
 			relevantPlan.getPartyTouples().remove(optional.get());
 			
 			// add party for the alternative driver
-			PartyHelper.addSoloParty(relevantPlan, alternativeDriver, false, inputsPerDay, theMasterPlan.getDayPlans());
+			PartyHelper.addSoloParty(relevantPlan, alternativeDriver, false, inputsPerDay);
 			return alternativeDriver; // may be null
 		} else {
 			return null;
 		}
+	}
+
+	private static List<AlternativeDriverConfig> findAlternateDriverCandidates(MasterPlan theMasterPlan,
+			Person sirDrivesALot, List<Person> persons, DayPlan dayPlan, DayOfWeekABCombo combo, int time, boolean isWayBack) {
+		List<AlternativeDriverConfig> alternateDriverCandidates = new ArrayList<>();
+		for (Person alternativeDriverCandidate : persons) {
+			boolean notActiveOnThatDay = !TimetableHelper.isPersonActiveOnThisDay(alternativeDriverCandidate, combo);
+			boolean samePerson = alternativeDriverCandidate.equals(sirDrivesALot);
+			boolean alreadyDrivingTooOften = new NumberOfDrivesStatus(theMasterPlan)
+				.getNumberOfDrives().get(alternativeDriverCandidate) >= Constants.EXPECTED_DRIVING_DAYS_THRESHOLD;
+			if (samePerson || notActiveOnThatDay || alreadyDrivingTooOften) {
+				// alternativeDriver is not suitable:
+				continue;
+			}
+			int altTime = alternativeDriverCandidate.getTimeForDowCombo(combo, isWayBack);
+			if (Util.isTimeDifferenceAcceptable(time, altTime)) {
+				// found an alternative driver
+				AlternativeDriverConfig cfg = new AlternativeDriverConfig();
+				cfg.alternativeDriver = alternativeDriverCandidate;
+				cfg.dayPlan = dayPlan;
+				cfg.originalTime = time;
+				cfg.altTime = altTime;
+				alternateDriverCandidates.add(cfg);
+			}
+		}
+		return alternateDriverCandidates;
 	}
 	
 	
@@ -159,7 +176,7 @@ public class AlternativeDriverHelper {
 class AlternativeDriverConfig {
 	DayPlan dayPlan;
 	Person alternativeDriver;
-	int originalStartTime;
-	int altStartTime;
+	int originalTime;
+	int altTime;
 }
 

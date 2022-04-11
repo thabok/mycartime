@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import com.thabok.entities.DayOfWeekABCombo;
@@ -27,7 +28,7 @@ public class ControllerInitHelper {
      * @return a map of persons grouped by their start time
      */
 	public static Map<Integer, List<Person>> getPersonsByStartTime(List<Person> persons, DayOfWeekABCombo dayOfWeekABCombo) {
-		return getPersonsByStartTime(persons, dayOfWeekABCombo, 0);
+		return getPersonsByStartTime(persons, dayOfWeekABCombo, false);
 	}
 	
 	/**
@@ -47,21 +48,8 @@ public class ControllerInitHelper {
      * @param dayOfWeek the day of the week needed to query the persons' schedules
      * @return a map of persons grouped by their start time
      */
-    public static Map<Integer, List<Person>> getPersonsByStartTime(List<Person> persons, DayOfWeekABCombo dayOfWeekABCombo, int toleranceInMinutes) {
-        Map<Integer, List<Person>> personsByFirstLesson = new HashMap<>(); 
-        // place persons into groups based on start time
-        for (Person person : persons) {
-            TimingInfo timingInfo = person.schedule.get(dayOfWeekABCombo.getUniqueNumber());
-            if (timingInfo != null) {
-                int startTime = timingInfo.getStartTime();
-                if (!personsByFirstLesson.containsKey(startTime)) {
-                    List<Person> list = new ArrayList<>();
-                    personsByFirstLesson.put(startTime, list);
-                }
-                personsByFirstLesson.get(startTime).add(person);
-            }
-        }
-        return personsByFirstLesson;
+    public static Map<Integer, List<Person>> getPersonsByStartTime(List<Person> persons, DayOfWeekABCombo dayOfWeekABCombo, boolean applyTolerance) {
+    	return getPersonsByStartOrEndTime(persons, dayOfWeekABCombo, applyTolerance, false);
     }
     
     /**
@@ -71,20 +59,50 @@ public class ControllerInitHelper {
      * @return a map of persons grouped by their end time
      */
     public static Map<Integer, List<Person>> getPersonsByEndTime(List<Person> persons, DayOfWeekABCombo dayOfWeekABCombo) {
-        Map<Integer, List<Person>> personsByLastLesson = new HashMap<>(); 
-        // place persons into groups based on first-lesson
+    	return getPersonsByEndTime(persons, dayOfWeekABCombo, false);
+    }
+    
+    /**
+     * Returns a map of persons grouped by their end time.
+     * 
+     * @param dayOfWeek the day of the week needed to query the persons' schedules
+     * @return a map of persons grouped by their end time
+     */
+    public static Map<Integer, List<Person>> getPersonsByEndTime(List<Person> persons, DayOfWeekABCombo dayOfWeekABCombo, boolean applyTolerance) {
+        return getPersonsByStartOrEndTime(persons, dayOfWeekABCombo, applyTolerance, true);
+    }
+    
+    private static Map<Integer, List<Person>> getPersonsByStartOrEndTime(List<Person> persons,
+    		DayOfWeekABCombo dayOfWeekABCombo, boolean applyTolerances, boolean isWayBack) {
+    	Map<Integer, List<Person>> personsByStartOrEndTime = new HashMap<>(); 
+        // place persons into groups based on start/end time
         for (Person person : persons) {
             TimingInfo timingInfo = person.schedule.get(dayOfWeekABCombo.getUniqueNumber());
             if (timingInfo != null) {
-                int lastLesson = timingInfo.getEndTime();
-                if (!personsByLastLesson.containsKey(lastLesson)) {
+                int time = isWayBack ? timingInfo.getEndTime() : timingInfo.getStartTime();
+                if (!personsByStartOrEndTime.containsKey(time)) {
                     List<Person> list = new ArrayList<>();
-                    personsByLastLesson.put(lastLesson, list);
+                    personsByStartOrEndTime.put(time, list);
                 }
-                personsByLastLesson.get(lastLesson).add(person);
+                personsByStartOrEndTime.get(time).add(person);
             }
         }
-        return personsByLastLesson;
+        if (!applyTolerances) {
+        	return personsByStartOrEndTime;
+        }
+        // merge stuff if tolerance shall be considered
+        Map<Integer, List<Person>> personsByTimeMerged = new HashMap<>();
+        int lastReferenceTime = 0;
+        List<Entry<Integer, List<Person>>> sortedEntries = new ArrayList<>(personsByStartOrEndTime.entrySet());
+        sortedEntries.sort((e1, e2) -> e1.getKey().compareTo(e2.getKey()));
+        for (Entry<Integer, List<Person>> entry : sortedEntries) {
+        	if (!Util.isTimeDifferenceAcceptable(entry.getKey(), lastReferenceTime)) {
+                lastReferenceTime = entry.getKey();
+                personsByTimeMerged.put(lastReferenceTime, new ArrayList<>());
+            }
+        	personsByTimeMerged.get(lastReferenceTime).addAll(entry.getValue());
+        }
+        return personsByTimeMerged;
     }
     
     /**

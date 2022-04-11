@@ -5,6 +5,7 @@ import java.util.List;
 
 public class DayPlan {
 
+	public boolean passengersBalanced = false;
 	private DayOfWeekABCombo dayOfWeekABCombo;
 	private List<PartyTouple> partyTouples = new ArrayList<>();
 	
