@@ -115,7 +115,7 @@ public class PartyHelper {
 		for (PartyTouple pt : referencePlan.getPartyTouples()) {
 			if (isWayBack && pt.getPartyBack().getPassengers().contains(person)) {
 				return pt.getPartyBack();
-			} else if (pt.getPartyThere().getPassengers().contains(person)) {
+			} else if (!isWayBack && pt.getPartyThere().getPassengers().contains(person)) {
 				return pt.getPartyThere();
 			}
 		}

@@ -6,9 +6,6 @@ import static spark.Spark.options;
 import static spark.Spark.port;
 import static spark.Spark.post;
 
-import java.time.DayOfWeek;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CancellationException;
@@ -21,7 +18,6 @@ import com.thabok.entities.NumberOfDrivesStatus;
 import com.thabok.entities.Person;
 import com.thabok.entities.PlanInputData;
 import com.thabok.entities.ProgressObject;
-import com.thabok.entities.TimingInfo;
 import com.thabok.helper.TimetableHelper;
 import com.thabok.main.Controller;
 import com.thabok.untis.Period;
@@ -102,27 +98,29 @@ public class WebService {
 		if (inputData.preset == null) {
 			mp = findBestWeekPlan(controller, persons, 1000);
 			// calculate the winning plan once more (for debugging, tracability, etc.)
-			MasterPlan mp2 = controller.calculateWeekPlan(mp);
-			Util.summarizeNumberOfDrives(mp);
-			Util.summarizeNumberOfDrives(mp2);
-			assert mp.summary.equals(mp2.summary);
 			
+			MasterPlan mp2 = controller.calculateWeekPlan(mp);
+			if (!mp.toString().equals(mp2.toString())) {
+				throw new IllegalStateException("Traceability plan doesn't match originally calculated plan!");
+			}
+						
 		} else {
-			mp = controller.adaptPreset(inputData.preset);
+//			mp = controller.adaptPreset(inputData.preset);
+			mp = controller.calculateWeekPlan(inputData.preset);
 		}
+		Util.writeStringToFile("/Users/thabok/Downloads/plan_" + System.currentTimeMillis() + ".txt", mp);
 		return mp;
 	}
 
-	
 	private MasterPlan findBestWeekPlan(Controller controller, List<Person> persons, int iterations) throws Exception {
 		MasterPlan mp = null;
 		int lowestNoPersonsWithMoreThan4Drives = 100;
 		for (int i=0; i<iterations; i++) {
-			List<Person> lPersons = persons;
-			Collections.shuffle(lPersons);
+			// shuffling of persons currently disabled, makes changes on an existing plan more complicated
+//			Collections.shuffle(persons);
 			float progressValue = 0.5f + ((float) i / iterations) * 0.5f;
 			WebService.updateProgress(progressValue, "Calculating plan");
-			MasterPlan mpCandidate = controller.calculateWeekPlan(lPersons);
+			MasterPlan mpCandidate = controller.calculateWeekPlan(persons);
 			int gt4 = calculateNumberOfPersonsAbove4Drives(mpCandidate);
 			if (gt4 < lowestNoPersonsWithMoreThan4Drives) {
 				System.out.println("Found a better plan: " + lowestNoPersonsWithMoreThan4Drives + " -> " + gt4);
@@ -130,13 +128,6 @@ public class WebService {
 				mp = mpCandidate;
 			}
 		}
-		System.out.println();
-		System.out.println(mp);
-		System.out.println();
-		Util.printDrivingDaysAbMap(mp);		
-		System.out.println();
-		Util.summarizeNumberOfDrives(mp);
-		System.out.println();
 		return mp;
 	}
 
@@ -147,28 +138,6 @@ public class WebService {
 			if (noDrives > 4) gt4++; 
 		}
 		return gt4;
-	}
-
-	@SuppressWarnings("unused")
-	private void printScheduleStatistics(List<Person> persons) {
-		List<DayOfWeek> weekdays = Arrays.asList(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY);
-		System.out.println("Between A and B week:");
-		for (Person person : persons) {
-			int daysWithSameStartAndEnd = 0;
-			for (DayOfWeek dow : weekdays) {
-				try {
-					TimingInfo timingInfoA = person.schedule.get(dow.getValue());
-					TimingInfo timingInfoB = person.schedule.get(dow.getValue() + 7);
-					if (timingInfoA.getStartTime() == timingInfoB.getStartTime() && timingInfoA.getEndTime() == timingInfoB.getEndTime()) {
-						daysWithSameStartAndEnd++;
-					}
-				} catch (Exception e) {
-					//ignore
-				}
-			}
-			System.out.println(person.firstName + " has identical coming & leaving times on " + daysWithSameStartAndEnd + "/5 days.");
-		}
-		
 	}
 
 	/** 

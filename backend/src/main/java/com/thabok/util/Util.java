@@ -103,11 +103,11 @@ public class Util {
      * @param content
      *            the content to write
      */
-    public static void writeStringToFile(String path, String content) {
+    public static void writeStringToFile(String path, Object content) {
         // write file using utf-8 encoding
         try (OutputStreamWriter osr = new OutputStreamWriter(new FileOutputStream(path), StandardCharsets.UTF_8);
             BufferedWriter writer = new BufferedWriter(osr)) {
-            writer.write(content);
+            writer.write(content.toString());
             writer.close();
         } catch (IOException e) {
             e.printStackTrace();

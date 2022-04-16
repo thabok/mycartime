@@ -2,6 +2,7 @@ package com.thabok.entities;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class DayPlan {
 
@@ -36,7 +37,10 @@ public class DayPlan {
 	
     public String toString() {
     	String s = "[" + dayOfWeekABCombo + "]\n";
-    	for (PartyTouple partyTouple : partyTouples) {
+    	List<PartyTouple> partyTouplesSorted = partyTouples.stream()
+    			.sorted((pt1, pt2) -> pt1.getDriver().toString().compareTo(pt2.getDriver().toString()))
+    			.collect(Collectors.toList());
+    	for (PartyTouple partyTouple : partyTouplesSorted) {
 			s += "\t- " + (partyTouple.isDesignatedDriver() ? "* " : "  ") +  String.join("\n\t    ", partyTouple.toString().split("\\n")) + "\n";
 		}
     	return s;

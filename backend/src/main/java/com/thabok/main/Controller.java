@@ -49,13 +49,13 @@ public class Controller {
          * - a bunch of parties for designated drivers
          */
 
+        
         /*
          * If someone is already driving a lot at this point (more than 4  times), let's try to reduce that
          * by letting adding a tolerance on the wayThere (merges first-lesson with people who have hall-duty 
          * before the first lesson).
          */
         AlternativeDriverHelper.findAlternativeForSirDrivesALots(theMasterPlan);
-        
         
         /*
          * Next up, we add people to existing parties _if possible_ and create new parties _when needed_
@@ -73,18 +73,20 @@ public class Controller {
          * Once we've done everything we can to make sure, no one drives more often than needed
          * it's time to balance the passengers in the different cars. The core algorithm doesn't care about that.
          */
-        // FIXME: Sometimes, people are passengers AND drivers (happens both in the same car and in two different cars)
-        // FIXME: The balancing method ignores time differences (e.g. hall duty)
+	    // FIXME: currently ignores time differences (e.g. hall duty)
+	    // FIXME: currently ignores people's sizes (too many tall people in small cars)
+        // FIXME: currently doesn't try to keep passengers with the same driver between A & B week (if possible)
         balancePassengersInCars(theMasterPlan);
         
         /*
          * Printy printy all the stuffy stuffs
          */
-        Util.printDrivingDaysAbMap(theMasterPlan);        
+        Util.out.println();
+		Util.out.println();
+        Util.printDrivingDaysAbMap(theMasterPlan);     
         Util.summarizeNumberOfDrives(theMasterPlan);
         return theMasterPlan;
     }
-
 
 
     /**
@@ -103,26 +105,40 @@ public class Controller {
                 break;
             }
             // create party for this person
-            List<DayPlan> dayPlans = Util.getMissingMirrorDays(theMasterPlan, lowNodsPerson);
-            if (dayPlans.isEmpty()) {
-                dayPlans = theMasterPlan.getDayPlans().values().stream()
-                    .filter(dp -> {
-                        boolean generallyAvailable = TimetableHelper.isPersonActiveOnThisDay(lowNodsPerson, dp.getDayOfWeekABCombo());
-                        boolean notAlreadyDriving = !Util.drivesOnGivenDay(lowNodsPerson, dp);
-                        return generallyAvailable && notAlreadyDriving;
-                    })
-                    .collect(Collectors.toList());
-            }
+            List<DayPlan> dayPlans = getAvailableDays(theMasterPlan, lowNodsPerson);
             DayPlan dayPlan = PlanOptimizationHelper.getDayPlanForLazyDriver(dayPlans);
             Party partyThere = PartyHelper.getParty(dayPlan, lowNodsPerson, false);
             Party partyBack  = PartyHelper.getParty(dayPlan, lowNodsPerson, true);
             PartyHelper.removePersonFromParties(lowNodsPerson, partyThere, partyBack);
-            PartyHelper.addSoloParty(dayPlan, lowNodsPerson, true, theMasterPlan.inputsPerDay);
+            PartyHelper.addSoloParty(dayPlan, lowNodsPerson, false, theMasterPlan.inputsPerDay);
+            
         }
     }
     
-    
     /**
+     * Return the available days. If there are missing mirror days, only those will be returned.
+     */
+    private List<DayPlan> getAvailableDays(MasterPlan theMasterPlan, Person lowNodsPerson) {
+    	List<DayPlan> dayPlans = Util.getMissingMirrorDays(theMasterPlan, lowNodsPerson).stream()
+        		.filter(dp -> {
+	                boolean generallyAvailable = TimetableHelper.isPersonActiveOnThisDay(lowNodsPerson, dp.getDayOfWeekABCombo());
+	                boolean notAlreadyDriving = !Util.drivesOnGivenDay(lowNodsPerson, dp);
+	                return generallyAvailable && notAlreadyDriving;
+	            })
+	            .collect(Collectors.toList());
+        if (dayPlans.isEmpty()) {
+            dayPlans = theMasterPlan.getDayPlans().values().stream()
+                .filter(dp -> {
+                    boolean generallyAvailable = TimetableHelper.isPersonActiveOnThisDay(lowNodsPerson, dp.getDayOfWeekABCombo());
+                    boolean notAlreadyDriving = !Util.drivesOnGivenDay(lowNodsPerson, dp);
+                    return generallyAvailable && notAlreadyDriving;
+                })
+                .collect(Collectors.toList());
+        }
+		return dayPlans;
+	}
+
+	/**
      * Balances the passengers in equivalent parties to prevent the "party bus vs. lonely driver" situation
      */
     private void balancePassengersInCars(MasterPlan theMasterPlan) {
@@ -262,12 +278,12 @@ public class Controller {
             boolean isAvailable = PartyHelper.partyIsAvailable(parties[0]) && parties[0].hasAFreeSeat();
             if (parties[0].getTime() == time && isAvailable) {
                 parties[0].addPassenger(person);
-                Util.out.println(String.format("  - %s can ride with %s in the afternoon", person, pt.getDriver()));
+                Util.out.println(String.format("  - %s can ride with %s in the %s", person, pt.getDriver(), (isWayBack ? "afternoon" : "morning")));
             } else if (parties[1] == null && Util.isTimeDifferenceAcceptable(parties[0].getTime(), time) && isAvailable) {
                 parties[1] = parties[0];
                 parties[0] = null;
-                Util.out.println(String.format("  - %s can ride with %s in the afternoon (if nothing better comes up: %s minutes waiting time)",
-                        person, pt.getDriver(), Util.getTimeDifference(parties[1].getTime(), time)));
+                Util.out.println(String.format("  - %s can ride with %s in the %s (if nothing better comes up: %s minutes waiting time)",
+                        person, pt.getDriver(), (isWayBack ? "afternoon" : "morning"), Util.getTimeDifference(parties[1].getTime(), time)));
                 
             } else {
                 parties[0] = null;

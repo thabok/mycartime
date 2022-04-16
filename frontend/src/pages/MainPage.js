@@ -583,7 +583,7 @@ class MainPage extends Component {
                     minimal={true}
                     disabled={(this.disableConnectionButton() || this.state.ABWeekStartDate == null || this.state.ABWeekStartDate === '')}
                     onClick={() => {
-                        let preset = (this.state.drivingPlan !== undefined) ? this.state.drivingPlan.weekDayPermutation : undefined
+                        let preset = this.state.drivingPlan
                         this.updateState("drivingPlan", undefined)
                         this.requestDrivingPlan(preset)
                     }} />
