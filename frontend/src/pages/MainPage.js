@@ -4,6 +4,7 @@ import { DateInput } from '@blueprintjs/datetime';
 import ls from 'local-storage'
 import Download from '@axetroy/react-download';
 import DragAndDropFileUpload from '../components/DragAndDropFileUpload'
+import FileUploadDrivingPlan from '../components/FileUploadDrivingPlan'
 import DrivingPlan from './DrivingPlan'
 
 const BACKEND_URL = "http://127.0.0.1:1337"
@@ -237,6 +238,11 @@ class MainPage extends Component {
                 :
                     <div>
                         <DrivingPlan plan={this.state.drivingPlan}/>
+                        <div style={{"width":"950px"}}>
+                            <Download file={"driving-plan.json"} content={JSON.stringify(this.state.drivingPlan, null, 2)}>
+                                <Button icon="download" text="Save to file" style={{float: "right"}} minimal={true} />
+                            </Download>
+                        </div>
                     </div>
                 }           
             </fieldset>
@@ -246,32 +252,44 @@ class MainPage extends Component {
     getDrivingPlanButton() {
         return (
             <div>
-                <Button 
-                    text="Calculate Driving Plan"
-                    icon="send-to-map"
-                    intent="primary"
-                    disabled={this.disableConnectionButton() || (this.state.ABWeekStartDate == null || this.state.ABWeekStartDate === '')}
-                    loading={this.state.waitingForPlan}
-                    style={{
-                        width:  "200px",
-                        height: "100px"
-                    }}
-                    onClick={() => this.requestDrivingPlan()}
-                    />
-                    {/* Configure Progress Popover */}
-                    {this.getProgressDialog()}
-                    {/* Disable button if credentials are missing */}
-                    {this.disableConnectionButton()
-                    ?
-                        <Callout
+                <center>
+                    <Button 
+                        text="Calculate Driving Plan"
+                        icon="send-to-map"
                         intent="primary"
-                        icon="info-sign"
-                        style={{width:  "200px"}}>
-                            Username / password / start date are missing (see WebUntis section on top)
-                        </Callout>
-                    :
-                        null
-                    }
+                        disabled={this.disableConnectionButton() || (this.state.ABWeekStartDate == null || this.state.ABWeekStartDate === '')}
+                        loading={this.state.waitingForPlan}
+                        style={{
+                            width:  "200px",
+                            height: "100px"
+                        }}
+                        onClick={() => this.requestDrivingPlan()}
+                    />
+                </center>
+                <br/>
+                <FileUploadDrivingPlan onDrop={(files) => {
+                        let reader = new FileReader();
+                        reader.onloadend = (e) => {
+                            let drivingPlan = JSON.parse(e.target.result);
+                            this.updateState("drivingPlan", drivingPlan)
+                        }
+                        reader.readAsText(files[0]);
+                    }}
+                />
+                {/* Configure Progress Popover */}
+                {this.getProgressDialog()}
+                {/* Disable button if credentials are missing */}
+                {this.disableConnectionButton()
+                ?
+                    <Callout
+                    intent="primary"
+                    icon="info-sign"
+                    style={{width:  "200px"}}>
+                        Username / password / start date are missing (see WebUntis section on top)
+                    </Callout>
+                :
+                    null
+                }
             </div>
         )
     }

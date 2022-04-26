@@ -1,8 +1,10 @@
 package com.thabok.main;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
@@ -58,6 +60,11 @@ public class Controller {
         AlternativeDriverHelper.findAlternativeForSirDrivesALots(theMasterPlan);
         
         /*
+         * TODO: Prefer people in situations like Anna/Mareike on Monday afternoons 
+         */
+        //...
+        
+        /*
          * Next up, we add people to existing parties _if possible_ and create new parties _when needed_
          */
         coreAlgorithm(theMasterPlan);
@@ -73,7 +80,6 @@ public class Controller {
          * Once we've done everything we can to make sure, no one drives more often than needed
          * it's time to balance the passengers in the different cars. The core algorithm doesn't care about that.
          */
-	    // FIXME: currently ignores time differences (e.g. hall duty)
 	    // FIXME: currently ignores people's sizes (too many tall people in small cars)
         // FIXME: currently doesn't try to keep passengers with the same driver between A & B week (if possible)
         balancePassengersInCars(theMasterPlan);
@@ -106,12 +112,12 @@ public class Controller {
             }
             // create party for this person
             List<DayPlan> dayPlans = getAvailableDays(theMasterPlan, lowNodsPerson);
-            DayPlan dayPlan = PlanOptimizationHelper.getDayPlanForLazyDriver(dayPlans);
+            DayPlan dayPlan = PlanOptimizationHelper.getDayPlanForLazyDriver(dayPlans, lowNodsPerson);
             Party partyThere = PartyHelper.getParty(dayPlan, lowNodsPerson, false);
             Party partyBack  = PartyHelper.getParty(dayPlan, lowNodsPerson, true);
             PartyHelper.removePersonFromParties(lowNodsPerson, partyThere, partyBack);
             PartyHelper.addSoloParty(dayPlan, lowNodsPerson, false, theMasterPlan.inputsPerDay);
-            
+            Util.out.println("Creating lazy driver party for " + lowNodsPerson + " on " + dayPlan.getDayOfWeekABCombo());
         }
     }
     
@@ -172,25 +178,53 @@ public class Controller {
         if (equivalentParties.size() > 1) {
 
 			// remove all passengers from the parties
-			Stack<Person> passengersBuffer = new Stack<>();
-			equivalentParties.forEach(p -> passengersBuffer.addAll(p.removePassengers()));
+        	Stack<Person> passengersBuffer1 = new Stack<>();
+        	equivalentParties.forEach(p -> passengersBuffer1.addAll(p.removePassengers()));
 
-			// redistribute them in a round-robin fashion
+        	// distribute perfect matches (based on time)
+        	Stack<Person> passengersBuffer2 = new Stack<>();
+        	Map<Party, Integer> skipNextNTimes = new HashMap<>(equivalentParties.size());
+        	equivalentParties.forEach(p -> skipNextNTimes.put(p, 0));
+			while (!passengersBuffer1.isEmpty()) {
+				Person peekedPassenger = passengersBuffer1.peek();
+				int passengerTime = peekedPassenger.getTimeForDowCombo(equivalentParties.get(0).getDayOfTheWeekABCombo(), equivalentParties.get(0).isWayBack());
+				Optional<Party> optPerfectMatch = equivalentParties.stream()
+						.filter(p -> p.hasAFreeSeat() && p.getTime() == passengerTime)
+						.sorted((p1, p2) -> skipNextNTimes.get(p1).compareTo(skipNextNTimes.get(p2)))
+						.findFirst();
+				if (optPerfectMatch.isPresent()) {
+					Party perfectMatch = optPerfectMatch.get();
+					perfectMatch.addPassenger(passengersBuffer1.pop());
+					skipNextNTimes.put(perfectMatch, skipNextNTimes.get(perfectMatch) + 1);
+				} else {
+					passengersBuffer2.push(passengersBuffer1.pop());
+				}
+			}
+			
+			// redistribute remaining passengers in a round-robin fashion
 			int eqPartiesIndex = 0;
-			while (!passengersBuffer.isEmpty()) {
-
+			while (!passengersBuffer2.isEmpty()) {
 				// get party based on index and add passenger if possible
 				Party party = equivalentParties.get(eqPartiesIndex);
-				if (party.hasAFreeSeat()) {
-					party.addPassenger(passengersBuffer.pop());
+				
+				// add passenger to party if possible
+				if (skipNextNTimes.get(party) > 0) {
+					// party has received perfect matches, skip until other parties 
+					// had the chance to add the same number of passengers
+					skipNextNTimes.put(party, skipNextNTimes.get(party) - 1);
+				} else {
+					if (party.hasAFreeSeat()) {
+						party.addPassenger(passengersBuffer2.pop());
+					}
 				}
 
 				// round-robin index iteration
 				eqPartiesIndex = (eqPartiesIndex + 1) % equivalentParties.size();
-
 			}
 
 		}
+        
+        
     }
 
 
