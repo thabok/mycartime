@@ -48,6 +48,7 @@ class MainPage extends Component {
             newMember_initials: undefined,
             newMember_roomy: true,
             newMember_noseats: 4,
+            newMember_isTall: true,
             newMember_customDays: this.getEmptyCustomDaysMap(),
             progressValue: 0,
             progressMessage: "",
@@ -420,7 +421,23 @@ class MainPage extends Component {
                         max={10}
                         onKeyPress={(e) => this.handleKeyPress(e)}
                         onValueChange={(number, string) => { this.setState({newMember_noseats: number}) }} />
+                    <FormGroup
+                        helperText={undefined}
+                        label="Tall Person"
+                        labelFor="input-tall"
+                        inline={true}
+                        labelInfo="Is this person tall?" >
+                        <Switch 
+                            id="input-tall"
+                            large={true}
+                            checked={this.state.newMember_isTall}
+                            onKeyPress={(e) => this.handleKeyPress(e)}
+                            onChange={(e) => {
+                                    this.setState({newMember_isTall: !this.state.newMember_isTall})
+                                }} />
+                    </FormGroup>
                 </FormGroup>
+                
                 <div>
                     <Switch 
                         id="switch-advanced"
@@ -445,7 +462,6 @@ class MainPage extends Component {
                                 checked={this.state.newMember_roomy}
                                 onKeyPress={(e) => this.handleKeyPress(e)}
                                 onChange={(e) => {
-                                        console.log(this.state.newMember_roomy + " --> " + !this.state.newMember_roomy)
                                         this.setState({newMember_roomy: !this.state.newMember_roomy})
                                     }} />
                         </FormGroup>
@@ -609,6 +625,7 @@ class MainPage extends Component {
                 <ul>
                     <li><b>Initials: </b> {person.initials}</li>
                     <li><b>Number of Seats: </b> {person.numberOfSeats}</li>
+                    <li><b>Tall: </b> {person.isTall ? "true" : "false"}</li>
                     <li><b>Car Type: </b> {person.isCarRoomy ? "roomy" : "small"}</li>
                     {/*person.customDays !== this.getEmptyCustomDaysMap() ? <li>KEKS</li> : null*/}
                 </ul>
@@ -731,6 +748,7 @@ class MainPage extends Component {
                 person.lastName = this.state.newMember_lastname
                 person.initials = this.state.newMember_initials
                 person.numberOfSeats = this.state.newMember_noseats
+                person.isTall = this.state.newMember_isTall
                 person.isCarRoomy = this.state.newMember_roomy
                 person.customDays = this.state.newMember_customDays
             }
@@ -756,6 +774,7 @@ class MainPage extends Component {
             person.lastName = this.state.newMember_lastname
             person.initials = this.state.newMember_initials
             person.numberOfSeats = this.state.newMember_noseats
+            person.isTall = this.state.newMember_isTall
             person.isCarRoomy = this.state.newMember_roomy
             persons.push(person)
             this.updateState("persons", persons)
@@ -812,6 +831,7 @@ class MainPage extends Component {
             newMember_initials: "",
             newMember_roomy: true,
             newMember_noseats: 5,
+            newMember_isTall: true,
             newMember_customDays: this.getEmptyCustomDaysMap(),
         })
     }
@@ -841,6 +861,7 @@ class MainPage extends Component {
                 newMember_initials: person.initials,
                 newMember_roomy: person.isCarRoomy,
                 newMember_noseats: person.numberOfSeats,
+                newMember_isTall: person.isTall,
                 newMember_customDays: person.customDays !== undefined ? person.customDays : this.getEmptyCustomDaysMap(),
             })
         }
