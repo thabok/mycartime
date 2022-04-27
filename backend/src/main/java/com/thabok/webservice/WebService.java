@@ -41,7 +41,7 @@ public class WebService {
 		get("/check", (req, res) -> true, JsonUtil.json());
 		post("/checkConnection", (req, res) -> checkConnection(req, res), JsonUtil.json());
 		post("/login", (req, res) -> login(req, res), JsonUtil.json());
-		post("/calculatePlan", (req, res) -> calculatePlan(req, res), JsonUtil.json());
+		post("/calculatePlan", (req, res) -> calculatePlan(req, res), JsonUtil.strippedDrivingPlan());
 		post("/cancel", (req, res) -> cancel(req, res), JsonUtil.json());
 		get("/progress", (req, res) -> getProgress(req, res), JsonUtil.json());
 		post("/logout", (req, res) -> logout(req, res), JsonUtil.json());
@@ -106,7 +106,7 @@ public class WebService {
 						
 		} else {
 //			mp = controller.adaptPreset(inputData.preset);
-			mp = controller.calculateWeekPlan(inputData.preset);
+			mp = controller.calculateWeekPlan(persons, inputData.preset);
 		}
 		Util.writeStringToFile("/Users/thabok/Downloads/plan_" + System.currentTimeMillis() + ".txt", mp);
 		return mp;

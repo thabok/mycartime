@@ -6,6 +6,7 @@ import java.util.Map;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import com.thabok.entities.MasterPlan;
 
 import spark.ResponseTransformer;
 
@@ -57,6 +58,20 @@ public class JsonUtil {
      */
     public static ResponseTransformer json() {
         return JsonUtil::toJson;
+    }
+    
+    /**
+     * 
+     * Json Response Transformer (to Json)
+     *
+     * @return the transformed response
+     */
+    public static ResponseTransformer strippedDrivingPlan() {
+        return (obj -> {
+        	((MasterPlan)obj).inputsPerDay = null;
+        	((MasterPlan)obj).persons = null;
+        	return JsonUtil.toJson(obj);	
+        });
     }
 
     public static ResponseTransformer html() {
