@@ -144,6 +144,14 @@ public class WebUntisAdapter {
         return responseString;
     }
     
+    public static String execute(String methodName) {
+    	Map<String, Object> obj = new HashMap<>();
+        obj.put("method", methodName);
+        obj.put("id", APP_ACCESS_ID);
+        obj.put("jsonrpc", JSON_RPC_VERSION);
+        String requestId = methodName;
+        return post(obj, requestId);
+    }
     
     public static String execute(String methodName, Map<String, Object> params) {
                 

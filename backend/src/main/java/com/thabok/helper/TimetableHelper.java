@@ -79,7 +79,7 @@ public class TimetableHelper {
 				foundMatchingName = true;
 			}
 		}
-		boolean isIrrelevant = foundDifferentOrgname && !foundMatchingName;
+		boolean isIrrelevant = (foundDifferentOrgname && !foundMatchingName) || period.isOnCallSubstitution();
 		return !isIrrelevant;
 	}
 	

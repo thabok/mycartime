@@ -6,6 +6,7 @@ import static spark.Spark.options;
 import static spark.Spark.port;
 import static spark.Spark.post;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CancellationException;
@@ -23,7 +24,6 @@ import com.thabok.main.Controller;
 import com.thabok.untis.Period;
 import com.thabok.untis.WebUntisAdapter;
 import com.thabok.util.JsonUtil;
-import com.thabok.util.Util;
 
 import spark.Request;
 import spark.Response;
@@ -108,7 +108,7 @@ public class WebService {
 //			mp = controller.adaptPreset(inputData.preset);
 			mp = controller.calculateWeekPlan(persons, inputData.preset);
 		}
-		Util.writeStringToFile("/Users/thabok/Downloads/plan_" + System.currentTimeMillis() + ".txt", mp);
+//		Util.writeStringToFile("/Users/thabok/Downloads/plan_" + System.currentTimeMillis() + ".txt", mp);
 		return mp;
 	}
 
@@ -117,7 +117,7 @@ public class WebService {
 		int lowestNoPersonsWithMoreThan4Drives = 100;
 		for (int i=0; i<iterations; i++) {
 			// shuffling of persons currently disabled, makes changes on an existing plan more complicated
-//			Collections.shuffle(persons);
+			Collections.shuffle(persons);
 			float progressValue = 0.5f + ((float) i / iterations) * 0.5f;
 			WebService.updateProgress(progressValue, "Calculating plan");
 			MasterPlan mpCandidate = controller.calculateWeekPlan(persons);

@@ -1,7 +1,9 @@
 package com.thabok.untis;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import com.thabok.entities.Subject;
 import com.thabok.entities.Teacher;
 
 public class Period {
@@ -9,6 +11,20 @@ public class Period {
 	public int date;
 	public int startTime;
 	public int endTime;
+	
+	public boolean isOnCallSubstitution() {
+		for (Subject subject : su) {
+			if (Subject.ON_CALL_SUBSTITUTION_ID == subject.id) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * This attribute lists the subjects for a period. The su with id 255 is the on-call-substitution
+	 */
+	public List<Subject> su = new ArrayList<>(0);
 	
 	/**
 	 * This attribute seems to be set for break supervision items only. Value: "bs" (...break supervision?)
