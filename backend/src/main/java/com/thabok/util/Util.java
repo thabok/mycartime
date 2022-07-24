@@ -122,19 +122,16 @@ public class Util {
      * @return the content of the file as a String or an empty String if the file is
      *         not available.
      */
-    public static String readStringFromFile(String path) {
+    public static String readStringFromFile(String path) throws IOException {
         StringBuilder sb = new StringBuilder();
         // Read file line by line using uft-8 encoding
-        try (InputStreamReader isr = new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8);
-            BufferedReader reader = new BufferedReader(isr);) {
-            while (reader.ready()) {
-                sb.append(reader.readLine()).append("\n");
-            }
-            isr.close();
-            reader.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        InputStreamReader isr = new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8);
+        BufferedReader reader = new BufferedReader(isr);
+        while (reader.ready()) {
+            sb.append(reader.readLine()).append("\n");
         }
+        isr.close();
+        reader.close();
         return sb.toString();
     }
 
