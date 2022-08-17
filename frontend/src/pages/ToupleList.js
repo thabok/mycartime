@@ -39,10 +39,10 @@ class ToupleList extends Component {
         let passengerStrings = []
         for (let i=0; i < party.passengers.length; i++) {
             let p = party.passengers[i]
-            passengerStrings.push(p.firstName + " (" + p.initials + ")")
+            passengerStrings.push(p.firstName + "\u00A0(" + p.initials + ")")
         }
         return (<li key={index}>
-            [{this.timeToString(party.time)}] <b>{party.isDesignatedDriver ? "*" : " "}{party.driver.firstName + " (" + party.driver.initials + ")"}</b> {(party.passengers.length > 0 ? " - " + passengerStrings.join(" - ") : "" )}
+            [{this.timeToString(party.time)}] <b>{party.isDesignatedDriver ? "*" : " "}{party.driver.firstName + "\u00A0(" + party.driver.initials + ")"}</b> {(party.passengers.length > 0 ? " - " + passengerStrings.join(" - ") : "" )}
         </li>)
     }
 

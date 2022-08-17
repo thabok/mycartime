@@ -14,8 +14,10 @@ import java.util.concurrent.CancellationException;
 import org.apache.commons.codec.binary.Base64;
 
 import com.google.gson.Gson;
+import com.thabok.entities.DayPlan;
 import com.thabok.entities.MasterPlan;
 import com.thabok.entities.NumberOfDrivesStatus;
+import com.thabok.entities.PartyTouple;
 import com.thabok.entities.Person;
 import com.thabok.entities.PlanInputData;
 import com.thabok.entities.ProgressObject;
@@ -109,7 +111,32 @@ public class WebService {
 			mp = controller.calculateWeekPlan(persons, inputData.preset);
 		}
 //		Util.writeStringToFile("/Users/thabok/Downloads/plan_" + System.currentTimeMillis() + ".txt", mp);
+		
+		clearDataFromPlan(mp);
+		
 		return mp;
+	}
+	
+	
+	
+	private void clearDataFromPerson(Person p) {
+		p.schedule = null;
+	}
+	
+	private void clearDataFromPlan(MasterPlan mp) {
+		mp.persons = null;
+		mp.inputsPerDay = null;
+		mp.key = null;
+		
+		for (DayPlan dp : mp.getDayPlans().values()) {
+			for (PartyTouple pt : dp.getPartyTouples()) {
+				clearDataFromPerson(pt.getPartyThere().getDriver());
+				pt.getPartyThere().getPassengers().forEach(p -> clearDataFromPerson(p));
+				
+				clearDataFromPerson(pt.getPartyBack().getDriver());
+				pt.getPartyBack().getPassengers().forEach(p -> clearDataFromPerson(p));
+			}
+		}
 	}
 
 	private MasterPlan findBestWeekPlan(Controller controller, List<Person> persons, int iterations) throws Exception {

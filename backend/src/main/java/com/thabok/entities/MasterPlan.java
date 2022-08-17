@@ -16,11 +16,12 @@ import com.thabok.util.Util;
 
 public class MasterPlan {
 
+	public String summary;
+	private Map<Integer, DayPlan> dayPlans = new TreeMap<>();
+	
 	public List<Person> persons;
 	public Map<Integer, DayPlanInput> inputsPerDay;
-	public String summary;
 	public List<DayOfWeekABCombo> key;
-	private Map<Integer, DayPlan> dayPlans = new TreeMap<>();
 
 	/**
 	 * Creates a new master plan and initializes all day plans with the respective designated drivers.

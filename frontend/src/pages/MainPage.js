@@ -1,11 +1,11 @@
-import React, { Component } from 'react';
-import { Switch, Icon, InputGroup, Button, Tooltip, Callout, Toaster, Card, Dialog, FormGroup, NumericInput, Collapse, ProgressBar, Checkbox } from '@blueprintjs/core';
-import { DateInput } from '@blueprintjs/datetime';
-import ls from 'local-storage'
 import Download from '@axetroy/react-download';
-import DragAndDropFileUpload from '../components/DragAndDropFileUpload'
-import FileUploadDrivingPlan from '../components/FileUploadDrivingPlan'
-import DrivingPlan from './DrivingPlan'
+import { Button, Callout, Card, Checkbox, Collapse, Dialog, FormGroup, Icon, InputGroup, NumericInput, ProgressBar, Switch, Toaster, Tooltip } from '@blueprintjs/core';
+import { DateInput } from '@blueprintjs/datetime';
+import ls from 'local-storage';
+import React, { Component } from 'react';
+import DragAndDropFileUpload from '../components/DragAndDropFileUpload';
+import FileUploadDrivingPlan from '../components/FileUploadDrivingPlan';
+import DrivingPlan from './DrivingPlan';
 
 const BACKEND_URL = "http://127.0.0.1:1337"
 
@@ -30,6 +30,7 @@ const cardStyles = {
     minHeight: "200px",
     flex: "1",
     margin: "5px",
+    position: "relative",
 }
 
 class MainPage extends Component {
@@ -238,7 +239,7 @@ class MainPage extends Component {
                     this.getDrivingPlanButton()
                 :
                     <div>
-                        <DrivingPlan plan={this.state.drivingPlan}/>
+                        <DrivingPlan plan={this.state.drivingPlan} updatePlan={(plan) => this.updateState("drivingPlan", plan)}/>
                         <div style={{"width":"950px"}}>
                             <Download file={"driving-plan.json"} content={JSON.stringify(this.state.drivingPlan, null, 2)}>
                                 <Button icon="download" text="Save to file" style={{float: "right"}} minimal={true} />
@@ -503,7 +504,7 @@ class MainPage extends Component {
                                         <td><b>Week A</b></td>
                                         {dayNumbersA.map((dayNumber) => {
                                             return (
-                                        <td>
+                                        <td key={dayNumber}>
                                             <Checkbox checked={this.state.newMember_customDays[dayNumber].needsCar} onChange={() => this.updateCustomDays(dayNumber, 'needsCar', null)} label="Needs car" />
                                             <Checkbox checked={this.state.newMember_customDays[dayNumber].skipMorning} onChange={() => this.updateCustomDays(dayNumber, 'skipMorning', null)} label="Skip on morning" />
                                             <Checkbox checked={this.state.newMember_customDays[dayNumber].skipAfternoon} onChange={() => this.updateCustomDays(dayNumber, 'skipAfternoon', null)} label="Skip on afternoon" />
@@ -516,7 +517,7 @@ class MainPage extends Component {
                                         <td><b>Week B</b></td>
                                         {dayNumbersB.map((dayNumber) => {
                                             return (
-                                            <td>
+                                            <td key={dayNumber}>
                                                 <Checkbox checked={this.state.newMember_customDays[dayNumber].needsCar} onChange={() => this.updateCustomDays(dayNumber, 'needsCar', null)} label="Needs car" />
                                                 <Checkbox checked={this.state.newMember_customDays[dayNumber].skipMorning} onChange={() => this.updateCustomDays(dayNumber, 'skipMorning', null)} label="Skip on morning" />
                                                 <Checkbox checked={this.state.newMember_customDays[dayNumber].skipAfternoon} onChange={() => this.updateCustomDays(dayNumber, 'skipAfternoon', null)} label="Skip on afternoon" />
@@ -645,8 +646,8 @@ class MainPage extends Component {
                     <li><b>Number of Seats: </b> {person.numberOfSeats}</li>
                     <li><b>Tall: </b> {person.isTall ? "true" : "false"}</li>
                     <li><b>Car Type: </b> {person.isCarRoomy ? "roomy" : "small"}</li>
-                    {/*person.customDays !== this.getEmptyCustomDaysMap() ? <li>KEKS</li> : null*/}
                 </ul>
+                {(person.customDays !== undefined && person.customDays !== this.getEmptyCustomDaysMap()) ? <div style={{position: "absolute", right: 10, bottom: 10}}><i>*custom prefs</i></div> : null}
             </Card>
         )
     }
