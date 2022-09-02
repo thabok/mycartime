@@ -177,9 +177,9 @@ public class Util {
 	}
 
 
-	public static CustomDay getCustomDayObject(Person sirDrivesALot, DayOfWeekABCombo dayOfWeekABCombo) {
+	public static CustomDay getCustomDayObject(Person person, DayOfWeekABCombo dayOfWeekABCombo) {
 		int customDaysIndex = dowComboToCustomDaysIndex(dayOfWeekABCombo);
-		CustomDay customDay = sirDrivesALot.customDays.get(customDaysIndex);
+		CustomDay customDay = person.customDays.get(customDaysIndex);
 		return customDay;
 	}
 

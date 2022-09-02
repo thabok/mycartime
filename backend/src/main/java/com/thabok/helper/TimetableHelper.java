@@ -84,7 +84,10 @@ public class TimetableHelper {
 	}
 	
 	public static boolean isPersonActiveOnThisDay(Person p, DayOfWeekABCombo dayOfWeekABCombo) {
-		return getTimingInfoForDay(p, dayOfWeekABCombo) != null;
+		CustomDay customDayObject = Util.getCustomDayObject(p, dayOfWeekABCombo);
+		boolean active = getTimingInfoForDay(p, dayOfWeekABCombo) != null;
+		
+		return active && !customDayObject.ignoreCompletely;
 	}
 	
 	public static TimingInfo getTimingInfoForDay(Person p, DayOfWeekABCombo dayOfWeekABCombo) {

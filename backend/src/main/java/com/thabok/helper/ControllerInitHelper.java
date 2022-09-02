@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.thabok.entities.CustomDay;
 import com.thabok.entities.DayOfWeekABCombo;
 import com.thabok.entities.DayPlanInput;
 import com.thabok.entities.Person;
@@ -134,9 +135,9 @@ public class ControllerInitHelper {
         
         // 3. Add persons based on custom preferences
         // pay attention: key is 0 based while uniqueNumber is 1 based
-        int customDaysIndex = Util.dowComboToCustomDaysIndex(dayOfTheWeekABCombo);
         for (Person person : allPersonsForThisDay) {
-            if (person.customDays.get(customDaysIndex).needsCar) {
+        	CustomDay customDayObject = Util.getCustomDayObject(person, dayOfTheWeekABCombo);
+            if (!customDayObject.ignoreCompletely && customDayObject.needsCar) {
                 designatedDrivers.add(person);
             }
         }
