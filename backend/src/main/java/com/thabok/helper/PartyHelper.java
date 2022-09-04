@@ -34,7 +34,7 @@ public class PartyHelper {
     public static void addPartiesForDesignatedDrivers(DayPlan dayPlan, Map<Integer, DayPlanInput> inputsPerDay, Map<Integer, DayPlan> dayPlans) throws Exception {
         Set<Person> designatedDrivers = inputsPerDay.get(dayPlan.getDayOfWeekABCombo().getUniqueNumber()).designatedDrivers;
     	for (Person driver : designatedDrivers ) {
-            addSoloParty(dayPlan, driver, true, inputsPerDay);
+            addSoloParty(dayPlan, driver, true, inputsPerDay, "designated driver");
         }
     }
     
@@ -51,12 +51,12 @@ public class PartyHelper {
      * @return 
      * @throws Exception 
      */
-    public static PartyTouple addSoloParty(DayPlan dayPlan, Person driver, boolean isDesignatedDriver, Map<Integer, DayPlanInput> inputsPerDay) throws Exception {
+    public static PartyTouple addSoloParty(DayPlan dayPlan, Person driver, boolean isDesignatedDriver, Map<Integer, DayPlanInput> inputsPerDay, String reasonPhrase) throws Exception {
     	// create party touple
     	PartyTouple partyTouple = new PartyTouple();
         
     	// - way there
-        Party partyThere = new Party();
+        Party partyThere = new Party(reasonPhrase);
         partyThere.setDayOfTheWeekABCombo(dayPlan.getDayOfWeekABCombo());
         partyThere.setDriver(driver);
         partyThere.setWayBack(false);
@@ -65,7 +65,7 @@ public class PartyHelper {
         partyTouple.setPartyThere(partyThere);
         
         // - way back
-        Party partyBack = new Party();
+        Party partyBack = new Party(reasonPhrase);
         partyBack.setDayOfTheWeekABCombo(dayPlan.getDayOfWeekABCombo());
         partyBack.setDriver(driver);
         partyBack.setWayBack(true);
@@ -147,10 +147,11 @@ public class PartyHelper {
 	
 	/**
 	 * Finds the person(s) best suited to create a party and adds the personToBeSeated as a passenger.
+	 * @param reasonPhrase 
 	 * @param persons 
 	 */
 	public static void createPartiesThisPersonCanJoin(MasterPlan theMasterPlan, Map<Integer, DayPlanInput> inputsPerDay, NumberOfDrivesStatus nods,
-			Person personToBeSeated, DayPlan dayPlan, Party partyThere, Party partyBack) throws Exception {
+			Person personToBeSeated, DayPlan dayPlan, Party partyThere, Party partyBack, String reasonPhrase) throws Exception {
 		DayOfWeekABCombo combo = dayPlan.getDayOfWeekABCombo();
 
 		// set initial conditions based on requirements 
@@ -207,7 +208,7 @@ public class PartyHelper {
 			// remove person from any previous parties
 			removePersonFromParties(personToBeSeated, partyThere, partyBack);
 			// create solo party
-			addSoloParty(dayPlan, personToBeSeated, false, inputsPerDay);
+			addSoloParty(dayPlan, personToBeSeated, false, inputsPerDay, reasonPhrase + " > No one found to take " + personToBeSeated + " along -> needs solo party");
 
 		} else if (personToBeSeated.equals(driverForWayThere) || personToBeSeated.equals(driverForWayBack)) {
 			// person to be seated seems to be the best candidate for a new party!
@@ -215,27 +216,27 @@ public class PartyHelper {
 			// remove person from any previous parties
 			removePersonFromParties(personToBeSeated, partyThere, partyBack);
 			// create solo party
-			addSoloParty(dayPlan, personToBeSeated, false, inputsPerDay);
+			addSoloParty(dayPlan, personToBeSeated, false, inputsPerDay, reasonPhrase + " > " + personToBeSeated + " is the best candidate for the party -> solo party");
 			Util.out.println(String.format("  - who would have though: %s is the best candidate for a new party -> creating new solo party.", personToBeSeated));
 			
 		} else if (driverForWayThere != null && driverForWayThere.equals(driverForWayBack)) {
 			// same person for there and back
 			
-			PartyTouple partyTouple = addSoloParty(dayPlan, driverForWayThere, false, inputsPerDay);
-			partyTouple.getPartyThere().addPassenger(personToBeSeated);
-			partyTouple.getPartyBack().addPassenger(personToBeSeated);
+			PartyTouple partyTouple = addSoloParty(dayPlan, driverForWayThere, false, inputsPerDay, reasonPhrase + " > same persons for there and back");
+			partyTouple.getPartyThere().addPassenger(personToBeSeated, reasonPhrase + " > same persons for there and back");
+			partyTouple.getPartyBack().addPassenger(personToBeSeated, reasonPhrase + " > same persons for there and back");
 			Util.out.println(String.format("  - %s creates a new party, %s can join in the morning and afternoon.", driverForWayThere, personToBeSeated));
 			
 		} else {
 			// different persons driving there and back
 			if (driverForWayThere != null) {
-				PartyTouple partyToupleThere = addSoloParty(dayPlan, driverForWayThere, false, inputsPerDay);
-				partyToupleThere.getPartyThere().addPassenger(personToBeSeated);
+				PartyTouple partyToupleThere = addSoloParty(dayPlan, driverForWayThere, false, inputsPerDay, reasonPhrase + " > different persons for there and back");
+				partyToupleThere.getPartyThere().addPassenger(personToBeSeated, reasonPhrase + " > different persons for there and back");
 				Util.out.println(String.format("  - %s creates a new party, %s can join in the morning.", driverForWayThere, personToBeSeated));
 			}
 			if (driverForWayBack != null) {
-				PartyTouple partyToupleBack = addSoloParty(dayPlan, driverForWayBack, false, inputsPerDay);
-				partyToupleBack.getPartyBack().addPassenger(personToBeSeated);
+				PartyTouple partyToupleBack = addSoloParty(dayPlan, driverForWayBack, false, inputsPerDay, reasonPhrase + " > different persons for there and back");
+				partyToupleBack.getPartyBack().addPassenger(personToBeSeated, reasonPhrase + " > different persons for there and back");
 				Util.out.println(String.format("  - %s creates a new party, %s can join in the afternoon.", driverForWayBack, personToBeSeated));
 			}
 			

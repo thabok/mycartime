@@ -137,7 +137,7 @@ public class AlternativeDriverHelper {
 			relevantPlan.getPartyTouples().remove(optional.get());
 			
 			// add party for the alternative driver
-			PartyHelper.addSoloParty(relevantPlan, alternativeDriver, false, inputsPerDay);
+			PartyHelper.addSoloParty(relevantPlan, alternativeDriver, false, inputsPerDay, "findAlternativeForSirDriveALots > tryToFindAlternativeDriver > " + alternativeDriver + " takes over for " + sirDrivesALot);
 			return alternativeDriver; // may be null
 		} else {
 			return null;

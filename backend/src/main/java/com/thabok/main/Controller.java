@@ -122,7 +122,7 @@ public class Controller {
             Party partyThere = PartyHelper.getParty(dayPlan, lowNodsPerson, false);
             Party partyBack  = PartyHelper.getParty(dayPlan, lowNodsPerson, true);
             PartyHelper.removePersonFromParties(lowNodsPerson, partyThere, partyBack);
-            PartyHelper.addSoloParty(dayPlan, lowNodsPerson, false, theMasterPlan.inputsPerDay);
+            PartyHelper.addSoloParty(dayPlan, lowNodsPerson, false, theMasterPlan.inputsPerDay, "addPartiesForLazyDrivers");
             Util.out.println("Creating lazy driver party for " + lowNodsPerson + " on " + dayPlan.getDayOfWeekABCombo());
         }
     }
@@ -200,7 +200,7 @@ public class Controller {
 						.findFirst();
 				if (optPerfectMatch.isPresent()) {
 					Party perfectMatch = optPerfectMatch.get();
-					perfectMatch.addPassenger(passengersBuffer1.pop());
+					perfectMatch.addPassenger(passengersBuffer1.pop(), "balancePassengersInCars > balancePassengers > distrubute perfect matches");
 					skipNextNTimes.put(perfectMatch, skipNextNTimes.get(perfectMatch) + 1);
 				} else {
 					passengersBuffer2.push(passengersBuffer1.pop());
@@ -220,7 +220,7 @@ public class Controller {
 					skipNextNTimes.put(party, skipNextNTimes.get(party) - 1);
 				} else {
 					if (party.hasAFreeSeat()) {
-						party.addPassenger(passengersBuffer2.pop());
+						party.addPassenger(passengersBuffer2.pop(), "balancePassengersInCars > balancePassengers > redistrubute round-robin");
 					}
 				}
 
@@ -250,11 +250,11 @@ public class Controller {
             Util.out.println(String.format("\n>>> %s (%s/%s) <<<\n", person, (coveredPersons.size() + 1), theMasterPlan.persons.size()));
             // first process missing mirror days in case 'person' is picked to start their own party 
             for (DayPlan dp : Util.getMissingMirrorDays(theMasterPlan, person)) {
-                findOrCreateParty(theMasterPlan, nods, coveredPersons, frequentDriversSortedDesc, person, dp.getDayOfWeekABCombo());
+                findOrCreateParty(theMasterPlan, nods, coveredPersons, frequentDriversSortedDesc, person, dp.getDayOfWeekABCombo(), "coreAlgorithm > findOrCreateParty > MissingMirrorDays");
             }
             // iterate over the days
             for (DayOfWeekABCombo combo : Util.weekdayListAB) {
-                findOrCreateParty(theMasterPlan, nods, coveredPersons, frequentDriversSortedDesc, person, combo);
+                findOrCreateParty(theMasterPlan, nods, coveredPersons, frequentDriversSortedDesc, person, combo, "coreAlgorithm > findOrCreateParty > RemainingDays");
             }
             // add frequentDriverPerson to covered persons
             coveredPersons.add(person);
@@ -263,7 +263,7 @@ public class Controller {
 
 
     private void findOrCreateParty(MasterPlan theMasterPlan, NumberOfDrivesStatus nods, Set<Person> coveredPersons,
-            List<Person> frequentDriversSortedDesc, Person person, DayOfWeekABCombo combo) throws Exception {
+            List<Person> frequentDriversSortedDesc, Person person, DayOfWeekABCombo combo, String reasonPhrase) throws Exception {
         // skip irrelevant or already covered days
         DayPlan dayPlan = theMasterPlan.get(combo.getUniqueNumber());
         boolean activeOnThisDay = TimetableHelper.isPersonActiveOnThisDay(person, combo);
@@ -282,10 +282,10 @@ public class Controller {
         
         // try to find parties for this person
         for (PartyTouple pt : dayPlan.getPartyTouples()) {
-            Party[] partiesToJoinThere = findPartyToJoin(person, pt, partyThere, partyThereWithWaitingTime, combo, false);
+            Party[] partiesToJoinThere = findPartyToJoin(person, pt, partyThere, partyThereWithWaitingTime, combo, false, reasonPhrase + " > findPartyToJoin");
             partyThere = partiesToJoinThere[0];
             partyThereWithWaitingTime = partiesToJoinThere[1];
-            Party[] partiesToJoinBack = findPartyToJoin(person, pt, partyBack, partyBackWithWaitingTime, combo, true);
+            Party[] partiesToJoinBack = findPartyToJoin(person, pt, partyBack, partyBackWithWaitingTime, combo, true, reasonPhrase + " > findPartyToJoin");
             partyBack = partiesToJoinBack[0];
             partyBackWithWaitingTime = partiesToJoinBack[1];
         }
@@ -293,11 +293,11 @@ public class Controller {
         // if we don't have matches for both ways, consider party with waiting time
         if (partyThere == null && partyThereWithWaitingTime != null) {
             partyThere = partyThereWithWaitingTime;
-            partyThere.addPassenger(person);
+            partyThere.addPassenger(person, reasonPhrase);
         }
         if (partyBack == null && partyBackWithWaitingTime != null) {
             partyBack = partyBackWithWaitingTime;
-            partyBack.addPassenger(person);
+            partyBack.addPassenger(person, reasonPhrase);
         }
         
         // if not possible -> find 1-2 persons who can create a party
@@ -305,11 +305,11 @@ public class Controller {
             if (partyThere == null) Util.out.println("  - Didn't find a party to join for the morning.");
             if (partyBack == null) Util.out.println("  - Didn't find a party to join for the afternoon.");
             Util.out.println("  - Searching for a suitable person to start a new party...");
-            PartyHelper.createPartiesThisPersonCanJoin(theMasterPlan, theMasterPlan.inputsPerDay, nods, person, dayPlan, partyThere, partyBack);
+            PartyHelper.createPartiesThisPersonCanJoin(theMasterPlan, theMasterPlan.inputsPerDay, nods, person, dayPlan, partyThere, partyBack, reasonPhrase);
         }
     }
 
-    private Party[] findPartyToJoin(Person person, PartyTouple pt, Party party, Party partyWithWaitingTime, DayOfWeekABCombo combo, boolean isWayBack) {
+    private Party[] findPartyToJoin(Person person, PartyTouple pt, Party party, Party partyWithWaitingTime, DayOfWeekABCombo combo, boolean isWayBack, String reasonPhrase) {
         Party[] parties = { party, partyWithWaitingTime };
         if (parties[0] == null) {
             int time = person.getTimeForDowCombo(combo, isWayBack);
@@ -317,7 +317,7 @@ public class Controller {
             parties[0] = isWayBack ? pt.getPartyBack() : pt.getPartyThere();
             boolean isAvailable = PartyHelper.partyIsAvailable(parties[0]) && parties[0].hasAFreeSeat();
             if (parties[0].getTime() == time && isAvailable) {
-                parties[0].addPassenger(person);
+                parties[0].addPassenger(person, reasonPhrase);
                 Util.out.println(String.format("  - %s can ride with %s in the %s", person, pt.getDriver(), (isWayBack ? "afternoon" : "morning")));
             } else if (parties[1] == null && Util.isTimeDifferenceAcceptable(parties[0].getTime(), time) && isAvailable) {
                 parties[1] = parties[0];

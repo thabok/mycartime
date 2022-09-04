@@ -1,6 +1,8 @@
 package com.thabok.entities;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.thabok.util.Util;
@@ -12,6 +14,12 @@ public class Party {
 	private Person driver;
 	private int time;
 	private List<Person> passengers = new ArrayList<>();
+	private Map<String, String> reasonPhrasesByInitials = new HashMap<>();
+	private String reasonForParty;
+
+	public Party(String reasonPhrase) {
+		reasonForParty = reasonPhrase;
+	}
 
 	public Person getDriver() {
 		return driver;
@@ -84,12 +92,14 @@ public class Party {
 	 * Adds the passenger to the party and adapts the parties time if needed (can happen due to supervisions).
 	 * 
 	 * @param p the passenger to add to the party
+	 * @param reasonPhrase explains why the passenger is added to this party
 	 */
-	public void addPassenger(Person p) {
+	public void addPassenger(Person p, String reasonPhrase) {
 		if (passengers.size() >= driver.getNoPassengerSeats()) {
 			throw new IllegalStateException("Cannot add a passenger to " + driver + "'s car, it's already full!");
 		}
 		this.passengers.add(p);
+		this.reasonPhrasesByInitials.put(p.initials, reasonPhrase);
 		this.updateTime();
 	}
 
@@ -131,8 +141,9 @@ public class Party {
 		return Util.getTimeAsString(time);
 	}
 
-	public void removePassenger(Person swapper) {
-		this.passengers.remove(swapper);
+	public void removePassenger(Person personToRemove) {
+		this.passengers.remove(personToRemove);
+		this.reasonPhrasesByInitials.remove(personToRemove.initials);
 		updateTime();
 	}
 
@@ -140,5 +151,9 @@ public class Party {
 		List<Person> removedPassengers = this.passengers;
 		this.passengers = new ArrayList<>();
 		return removedPassengers;
+	}
+
+	public String getReasonForParty() {
+		return reasonForParty;
 	}
 }
