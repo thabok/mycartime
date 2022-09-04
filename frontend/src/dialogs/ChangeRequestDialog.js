@@ -39,7 +39,7 @@ class ChangeRequestDialog extends Component {
     getCrPassengerCandidates() {
         let candidates = []
         for (let ptIndex=0; ptIndex<this.props.dayPlan.partyTouples.length; ptIndex++) {
-            const party = this.props.dayPlan.partyTouples[ptIndex].partyThere // shouldn't matter if we take there or back, every
+            const party = this.state.schoolbound ? this.props.dayPlan.partyTouples[ptIndex].partyThere : this.props.dayPlan.partyTouples[ptIndex].partyBack
             party.passengers.forEach((passenger) => {
                 passenger.driverInitials = party.driver.initials
                 candidates.push(passenger)

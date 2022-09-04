@@ -14,6 +14,7 @@ public class Person {
     public boolean isPartTime;
     public boolean isCarRoomy;
     public int numberOfSeats;
+    public int maxDrives;
     public Map<Integer, TimingInfo> schedule = new HashMap<>();
 
     /**

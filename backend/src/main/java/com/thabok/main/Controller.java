@@ -1,5 +1,6 @@
 package com.thabok.main;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -103,15 +104,20 @@ public class Controller {
      * @throws Exception 
      */
     private void addPartiesForLazyDrivers(MasterPlan theMasterPlan) throws Exception {
+    	List<Person> personsToConsider = new ArrayList<>(theMasterPlan.persons);
         while (true) {
             NumberOfDrivesStatus nods = new NumberOfDrivesStatus(theMasterPlan);
-            Person lowNodsPerson = Util.getPersonWithLowestNumberOfDrives(theMasterPlan.persons, nods.getNumberOfDrives());
+            Person lowNodsPerson = Util.getPersonWithLowestNumberOfDrives(personsToConsider, nods.getNumberOfDrives());
             if (nods.getNumberOfDrives().get(lowNodsPerson) >= 4) {
                 // we're done here
                 break;
             }
             // create party for this person
             List<DayPlan> dayPlans = getAvailableDays(theMasterPlan, lowNodsPerson);
+            if (dayPlans.isEmpty()) {
+            	personsToConsider.remove(lowNodsPerson);
+            	continue;
+            }
             DayPlan dayPlan = PlanOptimizationHelper.getDayPlanForLazyDriver(dayPlans, lowNodsPerson);
             Party partyThere = PartyHelper.getParty(dayPlan, lowNodsPerson, false);
             Party partyBack  = PartyHelper.getParty(dayPlan, lowNodsPerson, true);

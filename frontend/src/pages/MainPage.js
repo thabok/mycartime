@@ -50,6 +50,7 @@ class MainPage extends Component {
             newMember_initials: undefined,
             newMember_roomy: true,
             newMember_noseats: 4,
+            newMember_maxdrives: 6,
             newMember_isTall: true,
             newMember_customDays: this.getEmptyCustomDaysMap(),
             progressValue: 0,
@@ -446,6 +447,14 @@ class MainPage extends Component {
                         max={10}
                         onKeyPress={(e) => this.handleKeyPress(e)}
                         onValueChange={(number, string) => { this.setState({newMember_noseats: number}) }} />
+                    <NumericInput 
+                        id="input-max-drives"
+                        value={this.state.newMember_maxdrives}
+                        leftIcon="less-than-or-equal-to"
+                        min={0}
+                        max={6}
+                        onKeyPress={(e) => this.handleKeyPress(e)}
+                        onValueChange={(number, string) => { this.setState({newMember_maxdrives: number}) }} />
                     <FormGroup
                         helperText={undefined}
                         label="Tall Person"
@@ -775,6 +784,7 @@ class MainPage extends Component {
                 person.lastName = this.state.newMember_lastname
                 person.initials = this.state.newMember_initials
                 person.numberOfSeats = this.state.newMember_noseats
+                person.maxDrives = this.state.newMember_maxdrives
                 person.isTall = this.state.newMember_isTall
                 person.isCarRoomy = this.state.newMember_roomy
                 person.customDays = this.state.newMember_customDays
@@ -801,6 +811,7 @@ class MainPage extends Component {
             person.lastName = this.state.newMember_lastname
             person.initials = this.state.newMember_initials
             person.numberOfSeats = this.state.newMember_noseats
+            person.maxDrives = this.state.newMember_maxdrives
             person.isTall = this.state.newMember_isTall
             person.isCarRoomy = this.state.newMember_roomy
             persons.push(person)
@@ -858,6 +869,7 @@ class MainPage extends Component {
             newMember_initials: "",
             newMember_roomy: true,
             newMember_noseats: 5,
+            newMember_maxdrives: 6,
             newMember_isTall: true,
             newMember_customDays: this.getEmptyCustomDaysMap(),
         })
@@ -889,6 +901,7 @@ class MainPage extends Component {
                 newMember_initials: person.initials,
                 newMember_roomy: person.isCarRoomy,
                 newMember_noseats: person.numberOfSeats,
+                newMember_maxdrives: person.maxDrives,
                 newMember_isTall: person.isTall,
                 newMember_customDays: person.customDays !== undefined ? person.customDays : this.getEmptyCustomDaysMap(),
             })

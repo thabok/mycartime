@@ -79,7 +79,7 @@ public class ControllerInitHelper {
         // place persons into groups based on start/end time
         for (Person person : persons) {
             TimingInfo timingInfo = person.schedule.get(dayOfWeekABCombo.getUniqueNumber());
-            if (timingInfo != null) {
+            if (timingInfo != null && TimetableHelper.isPersonActiveOnThisDay(person, dayOfWeekABCombo)) {
                 int time = isWayBack ? timingInfo.getEndTime() : timingInfo.getStartTime();
                 if (!personsByStartOrEndTime.containsKey(time)) {
                     List<Person> list = new ArrayList<>();

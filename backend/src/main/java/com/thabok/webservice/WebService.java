@@ -121,6 +121,7 @@ public class WebService {
 	
 	private void clearDataFromPerson(Person p) {
 		p.schedule = null;
+		p.customDays = null;
 	}
 	
 	private void clearDataFromPlan(MasterPlan mp) {

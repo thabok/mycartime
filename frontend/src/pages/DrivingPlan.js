@@ -17,9 +17,9 @@ class DrivingPlan extends Component {
     componentDidMount() {}
 
     processChangeRequests(changeRequests) {
+        let plan = this.props.plan
         for (let crIndex=0; crIndex<changeRequests.length; crIndex++) {
             const changeRequest = changeRequests[crIndex]
-            let plan = this.props.plan
 
             // find source and target party for current cr
             let sourceParty = null
@@ -42,14 +42,14 @@ class DrivingPlan extends Component {
             for (let passengerIndex=0; passengerIndex<sourceParty.passengers.length; passengerIndex++) {
                 const passengerInitials = sourceParty.passengers[passengerIndex].initials
                 if (changeRequest.person === passengerInitials) {
-                    targetParty.passengers.push(sourceParty.passengers.splice(passengerIndex)[0])
+                    targetParty.passengers.push(sourceParty.passengers.splice(passengerIndex, 1)[0])
                     break
                 }
             }
 
-            // apply change
-            this.props.updatePlan(plan)
         }
+        // apply change
+        this.props.updatePlan(plan)
     }
 
     getEditButton(dayNumber) {
