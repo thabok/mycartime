@@ -209,10 +209,10 @@ public class PartyHelper {
 		
 		// switch to second driver if first choice (exact match) is not available
 		int threshold = 5;
-		if (driverForWayThere == null || (nods.getNumberOfDrives().get(driverForWayThere) > threshold && secondDriverForWayThere != null)) {
+		if (driverForWayThere == null || (nods.getNumberOfDrives().get(driverForWayThere) > threshold && secondDriverForWayThere != null && nods.getNumberOfDrives().get(secondDriverForWayThere) <= threshold)) {
 			driverForWayThere = secondDriverForWayThere; // can't be worse than this
 		}
-		if (driverForWayBack == null || (nods.getNumberOfDrives().get(driverForWayBack) > threshold && secondDriverForWayBack != null)) {
+		if (driverForWayBack == null || (nods.getNumberOfDrives().get(driverForWayBack) > threshold && secondDriverForWayBack != null && nods.getNumberOfDrives().get(secondDriverForWayBack) <= threshold)) {
 			driverForWayBack = secondDriverForWayBack; // can't be worse than this
 		}
 
