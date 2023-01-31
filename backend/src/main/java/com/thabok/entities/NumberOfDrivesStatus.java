@@ -38,10 +38,10 @@ public class NumberOfDrivesStatus {
 	}
 
 	public List<Person> getPersonsSortedByNumberOfDrive(boolean sortAscending) {
-		return getPersonsSortedByNumberOfDrive(sortAscending, null);
+		return getPersonsSortedByNumberOfDrives(sortAscending, null);
 	}
 
-	public List<Person> getPersonsSortedByNumberOfDrive(boolean sortAscending, Boolean isWeekA) {
+	public List<Person> getPersonsSortedByNumberOfDrives(boolean sortAscending, Boolean isWeekA) {
 		Map<Person, Integer> numberOfDrives = getNumberOfDrives(isWeekA);
 		int sortingFactor = sortAscending ? 1 : -1; // controls asc vs. desc
 		List<Person> personsSorted = masterPlan.persons.stream()
@@ -61,9 +61,17 @@ public class NumberOfDrivesStatus {
 	 * @return A list of persons with the ones in front who are best suited to start a party on the given day 
 	 */
 	public List<Person> getPersonsSortedByNumberOfDrivesForGivenDay(DayOfWeekABCombo combo) {
+		int threshold = 5;
 		boolean isWeekA = combo.getUniqueNumber() < 8;
 		Map<Person, Integer> numberOfDrives = getNumberOfDrives(isWeekA);
+		Map<Person, Integer> numberOfDrives_total = getNumberOfDrives();
 		List<Person> personsSorted = masterPlan.persons.stream().sorted((p1, p2) -> {
+			// special handling for people with high total number of drives
+			if ((numberOfDrives_total.get(p1) > threshold) && (numberOfDrives_total.get(p2) <= threshold)) {
+				return 1; //put p1 to the back of the list
+			} else if ((numberOfDrives_total.get(p2) > threshold) && (numberOfDrives_total.get(p1) <= threshold)) {
+				return -1;
+			}
 			int compare = numberOfDrives.get(p1).compareTo(numberOfDrives.get(p2));
 			if (compare == 0) {
 				// equal... noDrives for the given week. How about mirror days?
@@ -77,7 +85,6 @@ public class NumberOfDrivesStatus {
 					return  1; // put p1 after p2
 				} else {
 					// still equal... decide based on total noDrives
-					Map<Person, Integer> numberOfDrives_total = getNumberOfDrives();
 					return numberOfDrives_total.get(p1).compareTo(numberOfDrives_total.get(p2));
 				}
 			}

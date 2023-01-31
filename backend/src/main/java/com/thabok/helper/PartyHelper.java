@@ -161,7 +161,9 @@ public class PartyHelper {
 		// find best-suited person(s)
 		List<Person> driverCandidates = nods.getPersonsSortedByNumberOfDrivesForGivenDay(combo);
 		Person driverForWayThere = null;
+		Person secondDriverForWayThere = null;
 		Person driverForWayBack = null;
+		Person secondDriverForWayBack = null;
 		for (Person driverCandidate : driverCandidates) {
 			/*
 			 * Skip persons who:
@@ -177,9 +179,13 @@ public class PartyHelper {
 				if (!canDriverTakePersons(driverCandidate, combo, false)) {
 					Util.out.println(String.format("  - Driver %s [-->] doesn't take passengers.", driverCandidate));
 				} else {
-					if (personToBeSeated.getTimeForDowCombo(combo, false) == candidateStartTime) {
+					boolean timeMatches = personToBeSeated.getTimeForDowCombo(combo, false) == candidateStartTime;
+					boolean timeMatchesWithTolerance = Util.isTimeDifferenceAcceptable(personToBeSeated.getTimeForDowCombo(combo, false), candidateStartTime);
+					if (timeMatches) {
 						driverForWayThere = driverCandidate;
 						checkWayThere = false; // don't search any further
+					} else if (timeMatchesWithTolerance) {
+						secondDriverForWayThere = driverCandidate;
 					}
 				}
 			}
@@ -189,13 +195,25 @@ public class PartyHelper {
 				if (!canDriverTakePersons(driverCandidate, combo, true)) {
 					Util.out.println(String.format("  - Driver %s [-->] doesn't take passengers.", driverCandidate));
 				} else {
-					if (personToBeSeated.getTimeForDowCombo(combo, true) == candidateEndTime) {
+					boolean timeMatches = personToBeSeated.getTimeForDowCombo(combo, true) == candidateEndTime;
+					boolean timeMatchesWithTolerance = Util.isTimeDifferenceAcceptable(personToBeSeated.getTimeForDowCombo(combo, true), candidateEndTime);
+					if (timeMatches) {
 						driverForWayBack = driverCandidate;
 						checkWayBack = false; // don't search any further
+					} else if (timeMatchesWithTolerance) {
+						secondDriverForWayBack = driverCandidate;
 					}
 				}
 			}
-				
+		}
+		
+		// switch to second driver if first choice (exact match) is not available
+		int threshold = 5;
+		if (driverForWayThere == null || (nods.getNumberOfDrives().get(driverForWayThere) > threshold && secondDriverForWayThere != null)) {
+			driverForWayThere = secondDriverForWayThere; // can't be worse than this
+		}
+		if (driverForWayBack == null || (nods.getNumberOfDrives().get(driverForWayBack) > threshold && secondDriverForWayBack != null)) {
+			driverForWayBack = secondDriverForWayBack; // can't be worse than this
 		}
 
 		/*
@@ -217,7 +235,7 @@ public class PartyHelper {
 			removePersonFromParties(personToBeSeated, partyThere, partyBack);
 			// create solo party
 			addSoloParty(dayPlan, personToBeSeated, false, inputsPerDay, reasonPhrase + " > " + personToBeSeated + " is the best candidate for the party -> solo party");
-			Util.out.println(String.format("  - who would have though: %s is the best candidate for a new party -> creating new solo party.", personToBeSeated));
+			Util.out.println(String.format("  - who would have thought: %s is the best candidate for a new party -> creating new solo party.", personToBeSeated));
 			
 		} else if (driverForWayThere != null && driverForWayThere.equals(driverForWayBack)) {
 			// same person for there and back

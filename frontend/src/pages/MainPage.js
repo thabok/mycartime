@@ -664,7 +664,7 @@ class MainPage extends Component {
                     <li><b>Tall: </b> {person.isTall ? "true" : "false"}</li>
                     <li><b>Car Type: </b> {person.isCarRoomy ? "roomy" : "small"}</li>
                 </ul>
-                {(person.customDays !== undefined && person.customDays !== this.getEmptyCustomDaysMap()) ? <div style={{position: "absolute", right: 10, bottom: 10}}><i>*custom prefs</i></div> : null}
+                {this.doesPersonHaveCustomPrefs(person) ? <div style={{position: "absolute", right: 10, bottom: 10}}><i>*custom prefs</i></div> : null}
             </Card>
         )
     }
@@ -873,6 +873,13 @@ class MainPage extends Component {
             newMember_isTall: true,
             newMember_customDays: this.getEmptyCustomDaysMap(),
         })
+    }
+
+    doesPersonHaveCustomPrefs(person) {
+        if (person.customDays !== undefined && JSON.stringify(person.customDays) !== JSON.stringify(this.getEmptyCustomDaysMap())) {
+            return true
+        }
+        return false
     }
 
     getEmptyCustomDaysMap() {
