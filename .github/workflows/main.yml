@@ -19,7 +19,7 @@ jobs:
     - name: Build frontend
       run: |
         cd frontend
-        npm ci
+        npm install
         npm run build
         mkdir -p deploy/frontend
         cp -r frontend/build deploy/frontend
