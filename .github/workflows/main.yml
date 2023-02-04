@@ -21,26 +21,26 @@ jobs:
         cd frontend
         npm install
         npm run build
-        mkdir -p deploy/frontend
-        cp -r frontend/build deploy/frontend
+        mkdir -p ../deploy/frontend
+        cp -r build ../deploy/frontend
 
     - name: Build backend
       run: |
-        cd backend
+        cd ../backend
         mvn clean package
-        mkdir -p deploy/backend
-        cp backend/target/my-car-time-1.0-SNAPSHOT-jar-with-dependencies.jar deploy/backend/
+        cp target/my-car-time-1.0-SNAPSHOT-jar-with-dependencies.jar ../deploy
 
     - name: Create archive
       run: |
-        cd deploy
-        zip -r archive.zip .
+        cd ../deploy
+        zip -r mycartime_v${{github.run_id}}.zip .
+        cd ..
 
     - name: Publish release
       uses: actions/upload-release-asset@v1
       with:
         tag_name: ${{github.ref}}
         release_id: ${{github.run_id}}
-        asset_path: deploy/archive.zip
-        asset_name: archive.zip
+        asset_path: deploy/mycartime_v${{github.run_id}}.zip
+        asset_name: mycartime_v${{github.run_id}}.zip
         asset_content_type: application/zip
