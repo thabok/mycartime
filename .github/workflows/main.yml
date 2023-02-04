@@ -26,6 +26,7 @@ jobs:
 
     - name: Build backend
       run: |
+        pwd
         cd ../backend
         mvn clean package
         cp target/my-car-time-1.0-SNAPSHOT-jar-with-dependencies.jar ../deploy
