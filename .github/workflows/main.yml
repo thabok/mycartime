@@ -42,10 +42,7 @@ jobs:
         pwd
 
     - name: Publish release
-      uses: actions/upload-release-asset@v1
+      uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{github.ref}}
-        release_id: ${{github.run_id}}
-        asset_path: deploy/mycartime_v${{github.run_id}}.zip
-        asset_name: mycartime_v${{github.run_id}}.zip
-        asset_content_type: application/zip
+        files: |
+          deploy/mycartime_v${{github.run_id}}.zip
