@@ -1,7 +1,9 @@
 package com.thabok.entities;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class DayPlan {
@@ -9,6 +11,8 @@ public class DayPlan {
 	public boolean passengersBalanced = false;
 	private DayOfWeekABCombo dayOfWeekABCombo;
 	private List<PartyTouple> partyTouples = new ArrayList<>();
+	public Map<String, Integer> schoolboundTimesByInitials = new HashMap<>();
+	public Map<String, Integer> homeboundTimesByInitials = new HashMap<>();
 	
 	public DayPlan() {
 	}

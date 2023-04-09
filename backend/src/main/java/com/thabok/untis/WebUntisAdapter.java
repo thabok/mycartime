@@ -80,6 +80,7 @@ public class WebUntisAdapter {
             } catch (Exception e1) {
             }
             throw new Exception(msg);
+//            java.lang.Exception: no such element elementId:Ul, elementType:2
         }
         return new TreeMap<>(comingAndGoing);
     }

@@ -15,6 +15,7 @@ import com.thabok.entities.MasterPlan;
 import com.thabok.entities.NumberOfDrivesStatus;
 import com.thabok.entities.PartyTouple;
 import com.thabok.entities.Person;
+import com.thabok.entities.Reason;
 import com.thabok.util.Constants;
 import com.thabok.util.Util;
 
@@ -137,7 +138,7 @@ public class AlternativeDriverHelper {
 			relevantPlan.getPartyTouples().remove(optional.get());
 			
 			// add party for the alternative driver
-			PartyHelper.addSoloParty(relevantPlan, alternativeDriver, false, inputsPerDay, "findAlternativeForSirDriveALots > tryToFindAlternativeDriver > " + alternativeDriver + " takes over for " + sirDrivesALot);
+			PartyHelper.addSoloParty(relevantPlan, alternativeDriver, inputsPerDay, "findAlternativeForSirDriveALots > tryToFindAlternativeDriver > " + alternativeDriver + " takes over for " + sirDrivesALot, Reason.ALTERNATIVE_DRIVER);
 			return alternativeDriver; // may be null
 		} else {
 			return null;

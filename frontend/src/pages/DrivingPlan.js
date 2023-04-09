@@ -68,34 +68,35 @@ class DrivingPlan extends Component {
         return (<tbody>
             <tr>
                 <td><b>Monday (A)</b></td>
-                <td><ToupleList touples={this.props.plan.dayPlans[1].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
-                <td><ToupleList touples={this.props.plan.dayPlans[1].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[1].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[1]}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[1].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[1]}/></td>
                 {this.getEditButton(1)}
             </tr>
             <tr>
                 <td><b>Tuesday (A)</b></td>
-                <td><ToupleList touples={this.props.plan.dayPlans[2].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
-                <td><ToupleList touples={this.props.plan.dayPlans[2].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[2].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[2]}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[2].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[2]}/></td>
                 {this.getEditButton(2)}
             </tr>
             <tr>
                 <td><b>Wednesday (A)</b></td>
-                <td><ToupleList touples={this.props.plan.dayPlans[3].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
-                <td><ToupleList touples={this.props.plan.dayPlans[3].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[3].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[3]}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[3].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[3]}/></td>
                 {this.getEditButton(3)}
             </tr>
             <tr>
                 <td><b>Thursday (A)</b></td>
-                <td><ToupleList touples={this.props.plan.dayPlans[4].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
-                <td><ToupleList touples={this.props.plan.dayPlans[4].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[4].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[4]}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[4].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[4]}/></td>
                 {this.getEditButton(4)}
             </tr>
             <tr>
                 <td><b>Friday (A)</b></td>
-                <td><ToupleList touples={this.props.plan.dayPlans[5].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
-                <td><ToupleList touples={this.props.plan.dayPlans[5].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[5].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[5]}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[5].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[5]}/></td>
                 {this.getEditButton(5)}
             </tr>
+            {this.getLegend()}
         </tbody>)
     }
 
@@ -103,35 +104,42 @@ class DrivingPlan extends Component {
         return (<tbody>
             <tr>
                 <td><b>Monday (B)</b></td>
-                <td><ToupleList touples={this.props.plan.dayPlans[8].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
-                <td><ToupleList touples={this.props.plan.dayPlans[8].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[8].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[8]}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[8].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[8]}/></td>
                 {this.getEditButton(8)}
             </tr>
             <tr>
                 <td><b>Tuesday (B)</b></td>
-                <td><ToupleList touples={this.props.plan.dayPlans[9].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
-                <td><ToupleList touples={this.props.plan.dayPlans[9].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[9].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[9]}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[9].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[9]}/></td>
                 {this.getEditButton(9)}
             </tr>
             <tr>
                 <td><b>Wednesday (B)</b></td>
-                <td><ToupleList touples={this.props.plan.dayPlans[10].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
-                <td><ToupleList touples={this.props.plan.dayPlans[10].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[10].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[10]}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[10].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[10]}/></td>
                 {this.getEditButton(10)}
             </tr>
             <tr>
                 <td><b>Thursday (B)</b></td>
-                <td><ToupleList touples={this.props.plan.dayPlans[11].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
-                <td><ToupleList touples={this.props.plan.dayPlans[11].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[11].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[11]}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[11].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[11]}/></td>
                 {this.getEditButton(11)}
             </tr>
             <tr>
                 <td><b>Friday (B)</b></td>
-                <td><ToupleList touples={this.props.plan.dayPlans[12].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson}/></td>
-                <td><ToupleList touples={this.props.plan.dayPlans[12].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[12].partyTouples} schoolbound={true} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[12]}/></td>
+                <td><ToupleList touples={this.props.plan.dayPlans[12].partyTouples} schoolbound={false} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[12]}/></td>
                 {this.getEditButton(12)}
             </tr>
+            {this.getLegend()}
         </tbody>)
+    }
+
+    getLegend() {
+        return (<tr><td colSpan={3} style={{"color": "#98FF98"}}><center><b>
+            [*] Designated driver (must drive on given day)<br/>[**] Needs to drive alone (without passengers)
+        </b></center></td></tr>)
     }
 
     getCompletePlan() {
@@ -145,7 +153,6 @@ class DrivingPlan extends Component {
                 </tbody>
                 <ChangeRequestDialog dayPlan={this.props.plan.dayPlans[this.state.crDayNumber]} closeCrDialog={() => this.setState({crDialogOpen: false})} crDialogOpen={this.state.crDialogOpen} applyChange={(crList) => this.processChangeRequests(crList)}/>
                 {this.getWeekA()}
-                <tbody><tr><td colSpan={3}><center>----------------------------------------------------------------</center></td></tr></tbody>
                 {this.getWeekB()}
             </table>)
     }

@@ -1,0 +1,11 @@
+package com.thabok.entities;
+
+public enum Reason {
+
+	DESIGNATED_DRIVER,
+	LONELY_DRIVER,
+	LAZY_DRIVER,
+	ACCOMMODATE_PERSON,
+	ALTERNATIVE_DRIVER,
+	OTHER
+}

@@ -21,6 +21,7 @@ import com.thabok.entities.PartyTouple;
 import com.thabok.entities.Person;
 import com.thabok.entities.PlanInputData;
 import com.thabok.entities.ProgressObject;
+import com.thabok.entities.TimingInfo;
 import com.thabok.helper.TimetableHelper;
 import com.thabok.main.Controller;
 import com.thabok.untis.Period;
@@ -112,6 +113,7 @@ public class WebService {
 		}
 //		Util.writeStringToFile("/Users/thabok/Downloads/plan_" + System.currentTimeMillis() + ".txt", mp);
 		
+		storePersonsTimesPerDayPlan(mp);
 		clearDataFromPlan(mp);
 		
 		return mp;
@@ -124,6 +126,21 @@ public class WebService {
 		p.customDays = null;
 	}
 	
+	/**
+	 * Collect time infos per person for each day plan
+	 * this data is required to correctly adapt the party times when passengers are moved
+	 **/ 
+	private void storePersonsTimesPerDayPlan(MasterPlan mp) {
+		for (DayPlan dp : mp.getDayPlans().values()) {
+			for (Person p : mp.persons) {
+				if (TimetableHelper.isPersonActiveOnThisDay(p, dp.getDayOfWeekABCombo())) {
+					TimingInfo timingInfo = TimetableHelper.getTimingInfoForDay(p, dp.getDayOfWeekABCombo());
+					dp.schoolboundTimesByInitials.put(p.initials, timingInfo.getStartTime());
+					dp.homeboundTimesByInitials.put(p.initials, timingInfo.getEndTime());
+				}
+			}
+		}
+	}
 	private void clearDataFromPlan(MasterPlan mp) {
 		mp.persons = null;
 		mp.inputsPerDay = null;

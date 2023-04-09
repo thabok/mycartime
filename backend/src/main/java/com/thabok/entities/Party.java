@@ -16,6 +16,7 @@ public class Party {
 	private List<Person> passengers = new ArrayList<>();
 	private Map<String, String> reasonPhrasesByInitials = new HashMap<>();
 	private String reasonForParty;
+	private Reason reason = Reason.OTHER;
 
 	public Party(String reasonPhrase) {
 		reasonForParty = reasonPhrase;
@@ -69,7 +70,6 @@ public class Party {
 			}
 		}
 		this.time = updatedTime;
-		
 	}
 
 	/**
@@ -155,5 +155,13 @@ public class Party {
 
 	public String getReasonForParty() {
 		return reasonForParty;
+	}
+
+	public Reason getReason() {
+		return reason;
+	}
+
+	public void setReason(Reason reason) {
+		this.reason = reason;
 	}
 }
