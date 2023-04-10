@@ -4,6 +4,7 @@ class ToupleList extends Component {
 
     constructor(props) {
         super()
+        this.dayPlan = props.dayPlan
         this.state = {
             parties : this.sortTouples(props.touples, props.schoolbound)
         }
@@ -42,7 +43,7 @@ class ToupleList extends Component {
             passengerStrings.push(p.firstName + "\u00A0(" + p.initials + ")")
         }
         return (<li key={index}>
-            [{this.calculatePartyTime(party)}] <b>{this.getIndicator(party)}{party.driver.firstName + "\u00A0(" + party.driver.initials + ")"}</b> {(party.passengers.length > 0 ? " - " + passengerStrings.join(" - ") : "" )}
+            [{this.timeToString(this.calculatePartyTime(party))}] <b>{this.getIndicator(party)}{party.driver.firstName + "\u00A0(" + party.driver.initials + ")"}</b> {(party.passengers.length > 0 ? " - " + passengerStrings.join(" - ") : "" )}
         </li>)
     }
 
@@ -58,7 +59,7 @@ class ToupleList extends Component {
 
     calculatePartyTime(party) {
         // refer to day plan map of person's times
-        const map = party.isWayBack ? this.props.dayPlan.homeboundTimesByInitials : this.props.dayPlan.schoolboundTimesByInitials
+        const map = party.isWayBack ? this.dayPlan.homeboundTimesByInitials : this.dayPlan.schoolboundTimesByInitials
         // set party time to driver time
         let time = map[party.driver.initials]
         // if there's a passenger time which is earlier (schoolbound) / later (homebound) -> adapt party time
@@ -68,7 +69,7 @@ class ToupleList extends Component {
                 time = passengerTime
             }
         }
-        return this.timeToString(time)
+        return time
     }
 
     timeToString(time) {
@@ -92,7 +93,7 @@ class ToupleList extends Component {
             party.isDesignatedDriver = touple.isDesignatedDriver
             parties.push(party)
         }
-        parties.sort((a, b) => a.time < b.time ? -1 : 1)
+        parties.sort((a, b) => this.calculatePartyTime(a) < this.calculatePartyTime(b) ? -1 : 1)
         return parties
     }
 }

@@ -173,7 +173,7 @@ public class WebService {
 			WebService.updateProgress(progressValue, "Calculating plan");
 			MasterPlan mpCandidate = controller.calculateWeekPlan(persons);
 			int gt4 = calculateNumberOfPersonsAboveThreshold(mpCandidate, 4);
-			int gt6 = calculateNumberOfPersonsAboveThreshold(mpCandidate, 6);
+			int gt6 = calculateNumberOfPersonsAboveThreshold(mpCandidate, 5);
 			if (gt4 < lowestNoPersonsWithMoreThan4Drives) {
 				System.out.println("Found a better plan (gt4): " + lowestNoPersonsWithMoreThan4Drives + " -> " + gt4);
 				lowestNoPersonsWithMoreThan4Drives = gt4;
