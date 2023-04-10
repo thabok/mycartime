@@ -78,6 +78,11 @@ public class ControllerInitHelper {
     	Map<Integer, List<Person>> personsByStartOrEndTime = new HashMap<>(); 
         // place persons into groups based on start/end time
         for (Person person : persons) {
+        	CustomDay preferences = Util.getCustomDayObject(person, dayOfWeekABCombo);
+        	// skip persons based on their preferences
+        	if ((isWayBack && preferences.skipAfternoon) || (!isWayBack && preferences.skipMorning)) {
+        		continue;
+        	}
             TimingInfo timingInfo = person.schedule.get(dayOfWeekABCombo.getUniqueNumber());
             if (timingInfo != null && TimetableHelper.isPersonActiveOnThisDay(person, dayOfWeekABCombo)) {
                 int time = isWayBack ? timingInfo.getEndTime() : timingInfo.getStartTime();

@@ -157,32 +157,45 @@ public class WebService {
 		}
 	}
 
+	/**
+	 * Attempts to find the best plan out of a randomly generated set of plans. Uses
+	 * the metrics gt4 and gt6, indicating the number of persons who drive more than
+	 * 4 / 6 times respectivly. These metrics are being minimized.
+	 */
 	private MasterPlan findBestWeekPlan(Controller controller, List<Person> persons, int iterations) throws Exception {
 		MasterPlan mp = null;
 		int lowestNoPersonsWithMoreThan4Drives = 100;
+		int lowestNoPersonsWithMoreThan6Drives = 100;
 		for (int i=0; i<iterations; i++) {
 			// shuffling of persons currently disabled, makes changes on an existing plan more complicated
 			Collections.shuffle(persons);
 			float progressValue = 0.5f + ((float) i / iterations) * 0.5f;
 			WebService.updateProgress(progressValue, "Calculating plan");
 			MasterPlan mpCandidate = controller.calculateWeekPlan(persons);
-			int gt4 = calculateNumberOfPersonsAbove4Drives(mpCandidate);
+			int gt4 = calculateNumberOfPersonsAboveThreshold(mpCandidate, 4);
+			int gt6 = calculateNumberOfPersonsAboveThreshold(mpCandidate, 6);
 			if (gt4 < lowestNoPersonsWithMoreThan4Drives) {
-				System.out.println("Found a better plan: " + lowestNoPersonsWithMoreThan4Drives + " -> " + gt4);
+				System.out.println("Found a better plan (gt4): " + lowestNoPersonsWithMoreThan4Drives + " -> " + gt4);
 				lowestNoPersonsWithMoreThan4Drives = gt4;
+				lowestNoPersonsWithMoreThan6Drives = gt6;
+				mp = mpCandidate;
+			} else if (gt4 == lowestNoPersonsWithMoreThan4Drives && gt6 < lowestNoPersonsWithMoreThan6Drives) {
+				System.out.println("Found a better plan (gt6): " + lowestNoPersonsWithMoreThan6Drives + " -> " + gt6);
+				lowestNoPersonsWithMoreThan4Drives = gt4;
+				lowestNoPersonsWithMoreThan6Drives = gt6;
 				mp = mpCandidate;
 			}
 		}
 		return mp;
 	}
 
-	private int calculateNumberOfPersonsAbove4Drives(MasterPlan mpCandidate) {
+	private int calculateNumberOfPersonsAboveThreshold(MasterPlan mpCandidate, int threshold) {
 		NumberOfDrivesStatus nods = new NumberOfDrivesStatus(mpCandidate);
-		int gt4 = 0;
+		int gtThreshold = 0;
 		for (int noDrives : nods.getNumberOfDrives().values()) {
-			if (noDrives > 4) gt4++; 
+			if (noDrives > threshold) gtThreshold++; 
 		}
-		return gt4;
+		return gtThreshold;
 	}
 
 	/** 
