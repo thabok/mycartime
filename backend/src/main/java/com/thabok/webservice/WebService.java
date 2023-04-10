@@ -99,7 +99,7 @@ public class WebService {
 		Controller controller = new Controller();
 		MasterPlan mp;
 		if (inputData.preset == null) {
-			mp = findBestWeekPlan(controller, persons, 1000);
+			mp = findBestWeekPlan(controller, persons, 15000);
 			// calculate the winning plan once more (for debugging, tracability, etc.)
 			
 			MasterPlan mp2 = controller.calculateWeekPlan(mp);
@@ -162,28 +162,39 @@ public class WebService {
 	 * the metrics gt4 and gt6, indicating the number of persons who drive more than
 	 * 4 / 6 times respectivly. These metrics are being minimized.
 	 */
-	private MasterPlan findBestWeekPlan(Controller controller, List<Person> persons, int iterations) throws Exception {
+	private MasterPlan findBestWeekPlan(Controller controller, List<Person> persons, int iterationsWithoutImprovementLimit) throws Exception {
 		MasterPlan mp = null;
 		int lowestNoPersonsWithMoreThan4Drives = 100;
-		int lowestNoPersonsWithMoreThan6Drives = 100;
-		for (int i=0; i<iterations; i++) {
+		int lowestNoPersonsWithMoreThan5Drives = 100;
+		int estimatedTotal = Math.round(iterationsWithoutImprovementLimit * 1.3f);
+		int iterationsWithoutImprovement = 0;
+		int i = 0;
+		while (iterationsWithoutImprovement < iterationsWithoutImprovementLimit) {
+			// whenever the user cancels: return best candidate
+			if (isCancelled) {
+				return mp;
+			}
 			// shuffling of persons currently disabled, makes changes on an existing plan more complicated
 			Collections.shuffle(persons);
-			float progressValue = 0.5f + ((float) i / iterations) * 0.5f;
-			WebService.updateProgress(progressValue, "Calculating plan");
+			float progressValue = 0.5f + ((float) i++ / estimatedTotal) * 0.5f;
 			MasterPlan mpCandidate = controller.calculateWeekPlan(persons);
 			int gt4 = calculateNumberOfPersonsAboveThreshold(mpCandidate, 4);
-			int gt6 = calculateNumberOfPersonsAboveThreshold(mpCandidate, 5);
+			int gt5 = calculateNumberOfPersonsAboveThreshold(mpCandidate, 5);
+			WebService.updateProgress(progressValue, "Calculating plan... (persons with more than four drives: " + lowestNoPersonsWithMoreThan4Drives + ")");
 			if (gt4 < lowestNoPersonsWithMoreThan4Drives) {
 				System.out.println("Found a better plan (gt4): " + lowestNoPersonsWithMoreThan4Drives + " -> " + gt4);
 				lowestNoPersonsWithMoreThan4Drives = gt4;
-				lowestNoPersonsWithMoreThan6Drives = gt6;
+				lowestNoPersonsWithMoreThan5Drives = gt5;
 				mp = mpCandidate;
-			} else if (gt4 == lowestNoPersonsWithMoreThan4Drives && gt6 < lowestNoPersonsWithMoreThan6Drives) {
-				System.out.println("Found a better plan (gt6): " + lowestNoPersonsWithMoreThan6Drives + " -> " + gt6);
+				iterationsWithoutImprovement = 0;
+			} else if (gt4 == lowestNoPersonsWithMoreThan4Drives && gt5 < lowestNoPersonsWithMoreThan5Drives) {
+				System.out.println("Found a better plan (gt6): " + lowestNoPersonsWithMoreThan5Drives + " -> " + gt5);
 				lowestNoPersonsWithMoreThan4Drives = gt4;
-				lowestNoPersonsWithMoreThan6Drives = gt6;
+				lowestNoPersonsWithMoreThan5Drives = gt5;
 				mp = mpCandidate;
+				iterationsWithoutImprovement = 0;
+			} else {
+				iterationsWithoutImprovement++;
 			}
 		}
 		return mp;
