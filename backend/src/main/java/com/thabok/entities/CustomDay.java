@@ -13,8 +13,10 @@ public class CustomDay {
 	public boolean needsCar;
 	public boolean skipMorning;
 	public boolean skipAfternoon;
+	public boolean drivingSkip;
 	public String customStart = "";
 	public String customEnd = "";
+
 
 	/**
 	 * Converts the given String (e.g. "7:55" or "14:20")

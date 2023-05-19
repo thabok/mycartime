@@ -173,8 +173,11 @@ public class PartyHelper {
 			 * Skip persons who:
 			 * - have already been covered in the dayPlan
 			 * - are not active on this day (as per their schedule)
+			 * - didn't request to not drive on the day in question
 			 */
-			if (!TimetableHelper.isPersonActiveOnThisDay(driverCandidate, combo) || Util.alreadyCoveredOnGivenDay(driverCandidate, dayPlan)) {
+			if (!TimetableHelper.isPersonActiveOnThisDay(driverCandidate, combo)
+					|| Util.alreadyCoveredOnGivenDay(driverCandidate, dayPlan)
+					|| Util.getCustomDayObject(driverCandidate, combo).drivingSkip) {
 				continue;
 			}
 

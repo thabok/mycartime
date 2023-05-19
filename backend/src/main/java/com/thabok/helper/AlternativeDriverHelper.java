@@ -151,9 +151,10 @@ public class AlternativeDriverHelper {
 		for (Person alternativeDriverCandidate : persons) {
 			boolean notActiveOnThatDay = !TimetableHelper.isPersonActiveOnThisDay(alternativeDriverCandidate, combo);
 			boolean samePerson = alternativeDriverCandidate.equals(sirDrivesALot);
+			boolean drivingSkipRequested = Util.getCustomDayObject(sirDrivesALot, dayPlan.getDayOfWeekABCombo()).drivingSkip;
 			boolean alreadyDrivingTooOften = new NumberOfDrivesStatus(theMasterPlan)
 				.getNumberOfDrives().get(alternativeDriverCandidate) >= Constants.EXPECTED_DRIVING_DAYS_THRESHOLD;
-			if (samePerson || notActiveOnThatDay || alreadyDrivingTooOften) {
+			if (samePerson || notActiveOnThatDay || alreadyDrivingTooOften || drivingSkipRequested) {
 				// alternativeDriver is not suitable:
 				continue;
 			}

@@ -354,7 +354,7 @@ class MainPage extends Component {
 
         let map = this.state.newMember_customDays
         map[dayNumber][propertyName] = newValue
-        // handle dependencies between needsCar, skipMorning and skipAfternoon
+        // handle dependencies between needsCar, drivingSkip, skipMorning and skipAfternoon
         switch(propertyName) {
             case "ignoreCompletely":
                 // also disable needsCar/skipMorning/skipAfternoon
@@ -367,6 +367,17 @@ class MainPage extends Component {
                     // also disable skipMorning/skipAfternoon
                     map[dayNumber]['skipMorning'] = false
                     map[dayNumber]['skipAfternoon'] = false
+                } else {
+                    // disable drivingSkip
+                    map[dayNumber]['drivingSkip'] = false
+                }
+                break
+            case "drivingSkip":
+                if (newValue === true) {
+                    // disable needsCar
+                    map[dayNumber]['needsCar'] = false
+                    map[dayNumber]['skipMorning'] = false
+                    map[dayNumber]['skipAfternoon'] = false
                 }
                 break
             case "skipMorning":
@@ -374,6 +385,8 @@ class MainPage extends Component {
                 if (newValue === true) {
                     // also enable "needsCar"
                     map[dayNumber]['needsCar'] = true
+                    // disable drivingSkip
+                    map[dayNumber]['drivingSkip'] = false
                 }
                 break
             default:
@@ -522,10 +535,11 @@ class MainPage extends Component {
                                         <td key={dayNumber}>
                                             <Checkbox checked={this.state.newMember_customDays[dayNumber].ignoreCompletely} onChange={() => this.updateCustomDays(dayNumber, 'ignoreCompletely', null)} label="Ignore completely" />
                                             <Checkbox disabled={this.isChecked_CustomDays(dayNumber, 'ignoreCompletely')} checked={this.state.newMember_customDays[dayNumber].needsCar} onChange={() => this.updateCustomDays(dayNumber, 'needsCar', null)} label="Needs car" />
-                                            <Checkbox disabled={this.isChecked_CustomDays(dayNumber, 'ignoreCompletely')} checked={this.state.newMember_customDays[dayNumber].skipMorning} onChange={() => this.updateCustomDays(dayNumber, 'skipMorning', null)} label="Skip on morning" />
-                                            <Checkbox disabled={this.isChecked_CustomDays(dayNumber, 'ignoreCompletely')} checked={this.state.newMember_customDays[dayNumber].skipAfternoon} onChange={() => this.updateCustomDays(dayNumber, 'skipAfternoon', null)} label="Skip on afternoon" />
-                                            <InputGroup placeholder="start time: 7:40" disabled={this.isChecked_CustomDays(dayNumber, 'skipMorning')} value={this.state.newMember_customDays[dayNumber].customStart} onChange={(e) => this.updateCustomDays(dayNumber, 'customStart', e.target.value)} />
-                                            <InputGroup placeholder="end time: 14:30" disabled={this.isChecked_CustomDays(dayNumber, 'skipAfternoon')} value={this.state.newMember_customDays[dayNumber].customEnd} onChange={(e) => this.updateCustomDays(dayNumber, 'customEnd', e.target.value)} />
+                                            <Checkbox disabled={this.isChecked_CustomDays(dayNumber, 'ignoreCompletely')} checked={this.state.newMember_customDays[dayNumber].drivingSkip} onChange={() => this.updateCustomDays(dayNumber, 'drivingSkip', null)} label="Doesn't want to drive" />
+                                            <Checkbox disabled={this.isChecked_CustomDays(dayNumber, ['ignoreCompletely', 'drivingSkip'])} checked={this.state.newMember_customDays[dayNumber].skipMorning} onChange={() => this.updateCustomDays(dayNumber, 'skipMorning', null)} label="Skip on morning" />
+                                            <Checkbox disabled={this.isChecked_CustomDays(dayNumber, ['ignoreCompletely', 'drivingSkip'])} checked={this.state.newMember_customDays[dayNumber].skipAfternoon} onChange={() => this.updateCustomDays(dayNumber, 'skipAfternoon', null)} label="Skip on afternoon" />
+                                            <InputGroup placeholder="start time: 7:40" disabled={this.isChecked_CustomDays(dayNumber, 'ignoreCompletely')} value={this.state.newMember_customDays[dayNumber].customStart} onChange={(e) => this.updateCustomDays(dayNumber, 'customStart', e.target.value)} />
+                                            <InputGroup placeholder="end time: 14:30" disabled={this.isChecked_CustomDays(dayNumber, 'ignoreCompletely')} value={this.state.newMember_customDays[dayNumber].customEnd} onChange={(e) => this.updateCustomDays(dayNumber, 'customEnd', e.target.value)} />
                                         </td>)
                                         })}
                                     </tr>
@@ -536,10 +550,11 @@ class MainPage extends Component {
                                             <td key={dayNumber}>
                                                 <Checkbox checked={this.state.newMember_customDays[dayNumber].ignoreCompletely} onChange={() => this.updateCustomDays(dayNumber, 'ignoreCompletely', null)} label="Ignore completely" />
                                                 <Checkbox disabled={this.isChecked_CustomDays(dayNumber, 'ignoreCompletely')} checked={this.state.newMember_customDays[dayNumber].needsCar} onChange={() => this.updateCustomDays(dayNumber, 'needsCar', null)} label="Needs car" />
-                                                <Checkbox disabled={this.isChecked_CustomDays(dayNumber, 'ignoreCompletely')} checked={this.state.newMember_customDays[dayNumber].skipMorning} onChange={() => this.updateCustomDays(dayNumber, 'skipMorning', null)} label="Skip on morning" />
-                                                <Checkbox disabled={this.isChecked_CustomDays(dayNumber, 'ignoreCompletely')} checked={this.state.newMember_customDays[dayNumber].skipAfternoon} onChange={() => this.updateCustomDays(dayNumber, 'skipAfternoon', null)} label="Skip on afternoon" />
-                                                <InputGroup placeholder="start time: 7:40" disabled={this.isChecked_CustomDays(dayNumber, 'skipMorning')} value={this.state.newMember_customDays[dayNumber].customStart} onChange={(e) => this.updateCustomDays(dayNumber, 'customStart', e.target.value)} />
-                                                <InputGroup placeholder="end time: 14:30" disabled={this.isChecked_CustomDays(dayNumber, 'skipAfternoon')} value={this.state.newMember_customDays[dayNumber].customEnd} onChange={(e) => this.updateCustomDays(dayNumber, 'customEnd', e.target.value)} />
+                                                <Checkbox disabled={this.isChecked_CustomDays(dayNumber, 'ignoreCompletely')} checked={this.state.newMember_customDays[dayNumber].drivingSkip} onChange={() => this.updateCustomDays(dayNumber, 'drivingSkip', null)} label="Doesn't want to drive" />
+                                            <Checkbox disabled={this.isChecked_CustomDays(dayNumber, ['ignoreCompletely', 'drivingSkip'])} checked={this.state.newMember_customDays[dayNumber].skipMorning} onChange={() => this.updateCustomDays(dayNumber, 'skipMorning', null)} label="Skip on morning" />
+                                            <Checkbox disabled={this.isChecked_CustomDays(dayNumber, ['ignoreCompletely', 'drivingSkip'])} checked={this.state.newMember_customDays[dayNumber].skipAfternoon} onChange={() => this.updateCustomDays(dayNumber, 'skipAfternoon', null)} label="Skip on afternoon" />
+                                                <InputGroup placeholder="start time: 7:40" disabled={this.isChecked_CustomDays(dayNumber, 'ignoreCompletely')} value={this.state.newMember_customDays[dayNumber].customStart} onChange={(e) => this.updateCustomDays(dayNumber, 'customStart', e.target.value)} />
+                                                <InputGroup placeholder="end time: 14:30" disabled={this.isChecked_CustomDays(dayNumber, 'ignoreCompletely')} value={this.state.newMember_customDays[dayNumber].customEnd} onChange={(e) => this.updateCustomDays(dayNumber, 'customEnd', e.target.value)} />
                                             </td>)
                                             })}
                                     </tr>
