@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.thabok.entities.CustomDay;
 import com.thabok.entities.DayOfWeekABCombo;
@@ -126,6 +127,17 @@ public class PartyHelper {
 		return null;
 	}
 
+	
+	public static List<Party> getParties(DayPlan dayPlan, boolean schoolbound) {
+		List<Party> parties;
+		if (schoolbound) {
+			parties = dayPlan.getPartyTouples().stream().map(pt -> pt.getPartyThere()).collect(Collectors.toList());
+		} else {
+			parties = dayPlan.getPartyTouples().stream().map(pt -> pt.getPartyBack()).collect(Collectors.toList());
+		}
+		return parties;
+	}
+	
 	/**
 	 * Returns the party the given person is driving with (as a driver or passenger). May return null
 	 */

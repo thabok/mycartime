@@ -61,10 +61,6 @@ public class Controller {
          */
         AlternativeDriverHelper.findAlternativeForSirDrivesALots(theMasterPlan);
         
-        /*
-         * TODO: Prefer people in situations like Anna/Mareike on Monday afternoons 
-         */
-        //...
         
         /*
          * Next up, we add people to existing parties _if possible_ and create new parties _when needed_

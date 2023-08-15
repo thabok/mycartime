@@ -456,7 +456,7 @@ class MainPage extends Component {
                         id="input-noseats"
                         value={this.state.newMember_noseats}
                         leftIcon="person"
-                        min={2}
+                        min={1}
                         max={10}
                         onKeyPress={(e) => this.handleKeyPress(e)}
                         onValueChange={(number, string) => { this.setState({newMember_noseats: number}) }} />
@@ -903,6 +903,7 @@ class MainPage extends Component {
             map[n] = {
                 ignoreCompletely: false,
                 needsCar: false,
+                drivingSkip: false,
                 skipMorning: false,
                 skipAfternoon: false,
                 customStart: "",

@@ -22,6 +22,7 @@ import com.thabok.entities.Person;
 import com.thabok.entities.PlanInputData;
 import com.thabok.entities.ProgressObject;
 import com.thabok.entities.TimingInfo;
+import com.thabok.helper.PlanOptimizationHelper;
 import com.thabok.helper.TimetableHelper;
 import com.thabok.main.Controller;
 import com.thabok.untis.Period;
@@ -114,6 +115,9 @@ public class WebService {
 //		Util.writeStringToFile("/Users/thabok/Downloads/plan_" + System.currentTimeMillis() + ".txt", mp);
 		
 		storePersonsTimesPerDayPlan(mp);
+		// impact analysis of fix for issue #11 (PlanOptimizationHelper)
+		PlanOptimizationHelper.printTightnessOverview(mp);
+		
 		clearDataFromPlan(mp);
 		
 		return mp;
