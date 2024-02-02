@@ -28,7 +28,7 @@ import com.thabok.entities.DayOfWeekABCombo;
 import com.thabok.entities.DayPlan;
 import com.thabok.entities.MasterPlan;
 import com.thabok.entities.NumberOfDrivesStatus;
-import com.thabok.entities.PartyTouple;
+import com.thabok.entities.PartyTuple;
 import com.thabok.entities.Person;
 import com.thabok.helper.PartyHelper;
 
@@ -136,13 +136,13 @@ public class Util {
     }
 
 	public static boolean drivesOnGivenDay(Person person, DayPlan referencePlan) {
-		return PartyHelper.getPartyToupleByDriver(referencePlan, person) != null;
+		return PartyHelper.getPartyTupleByDriver(referencePlan, person) != null;
 	}
 	
 
 	public static boolean alreadyCoveredOnGivenDay(Person person, DayPlan referencePlan, boolean isWayBack) {
 		boolean isDriver = drivesOnGivenDay(person, referencePlan);
-		boolean isPassenger = PartyHelper.getPartyToupleByPassengerAndDay(person, referencePlan, isWayBack) != null;
+		boolean isPassenger = PartyHelper.getPartyTupleByPassengerAndDay(person, referencePlan, isWayBack) != null;
 		return isDriver || isPassenger;
 	}
 	
@@ -208,7 +208,7 @@ public class Util {
 	public static List<DayPlan> getNonMirroredDays(MasterPlan theMasterPlan, Person p) {
 		List<DayPlan> nonMirroredDays = theMasterPlan.getDayPlans().values().stream().filter(dp -> {
 				DayPlan mirrorDp = theMasterPlan.getDayPlans().get(Util.getMirrorCombo(dp.getDayOfWeekABCombo()).getUniqueNumber());
-				PartyTouple pt = PartyHelper.getPartyToupleByDriver(dp, p);
+				PartyTuple pt = PartyHelper.getPartyTupleByDriver(dp, p);
 				boolean drivesOnThisDay = pt != null;
 				boolean isDesignatedDriverOnThisDay = pt != null && pt.isDesignatedDriver();
 				boolean drivesOnMirrorDay = Util.drivesOnGivenDay(p, mirrorDp);
@@ -229,7 +229,7 @@ public class Util {
 	public static List<DayPlan> getMissingMirrorDays(MasterPlan theMasterPlan, Person p) {
 		List<DayPlan> missingMirrorDays = theMasterPlan.getDayPlans().values().stream().filter(dp -> {
 				DayPlan mirrorDp = theMasterPlan.getDayPlans().get(Util.getMirrorCombo(dp.getDayOfWeekABCombo()).getUniqueNumber());
-				PartyTouple pt = PartyHelper.getPartyToupleByDriver(dp, p);
+				PartyTuple pt = PartyHelper.getPartyTupleByDriver(dp, p);
 				boolean drivesOnThisDay = pt != null;
 				boolean drivesOnMirrorDay = Util.drivesOnGivenDay(p, mirrorDp);
 				return !drivesOnThisDay && drivesOnMirrorDay;
@@ -276,34 +276,34 @@ public class Util {
 				spaces += " ";
 			}
 			out.println(String.format("|  %s: %s%s|", person, numberOfDrives.get(person), spaces));
-			PartyTouple pt = PartyHelper.getPartyToupleByDriver(theMasterPlan.getDayPlans().get(1), person);
+			PartyTuple pt = PartyHelper.getPartyTupleByDriver(theMasterPlan.getDayPlans().get(1), person);
 			boolean monA = pt != null;
 			boolean desigMonA = pt != null && pt.isDesignatedDriver();
-			pt = PartyHelper.getPartyToupleByDriver(theMasterPlan.getDayPlans().get(2), person);
+			pt = PartyHelper.getPartyTupleByDriver(theMasterPlan.getDayPlans().get(2), person);
 			boolean tueA = pt != null;
 			boolean desigTueA = pt != null && pt.isDesignatedDriver();
-			pt = PartyHelper.getPartyToupleByDriver(theMasterPlan.getDayPlans().get(3), person);
+			pt = PartyHelper.getPartyTupleByDriver(theMasterPlan.getDayPlans().get(3), person);
 			boolean wedA = pt != null;
 			boolean desigWedA = pt != null && pt.isDesignatedDriver();
-			pt = PartyHelper.getPartyToupleByDriver(theMasterPlan.getDayPlans().get(4), person);
+			pt = PartyHelper.getPartyTupleByDriver(theMasterPlan.getDayPlans().get(4), person);
 			boolean thuA = pt != null;
 			boolean desigThuA = pt != null && pt.isDesignatedDriver();
-			pt = PartyHelper.getPartyToupleByDriver(theMasterPlan.getDayPlans().get(5), person);
+			pt = PartyHelper.getPartyTupleByDriver(theMasterPlan.getDayPlans().get(5), person);
 			boolean friA = pt != null;
 			boolean desigFriA = pt != null && pt.isDesignatedDriver();
-			pt = PartyHelper.getPartyToupleByDriver(theMasterPlan.getDayPlans().get(8), person);
+			pt = PartyHelper.getPartyTupleByDriver(theMasterPlan.getDayPlans().get(8), person);
 			boolean monB = pt != null;
 			boolean desigMonB = pt != null && pt.isDesignatedDriver();
-			pt = PartyHelper.getPartyToupleByDriver(theMasterPlan.getDayPlans().get(9), person);
+			pt = PartyHelper.getPartyTupleByDriver(theMasterPlan.getDayPlans().get(9), person);
 			boolean tueB = pt != null;
 			boolean desigTueB = pt != null && pt.isDesignatedDriver();
-			pt = PartyHelper.getPartyToupleByDriver(theMasterPlan.getDayPlans().get(10), person);
+			pt = PartyHelper.getPartyTupleByDriver(theMasterPlan.getDayPlans().get(10), person);
 			boolean wedB = pt != null;
 			boolean desigWedB = pt != null && pt.isDesignatedDriver();
-			pt = PartyHelper.getPartyToupleByDriver(theMasterPlan.getDayPlans().get(11), person);
+			pt = PartyHelper.getPartyTupleByDriver(theMasterPlan.getDayPlans().get(11), person);
 			boolean thuB = pt != null;
 			boolean desigThuB = pt != null && pt.isDesignatedDriver();
-			pt = PartyHelper.getPartyToupleByDriver(theMasterPlan.getDayPlans().get(12), person);
+			pt = PartyHelper.getPartyTupleByDriver(theMasterPlan.getDayPlans().get(12), person);
 			boolean friB = pt != null;
 			boolean desigFriB = pt != null && pt.isDesignatedDriver();
 			out.println("| MON | TUE | WED | THU | FRI |");

@@ -38,8 +38,8 @@ class ChangeRequestDialog extends Component {
 
     getCrPassengerCandidates() {
         let candidates = []
-        for (let ptIndex=0; ptIndex<this.props.dayPlan.partyTouples.length; ptIndex++) {
-            const party = this.state.schoolbound ? this.props.dayPlan.partyTouples[ptIndex].partyThere : this.props.dayPlan.partyTouples[ptIndex].partyBack
+        for (let ptIndex = 0; ptIndex < this.props.dayPlan.partyTuples.length; ptIndex++) {
+            const party = this.state.schoolbound ? this.props.dayPlan.partyTuples[ptIndex].partyThere : this.props.dayPlan.partyTuples[ptIndex].partyBack
             party.passengers.forEach((passenger) => {
                 passenger.driverInitials = party.driver.initials
                 candidates.push(passenger)
@@ -51,8 +51,8 @@ class ChangeRequestDialog extends Component {
     updateTargetCandidates(item, sourcePartyTime=null) {
         let candidates = []
         let spt = sourcePartyTime != null ? this.timeToString(sourcePartyTime) : this.state.sourcePartyTime
-        for (let ptIndex=0; ptIndex<this.props.dayPlan.partyTouples.length; ptIndex++) {
-            const party =  this.state.schoolbound ? this.props.dayPlan.partyTouples[ptIndex].partyThere : this.props.dayPlan.partyTouples[ptIndex].partyBack
+        for (let ptIndex = 0; ptIndex < this.props.dayPlan.partyTuples.length; ptIndex++) {
+            const party = this.state.schoolbound ? this.props.dayPlan.partyTuples[ptIndex].partyThere : this.props.dayPlan.partyTuples[ptIndex].partyBack
             if (!this.state.allowDifferentTimes && this.timeToString(party.time) !== spt) {
                 continue
             }
@@ -73,8 +73,8 @@ class ChangeRequestDialog extends Component {
 
     calculateSourcePartyTime(passengerToPlace) {
         let time = null
-        for (let ptIndex=0; ptIndex<this.props.dayPlan.partyTouples.length; ptIndex++) {
-            const party = this.state.schoolbound ? this.props.dayPlan.partyTouples[ptIndex].partyThere : this.props.dayPlan.partyTouples[ptIndex].partyBack
+        for (let ptIndex = 0; ptIndex < this.props.dayPlan.partyTuples.length; ptIndex++) {
+            const party = this.state.schoolbound ? this.props.dayPlan.partyTuples[ptIndex].partyThere : this.props.dayPlan.partyTuples[ptIndex].partyBack
             if (party.driver.initials === passengerToPlace.initials) {
                 time = party.time
             } else {
@@ -92,8 +92,8 @@ class ChangeRequestDialog extends Component {
 
     calculateTargetPartyTime(personToJoin) {
         let time = null
-        for (let ptIndex=0; ptIndex<this.props.dayPlan.partyTouples.length; ptIndex++) {
-            const party = this.state.schoolbound ? this.props.dayPlan.partyTouples[ptIndex].partyThere : this.props.dayPlan.partyTouples[ptIndex].partyBack
+        for (let ptIndex = 0; ptIndex < this.props.dayPlan.partyTuples.length; ptIndex++) {
+            const party = this.state.schoolbound ? this.props.dayPlan.partyTuples[ptIndex].partyThere : this.props.dayPlan.partyTuples[ptIndex].partyBack
             if (party.driver.initials === personToJoin.initials) {
                 time = party.time
             } else {

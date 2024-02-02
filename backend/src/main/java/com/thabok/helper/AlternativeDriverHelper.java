@@ -13,7 +13,7 @@ import com.thabok.entities.DayPlan;
 import com.thabok.entities.DayPlanInput;
 import com.thabok.entities.MasterPlan;
 import com.thabok.entities.NumberOfDrivesStatus;
-import com.thabok.entities.PartyTouple;
+import com.thabok.entities.PartyTuple;
 import com.thabok.entities.Person;
 import com.thabok.entities.Reason;
 import com.thabok.util.Constants;
@@ -129,13 +129,13 @@ public class AlternativeDriverHelper {
 //					alternativeDriver, Util.getTimeAsString(alternativeDriverCfg.altStartTime), 
 //					sirDrivesALot, Util.getTimeAsString(alternativeDriverCfg.originalStartTime),
 //					relevantPlan.getDayOfWeekABCombo()));
-			// Get PartyTouple of SirDrivesALot to remove it:
-			Optional<PartyTouple> optional = relevantPlan.getPartyTouples().stream().filter(pt -> pt.getDriver().equals(sirDrivesALot)).findAny();
+			// Get PartyTuple of SirDrivesALot to remove it:
+			Optional<PartyTuple> optional = relevantPlan.getPartyTuples().stream().filter(pt -> pt.getDriver().equals(sirDrivesALot)).findAny();
 			if (optional.isEmpty()) {
 				throw new IllegalStateException("Cannot find a party where sir drives a lot drives... that can't be right?!");
 			}
-			// remove sirDrivesALot's party touple
-			relevantPlan.getPartyTouples().remove(optional.get());
+			// remove sirDrivesALot's party tuple
+			relevantPlan.getPartyTuples().remove(optional.get());
 			
 			// add party for the alternative driver
 			PartyHelper.addSoloParty(relevantPlan, alternativeDriver, inputsPerDay, "findAlternativeForSirDriveALots > tryToFindAlternativeDriver > " + alternativeDriver + " takes over for " + sirDrivesALot, Reason.ALTERNATIVE_DRIVER);

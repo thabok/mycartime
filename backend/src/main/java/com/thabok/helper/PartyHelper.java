@@ -15,7 +15,7 @@ import com.thabok.entities.DayPlanInput;
 import com.thabok.entities.MasterPlan;
 import com.thabok.entities.NumberOfDrivesStatus;
 import com.thabok.entities.Party;
-import com.thabok.entities.PartyTouple;
+import com.thabok.entities.PartyTuple;
 import com.thabok.entities.Person;
 import com.thabok.entities.Reason;
 import com.thabok.util.Util;
@@ -55,10 +55,14 @@ public class PartyHelper {
      * @return 
      * @throws Exception 
      */
-    public static PartyTouple addSoloParty(DayPlan dayPlan, Person driver, Map<Integer, DayPlanInput> inputsPerDay, String reasonPhrase, Reason reason) throws Exception {
+    public static PartyTuple addSoloParty(DayPlan dayPlan, Person driver, Map<Integer, DayPlanInput> inputsPerDay, String reasonPhrase, Reason reason) throws Exception {
     	CustomDay driverPreferences = Util.getCustomDayObject(driver, dayPlan.getDayOfWeekABCombo());
-    	// create party touple
-    	PartyTouple partyTouple = new PartyTouple();
+    	// create party tuple
+    	PartyTuple partyTuple = new PartyTuple();
+    	
+    	if (driverPreferences.drivingSkip) {
+    		partyTuple.setDrivesDespiteCustomPrefs(true);
+    	}
     	
     	// - way there
         Party partyThere = new Party(reasonPhrase);
@@ -72,7 +76,7 @@ public class PartyHelper {
         } else {
         	partyThere.setReason(reason);
         }
-        partyTouple.setPartyThere(partyThere);
+        partyTuple.setPartyThere(partyThere);
         
         // - way back
         Party partyBack = new Party(reasonPhrase);
@@ -86,13 +90,13 @@ public class PartyHelper {
         } else {
         	partyBack.setReason(reason);
         }
-        partyTouple.setPartyBack(partyBack);
-        partyTouple.setDesignatedDriver(Reason.DESIGNATED_DRIVER == reason);
+        partyTuple.setPartyBack(partyBack);
+        partyTuple.setDesignatedDriver(Reason.DESIGNATED_DRIVER == reason);
    
-        // add party touple to day plan
-        dayPlan.addPartyTouple(partyTouple);
+        // add party tuple to day plan
+        dayPlan.addPartyTuple(partyTuple);
 
-        return partyTouple;
+        return partyTuple;
     }
     
     /**
@@ -116,8 +120,8 @@ public class PartyHelper {
 		return true;
 	}
 	
-	public static Party getPartyToupleByPassengerAndDay(Person person, DayPlan referencePlan, boolean isWayBack) {
-		for (PartyTouple pt : referencePlan.getPartyTouples()) {
+	public static Party getPartyTupleByPassengerAndDay(Person person, DayPlan referencePlan, boolean isWayBack) {
+		for (PartyTuple pt : referencePlan.getPartyTuples()) {
 			if (isWayBack && pt.getPartyBack().getPassengers().contains(person)) {
 				return pt.getPartyBack();
 			} else if (!isWayBack && pt.getPartyThere().getPassengers().contains(person)) {
@@ -131,9 +135,9 @@ public class PartyHelper {
 	public static List<Party> getParties(DayPlan dayPlan, boolean schoolbound) {
 		List<Party> parties;
 		if (schoolbound) {
-			parties = dayPlan.getPartyTouples().stream().map(pt -> pt.getPartyThere()).collect(Collectors.toList());
+			parties = dayPlan.getPartyTuples().stream().map(pt -> pt.getPartyThere()).collect(Collectors.toList());
 		} else {
-			parties = dayPlan.getPartyTouples().stream().map(pt -> pt.getPartyBack()).collect(Collectors.toList());
+			parties = dayPlan.getPartyTuples().stream().map(pt -> pt.getPartyBack()).collect(Collectors.toList());
 		}
 		return parties;
 	}
@@ -142,18 +146,18 @@ public class PartyHelper {
 	 * Returns the party the given person is driving with (as a driver or passenger). May return null
 	 */
 	public static Party getParty(DayPlan dayPlan, Person person, boolean isWayBack) {
-		PartyTouple partyToupleByDriver = getPartyToupleByDriver(dayPlan, person);
+		PartyTuple partyTupleByDriver = getPartyTupleByDriver(dayPlan, person);
 		Party party = null;
-		if (partyToupleByDriver != null) {
-			party = isWayBack ? partyToupleByDriver.getPartyBack() : partyToupleByDriver.getPartyThere();
+		if (partyTupleByDriver != null) {
+			party = isWayBack ? partyTupleByDriver.getPartyBack() : partyTupleByDriver.getPartyThere();
 		} else {
-			party = getPartyToupleByPassengerAndDay(person, dayPlan, isWayBack);
+			party = getPartyTupleByPassengerAndDay(person, dayPlan, isWayBack);
 		}
 		return party;
 	}
 
-	public static PartyTouple getPartyToupleByDriver(DayPlan dayPlan, Person driver) {
-		for (PartyTouple pt : dayPlan.getPartyTouples()) {
+	public static PartyTuple getPartyTupleByDriver(DayPlan dayPlan, Person driver) {
+		for (PartyTuple pt : dayPlan.getPartyTuples()) {
 			if (pt.getDriver().equals(driver)) {
 				return pt;
 			}
@@ -259,21 +263,21 @@ public class PartyHelper {
 		} else if (driverForWayThere != null && driverForWayThere.equals(driverForWayBack)) {
 			// same person for there and back
 			
-			PartyTouple partyTouple = addSoloParty(dayPlan, driverForWayThere, inputsPerDay, reasonPhrase + " > same persons for there and back", Reason.ACCOMMODATE_PERSON);
-			partyTouple.getPartyThere().addPassenger(personToBeSeated, reasonPhrase + " > same persons for there and back");
-			partyTouple.getPartyBack().addPassenger(personToBeSeated, reasonPhrase + " > same persons for there and back");
+			PartyTuple partyTuple = addSoloParty(dayPlan, driverForWayThere, inputsPerDay, reasonPhrase + " > same persons for there and back", Reason.ACCOMMODATE_PERSON);
+			partyTuple.getPartyThere().addPassenger(personToBeSeated, reasonPhrase + " > same persons for there and back");
+			partyTuple.getPartyBack().addPassenger(personToBeSeated, reasonPhrase + " > same persons for there and back");
 			Util.out.println(String.format("  - %s creates a new party, %s can join in the morning and afternoon.", driverForWayThere, personToBeSeated));
 			
 		} else {
 			// different persons driving there and back
 			if (driverForWayThere != null) {
-				PartyTouple partyToupleThere = addSoloParty(dayPlan, driverForWayThere, inputsPerDay, reasonPhrase + " > different persons for there and back", Reason.ACCOMMODATE_PERSON);
-				partyToupleThere.getPartyThere().addPassenger(personToBeSeated, reasonPhrase + " > different persons for there and back");
+				PartyTuple partyTupleThere = addSoloParty(dayPlan, driverForWayThere, inputsPerDay, reasonPhrase + " > different persons for there and back", Reason.ACCOMMODATE_PERSON);
+				partyTupleThere.getPartyThere().addPassenger(personToBeSeated, reasonPhrase + " > different persons for there and back");
 				Util.out.println(String.format("  - %s creates a new party, %s can join in the morning.", driverForWayThere, personToBeSeated));
 			}
 			if (driverForWayBack != null) {
-				PartyTouple partyToupleBack = addSoloParty(dayPlan, driverForWayBack, inputsPerDay, reasonPhrase + " > different persons for there and back", Reason.ACCOMMODATE_PERSON);
-				partyToupleBack.getPartyBack().addPassenger(personToBeSeated, reasonPhrase + " > different persons for there and back");
+				PartyTuple partyTupleBack = addSoloParty(dayPlan, driverForWayBack, inputsPerDay, reasonPhrase + " > different persons for there and back", Reason.ACCOMMODATE_PERSON);
+				partyTupleBack.getPartyBack().addPassenger(personToBeSeated, reasonPhrase + " > different persons for there and back");
 				Util.out.println(String.format("  - %s creates a new party, %s can join in the afternoon.", driverForWayBack, personToBeSeated));
 			}
 			

@@ -6,6 +6,7 @@ import static spark.Spark.options;
 import static spark.Spark.port;
 import static spark.Spark.post;
 
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +18,7 @@ import com.google.gson.Gson;
 import com.thabok.entities.DayPlan;
 import com.thabok.entities.MasterPlan;
 import com.thabok.entities.NumberOfDrivesStatus;
-import com.thabok.entities.PartyTouple;
+import com.thabok.entities.PartyTuple;
 import com.thabok.entities.Person;
 import com.thabok.entities.PlanInputData;
 import com.thabok.entities.ProgressObject;
@@ -28,6 +29,7 @@ import com.thabok.main.Controller;
 import com.thabok.untis.Period;
 import com.thabok.untis.WebUntisAdapter;
 import com.thabok.util.JsonUtil;
+import com.thabok.util.Util;
 
 import spark.Request;
 import spark.Response;
@@ -151,7 +153,7 @@ public class WebService {
 		mp.key = null;
 		
 		for (DayPlan dp : mp.getDayPlans().values()) {
-			for (PartyTouple pt : dp.getPartyTouples()) {
+			for (PartyTuple pt : dp.getPartyTuples()) {
 				clearDataFromPerson(pt.getPartyThere().getDriver());
 				pt.getPartyThere().getPassengers().forEach(p -> clearDataFromPerson(p));
 				

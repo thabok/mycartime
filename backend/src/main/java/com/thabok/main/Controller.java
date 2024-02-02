@@ -15,7 +15,7 @@ import com.thabok.entities.DayPlan;
 import com.thabok.entities.MasterPlan;
 import com.thabok.entities.NumberOfDrivesStatus;
 import com.thabok.entities.Party;
-import com.thabok.entities.PartyTouple;
+import com.thabok.entities.PartyTuple;
 import com.thabok.entities.Person;
 import com.thabok.entities.Reason;
 import com.thabok.helper.AlternativeDriverHelper;
@@ -56,7 +56,7 @@ public class Controller {
         
         /*
          * If someone is already driving a lot at this point (more than 4  times), let's try to reduce that
-         * by letting adding a tolerance on the wayThere (merges first-lesson with people who have hall-duty 
+         * by adding a tolerance on the wayThere (merges first-lesson with people who have hall-duty 
          * before the first lesson).
          */
         AlternativeDriverHelper.findAlternativeForSirDrivesALots(theMasterPlan);
@@ -157,11 +157,11 @@ public class Controller {
             int mirrorDayNumber = Util.getRefComboInt(dp.getDayOfWeekABCombo().getUniqueNumber());
             DayPlan referenceDayPlan = theMasterPlan.getDayPlans().get(mirrorDayNumber);
 
-            List<Party> partiesThere = dp.getPartyTouples().stream()
+            List<Party> partiesThere = dp.getPartyTuples().stream()
 				.map(pt -> pt.getPartyThere())
 				.filter(p -> PartyHelper.partyIsAvailable(p))
 				.collect(Collectors.toList());
-            List<Party> partiesBack = dp.getPartyTouples().stream()
+            List<Party> partiesBack = dp.getPartyTuples().stream()
 				.map(pt -> pt.getPartyBack())
 				.filter(p -> PartyHelper.partyIsAvailable(p))
 				.collect(Collectors.toList());
@@ -173,7 +173,7 @@ public class Controller {
             wayBackPartiesByEndTime.values().forEach(eqParties -> balancePassengers(eqParties, referenceDayPlan));
 
             dp.passengersBalanced = true;
-//            for (PartyTouple pt : dp.getPartyTouples()) {
+//            for (PartyTuple pt : dp.getPartyTuples()) {
 //            	asdf(pt.getPartyThere(), partiesThere);
 //            	asdf(pt.getPartyBack(), partiesBack);
 //            }
@@ -252,7 +252,7 @@ public class Controller {
      * - Persons to be placed are sorted based on their number of total drives (desc)<br>
      * - For the creation of parties, we prefer people with a low noDrives for the resp. week, ideally already driving on the mirror day<br>
      * - The result is still slightly imbalanced, due to the nature of the approach<br>
-     * - Also the passengers need to be rebalanced (there may be to parties at the same time with on full car and on pretty empty car)
+     * - Also the passengers need to be rebalanced (there may be to parties at the same time with one full car and one pretty empty car)
      */
     private void coreAlgorithm(MasterPlan theMasterPlan) throws Exception {
         NumberOfDrivesStatus nods = new NumberOfDrivesStatus(theMasterPlan);
@@ -294,7 +294,7 @@ public class Controller {
         Util.out.println("[" + (!((partyThere != null)) ? "-->" : "   ") + "|" + (!((partyBack != null)) ? "<--" : "   ") + "]");
         
         // try to find parties for this person
-        for (PartyTouple pt : dayPlan.getPartyTouples()) {
+        for (PartyTuple pt : dayPlan.getPartyTuples()) {
             Party[] partiesToJoinThere = findPartyToJoin(person, pt, partyThere, partyThereWithWaitingTime, combo, false, reasonPhrase + " > findPartyToJoin");
             partyThere = partiesToJoinThere[0];
             partyThereWithWaitingTime = partiesToJoinThere[1];
@@ -322,7 +322,7 @@ public class Controller {
         }
     }
 
-    private Party[] findPartyToJoin(Person person, PartyTouple pt, Party party, Party partyWithWaitingTime, DayOfWeekABCombo combo, boolean isWayBack, String reasonPhrase) {
+    private Party[] findPartyToJoin(Person person, PartyTuple pt, Party party, Party partyWithWaitingTime, DayOfWeekABCombo combo, boolean isWayBack, String reasonPhrase) {
         Party[] parties = { party, partyWithWaitingTime };
         if (parties[0] == null) {
             int time = person.getTimeForDowCombo(combo, isWayBack);

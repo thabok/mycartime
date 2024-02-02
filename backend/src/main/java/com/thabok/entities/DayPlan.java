@@ -10,7 +10,7 @@ public class DayPlan {
 
 	public boolean passengersBalanced = false;
 	private DayOfWeekABCombo dayOfWeekABCombo;
-	private List<PartyTouple> partyTouples = new ArrayList<>();
+	private List<PartyTuple> partyTuples = new ArrayList<>();
 	public Map<String, Integer> schoolboundTimesByInitials = new HashMap<>();
 	public Map<String, Integer> homeboundTimesByInitials = new HashMap<>();
 	
@@ -25,14 +25,14 @@ public class DayPlan {
 	public void setDayOfWeekABCombo(DayOfWeekABCombo dayOfWeekABCombo) {
 		this.dayOfWeekABCombo = dayOfWeekABCombo;
 	}
-	public List<PartyTouple> getPartyTouples() {
-		return partyTouples;
+	public List<PartyTuple> getPartyTuples() {
+		return partyTuples;
 	}
-	public void setPartyTouples(List<PartyTouple> partyTouples) {
-		this.partyTouples = partyTouples;
+	public void setPartyTuples(List<PartyTuple> partyTuples) {
+		this.partyTuples = partyTuples;
 	}
-	public void addPartyTouple(PartyTouple partyTouple) {
-		this.partyTouples.add(partyTouple);
+	public void addPartyTuple(PartyTuple partyTuple) {
+		this.partyTuples.add(partyTuple);
 	}
 	
 	public boolean isWeekA() {
@@ -41,11 +41,11 @@ public class DayPlan {
 	
     public String toString() {
     	String s = "[" + dayOfWeekABCombo + "]\n";
-    	List<PartyTouple> partyTouplesSorted = partyTouples.stream()
+    	List<PartyTuple> partyTuplesSorted = partyTuples.stream()
     			.sorted((pt1, pt2) -> pt1.getDriver().toString().compareTo(pt2.getDriver().toString()))
     			.collect(Collectors.toList());
-    	for (PartyTouple partyTouple : partyTouplesSorted) {
-			s += "\t- " + (partyTouple.isDesignatedDriver() ? "* " : "  ") +  String.join("\n\t    ", partyTouple.toString().split("\\n")) + "\n";
+    	for (PartyTuple partyTuple : partyTuplesSorted) {
+			s += "\t- " + (partyTuple.isDesignatedDriver() ? "* " : "  ") +  String.join("\n\t    ", partyTuple.toString().split("\\n")) + "\n";
 		}
     	return s;
     }

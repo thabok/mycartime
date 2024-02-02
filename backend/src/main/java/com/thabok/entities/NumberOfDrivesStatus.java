@@ -30,7 +30,7 @@ public class NumberOfDrivesStatus {
 			boolean skip = (isWeekA != null) && ((dp.getDayOfWeekABCombo().getUniqueNumber() < 8) != isWeekA);
 			if (skip)
 				continue;
-			for (PartyTouple pt : dp.getPartyTouples()) {
+			for (PartyTuple pt : dp.getPartyTuples()) {
 				numberOfDrives.put(pt.getDriver(), numberOfDrives.get(pt.getDriver()) + 1);
 			}
 		}

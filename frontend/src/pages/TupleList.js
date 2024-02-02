@@ -1,16 +1,16 @@
 import React, { Component } from 'react';
 
-class ToupleList extends Component {
+class TupleList extends Component {
 
     constructor(props) {
         super()
         this.dayPlan = props.dayPlan
         this.state = {
-            parties : this.sortTouples(props.touples, props.schoolbound)
+            parties: this.sortTuples(props.tuples, props.schoolbound)
         }
     }
 
-    componentDidMount() {}
+    componentDidMount() { }
 
     render() {
         return (
@@ -20,7 +20,7 @@ class ToupleList extends Component {
                         let found = party.driver.initials.toLowerCase().indexOf(this.props.filterForPerson.toLowerCase()) !== -1
                         if (!found) {
                             if (party.passengers) {
-                                for (let i=0; i < party.passengers.length; i++) {
+                                for (let i = 0; i < party.passengers.length; i++) {
                                     if (party.passengers[i].initials.toLowerCase().indexOf(this.props.filterForPerson.toLowerCase()) !== -1) {
                                         found = true
                                         break
@@ -38,17 +38,19 @@ class ToupleList extends Component {
 
     getListItem(party, index) {
         let passengerStrings = []
-        for (let i=0; i < party.passengers.length; i++) {
+        for (let i = 0; i < party.passengers.length; i++) {
             let p = party.passengers[i]
             passengerStrings.push(p.firstName + "\u00A0(" + p.initials + ")")
         }
         return (<li key={index}>
-            [{this.timeToString(this.calculatePartyTime(party))}] <b>{this.getIndicator(party)}{party.driver.firstName + "\u00A0(" + party.driver.initials + ")"}</b> {(party.passengers.length > 0 ? " - " + passengerStrings.join(" - ") : "" )}
+            [{this.timeToString(this.calculatePartyTime(party))}] <b>{this.getIndicator(party)}{party.driver.firstName + "\u00A0(" + party.driver.initials + ")"}</b> {(party.passengers.length > 0 ? " - " + passengerStrings.join(" - ") : "")}
         </li>)
     }
 
     getIndicator(party) {
-        if (party.reason === 'DESIGNATED_DRIVER') {
+        if (party.drivesDespiteCustomPrefs) {
+            return '🚨'
+        } else if (party.reason === 'DESIGNATED_DRIVER') {
             return '*'
         } else if (party.reason === 'LONELY_DRIVER') {
             return '**'
@@ -63,7 +65,7 @@ class ToupleList extends Component {
         // set party time to driver time
         let time = map[party.driver.initials]
         // if there's a passenger time which is earlier (schoolbound) / later (homebound) -> adapt party time
-        for (let i=0; i<party.passengers.length; i++) {
+        for (let i = 0; i < party.passengers.length; i++) {
             let passengerTime = map[party.passengers[i].initials]
             if ((!party.isWayBack && passengerTime < time) || (party.isWayBack && passengerTime > time)) {
                 time = passengerTime
@@ -80,17 +82,18 @@ class ToupleList extends Component {
         return (hh + ":" + mm + "h")
     }
 
-    sortTouples(unsortedTouples, schoolbound) {
+    sortTuples(unsortedTuples, schoolbound) {
         let parties = []
-        for (let i=0; i < unsortedTouples.length; i++) {
-            const touple = unsortedTouples[i]
+        for (let i = 0; i < unsortedTuples.length; i++) {
+            const tuple = unsortedTuples[i]
             let party = null
             if (schoolbound) {
-                party = touple.partyThere
+                party = tuple.partyThere
             } else {
-                party = touple.partyBack
+                party = tuple.partyBack
             }
-            party.isDesignatedDriver = touple.isDesignatedDriver
+            party.isDesignatedDriver = tuple.isDesignatedDriver
+            party.drivesDespiteCustomPrefs = tuple.drivesDespiteCustomPrefs
             parties.push(party)
         }
         parties.sort((a, b) => this.calculatePartyTime(a) < this.calculatePartyTime(b) ? -1 : 1)
@@ -98,4 +101,4 @@ class ToupleList extends Component {
     }
 }
 
-export default ToupleList;
+export default TupleList;

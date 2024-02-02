@@ -3,11 +3,12 @@ package com.thabok.entities;
 import java.util.HashSet;
 import java.util.Set;
 
-public class PartyTouple {
+public class PartyTuple {
 
 	private Party partyThere;
 	private Party partyBack;
 	private boolean isDesignatedDriver;
+	private boolean drivesDespiteCustomPrefs;
 	
 	/**
 	 * This list contains all persons that have the same schedule as the driver for this day.
@@ -26,14 +27,14 @@ public class PartyTouple {
 	
 	public void setPartyThere(Party partyThere) throws Exception {
 		if (this.getDriver() != null && this.getDriver() != partyThere.getDriver()) {
-			throw new Exception("You cannot add a party with another driver to this touple!");
+			throw new Exception("You cannot add a party with another driver to this tuple!");
 		}
 		this.partyThere = partyThere;
 	}
 	
 	public void setPartyBack(Party partyBack) throws Exception {
 		if (this.getDriver() != null && this.getDriver() != partyBack.getDriver()) {
-			throw new Exception("You cannot add a party with another driver to this touple!");
+			throw new Exception("You cannot add a party with another driver to this tuple!");
 		}
 		this.partyBack = partyBack;
 	}
@@ -68,6 +69,14 @@ public class PartyTouple {
 
 	public void setDesignatedDriver(boolean isDesignatedDriver) {
 		this.isDesignatedDriver = isDesignatedDriver;
+	}
+
+	public boolean isDrivesDespiteCustomPrefs() {
+		return drivesDespiteCustomPrefs;
+	}
+
+	public void setDrivesDespiteCustomPrefs(boolean drivesDespiteCustomPrefs) {
+		this.drivesDespiteCustomPrefs = drivesDespiteCustomPrefs;
 	}
 	
 }
