@@ -327,7 +327,11 @@ public class Util {
 	/**
 	 * Returns true if the difference between time1 and time2 is less or equal to the maximumWaitingTimeInMinutes (default 30)
 	 */
-	public static boolean isTimeDifferenceAcceptable(int time1, int time2) {
+	public static boolean isTimeDifferenceAcceptable(int time1, int time2 /* , Person waitingPerson, DayOfWeekABCombo dayOfWeek, boolean homebound*/) {
+		//if (homebound && waitingPerson.customDays.get(dayOfWeek.getUniqueNumber()).noWaitingAfternoon) {
+		//	System.out.println("Time difference not acceptable due to custom prefs of " + waitingPerson.initials);
+		//	return false;
+		//}
 		return maximumWaitingTimeInMinutes >= getTimeDifference(time1, time2);
 	}
 

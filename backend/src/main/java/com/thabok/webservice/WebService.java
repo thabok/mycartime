@@ -15,6 +15,7 @@ import java.util.concurrent.CancellationException;
 import org.apache.commons.codec.binary.Base64;
 
 import com.google.gson.Gson;
+import com.thabok.entities.CustomDay;
 import com.thabok.entities.DayPlan;
 import com.thabok.entities.MasterPlan;
 import com.thabok.entities.NumberOfDrivesStatus;
@@ -165,13 +166,18 @@ public class WebService {
 
 	/**
 	 * Attempts to find the best plan out of a randomly generated set of plans. Uses
-	 * the metrics gt4 and gt6, indicating the number of persons who drive more than
-	 * 4 / 6 times respectivly. These metrics are being minimized.
+	 * the metrics gt4 and gt5, indicating the number of persons who drive more than
+	 * 4 / 5 times respectivly. These metrics are being minimized.
+	 * 
+	 * Additional property to minimize (prioritized):
+	 * (1) People driving on a day that violates their customPrefs while having passengers
+	 * (2) ...
 	 */
 	private MasterPlan findBestWeekPlan(Controller controller, List<Person> persons, int iterationsWithoutImprovementLimit) throws Exception {
 		MasterPlan mp = null;
 		int lowestNoPersonsWithMoreThan4Drives = 100;
 		int lowestNoPersonsWithMoreThan5Drives = 100;
+		int lowestNoInvoluntaryDrives = 100;
 		int estimatedTotal = Math.round(iterationsWithoutImprovementLimit * 1.3f);
 		int iterationsWithoutImprovement = 0;
 		int i = 0;
@@ -180,12 +186,13 @@ public class WebService {
 			if (isCancelled) {
 				return mp;
 			}
-			// shuffling of persons currently disabled, makes changes on an existing plan more complicated
+			
 			Collections.shuffle(persons);
 			float progressValue = 0.5f + ((float) i++ / estimatedTotal) * 0.5f;
 			MasterPlan mpCandidate = controller.calculateWeekPlan(persons);
 			int gt4 = calculateNumberOfPersonsAboveThreshold(mpCandidate, 4);
 			int gt5 = calculateNumberOfPersonsAboveThreshold(mpCandidate, 5);
+			int involuntaryDrives = calculateNumberOfInvoluntaryDrives(mpCandidate);
 			WebService.updateProgress(progressValue, "Calculating plan... (persons with more than four drives: " + lowestNoPersonsWithMoreThan4Drives + ")");
 			if (gt4 < lowestNoPersonsWithMoreThan4Drives) {
 				System.out.println("Found a better plan (gt4): " + lowestNoPersonsWithMoreThan4Drives + " -> " + gt4);
@@ -194,9 +201,14 @@ public class WebService {
 				mp = mpCandidate;
 				iterationsWithoutImprovement = 0;
 			} else if (gt4 == lowestNoPersonsWithMoreThan4Drives && gt5 < lowestNoPersonsWithMoreThan5Drives) {
-				System.out.println("Found a better plan (gt6): " + lowestNoPersonsWithMoreThan5Drives + " -> " + gt5);
+				System.out.println("Found a better plan (gt5): " + lowestNoPersonsWithMoreThan5Drives + " -> " + gt5);
 				lowestNoPersonsWithMoreThan4Drives = gt4;
 				lowestNoPersonsWithMoreThan5Drives = gt5;
+				mp = mpCandidate;
+				iterationsWithoutImprovement = 0;
+			} else if (gt4 == lowestNoPersonsWithMoreThan4Drives && gt5 == lowestNoPersonsWithMoreThan5Drives && involuntaryDrives < lowestNoInvoluntaryDrives) {
+				System.out.println("Found a better plan (invol.drives): " + lowestNoInvoluntaryDrives + " -> " + involuntaryDrives);
+				lowestNoInvoluntaryDrives = involuntaryDrives;
 				mp = mpCandidate;
 				iterationsWithoutImprovement = 0;
 			} else {
@@ -204,6 +216,23 @@ public class WebService {
 			}
 		}
 		return mp;
+	}
+
+	private int calculateNumberOfInvoluntaryDrives(MasterPlan mpCandidate) {
+		int numberOfInvoluntaryDrives = 0;
+		for (DayPlan dayPlan : mpCandidate.getDayPlans().values()) {
+			for (PartyTuple tuple : dayPlan.getPartyTuples()) {
+				Person driver = tuple.getDriver();
+				CustomDay customDay = driver.customDays.get(dayPlan.getDayOfWeekABCombo().getUniqueNumber());
+				boolean passengersHomebound = !tuple.getPartyThere().getPassengers().isEmpty();
+				boolean passengersSchoolbound = !tuple.getPartyBack().getPassengers().isEmpty();
+				if (customDay.drivingSkip && (passengersSchoolbound || passengersHomebound)) {
+					// unvoluntary drive with passengers
+					numberOfInvoluntaryDrives++;
+				}
+			}
+		}
+		return numberOfInvoluntaryDrives;
 	}
 
 	private int calculateNumberOfPersonsAboveThreshold(MasterPlan mpCandidate, int threshold) {

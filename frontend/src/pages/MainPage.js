@@ -389,6 +389,9 @@ class MainPage extends Component {
                     map[dayNumber]['drivingSkip'] = false
                 }
                 break
+            case "noWaitingAfternoon":
+                map[dayNumber]['noWaitingAfternoon'] = newValue
+                break
             default:
                 break
         }
@@ -538,6 +541,7 @@ class MainPage extends Component {
                                             <Checkbox disabled={this.isChecked_CustomDays(dayNumber, 'ignoreCompletely')} checked={this.state.newMember_customDays[dayNumber].drivingSkip} onChange={() => this.updateCustomDays(dayNumber, 'drivingSkip', null)} label="Doesn't want to drive" />
                                             <Checkbox disabled={this.isChecked_CustomDays(dayNumber, ['ignoreCompletely', 'drivingSkip'])} checked={this.state.newMember_customDays[dayNumber].skipMorning} onChange={() => this.updateCustomDays(dayNumber, 'skipMorning', null)} label="Skip on morning" />
                                             <Checkbox disabled={this.isChecked_CustomDays(dayNumber, ['ignoreCompletely', 'drivingSkip'])} checked={this.state.newMember_customDays[dayNumber].skipAfternoon} onChange={() => this.updateCustomDays(dayNumber, 'skipAfternoon', null)} label="Skip on afternoon" />
+                                            <Checkbox disabled={this.isChecked_CustomDays(dayNumber, 'noWaitingAfternoon')} checked={this.state.newMember_customDays[dayNumber].noWaitingAfternoon} onChange={() => this.updateCustomDays(dayNumber, 'noWaitingAfternoon', null)} label="No waiting on afternoon" />
                                             <InputGroup placeholder="start time: 7:40" disabled={this.isChecked_CustomDays(dayNumber, 'ignoreCompletely')} value={this.state.newMember_customDays[dayNumber].customStart} onChange={(e) => this.updateCustomDays(dayNumber, 'customStart', e.target.value)} />
                                             <InputGroup placeholder="end time: 14:30" disabled={this.isChecked_CustomDays(dayNumber, 'ignoreCompletely')} value={this.state.newMember_customDays[dayNumber].customEnd} onChange={(e) => this.updateCustomDays(dayNumber, 'customEnd', e.target.value)} />
                                         </td>)
@@ -551,8 +555,9 @@ class MainPage extends Component {
                                                 <Checkbox checked={this.state.newMember_customDays[dayNumber].ignoreCompletely} onChange={() => this.updateCustomDays(dayNumber, 'ignoreCompletely', null)} label="Ignore completely" />
                                                 <Checkbox disabled={this.isChecked_CustomDays(dayNumber, 'ignoreCompletely')} checked={this.state.newMember_customDays[dayNumber].needsCar} onChange={() => this.updateCustomDays(dayNumber, 'needsCar', null)} label="Needs car" />
                                                 <Checkbox disabled={this.isChecked_CustomDays(dayNumber, 'ignoreCompletely')} checked={this.state.newMember_customDays[dayNumber].drivingSkip} onChange={() => this.updateCustomDays(dayNumber, 'drivingSkip', null)} label="Doesn't want to drive" />
-                                            <Checkbox disabled={this.isChecked_CustomDays(dayNumber, ['ignoreCompletely', 'drivingSkip'])} checked={this.state.newMember_customDays[dayNumber].skipMorning} onChange={() => this.updateCustomDays(dayNumber, 'skipMorning', null)} label="Skip on morning" />
-                                            <Checkbox disabled={this.isChecked_CustomDays(dayNumber, ['ignoreCompletely', 'drivingSkip'])} checked={this.state.newMember_customDays[dayNumber].skipAfternoon} onChange={() => this.updateCustomDays(dayNumber, 'skipAfternoon', null)} label="Skip on afternoon" />
+                                                <Checkbox disabled={this.isChecked_CustomDays(dayNumber, ['ignoreCompletely', 'drivingSkip'])} checked={this.state.newMember_customDays[dayNumber].skipMorning} onChange={() => this.updateCustomDays(dayNumber, 'skipMorning', null)} label="Skip on morning" />
+                                                <Checkbox disabled={this.isChecked_CustomDays(dayNumber, ['ignoreCompletely', 'drivingSkip'])} checked={this.state.newMember_customDays[dayNumber].skipAfternoon} onChange={() => this.updateCustomDays(dayNumber, 'skipAfternoon', null)} label="Skip on afternoon" />
+                                                <Checkbox disabled={this.isChecked_CustomDays(dayNumber, 'noWaitingAfternoon')} checked={this.state.newMember_customDays[dayNumber].noWaitingAfternoon} onChange={() => this.updateCustomDays(dayNumber, 'noWaitingAfternoon', null)} label="No waiting on afternoon" />
                                                 <InputGroup placeholder="start time: 7:40" disabled={this.isChecked_CustomDays(dayNumber, 'ignoreCompletely')} value={this.state.newMember_customDays[dayNumber].customStart} onChange={(e) => this.updateCustomDays(dayNumber, 'customStart', e.target.value)} />
                                                 <InputGroup placeholder="end time: 14:30" disabled={this.isChecked_CustomDays(dayNumber, 'ignoreCompletely')} value={this.state.newMember_customDays[dayNumber].customEnd} onChange={(e) => this.updateCustomDays(dayNumber, 'customEnd', e.target.value)} />
                                             </td>)
@@ -902,6 +907,7 @@ class MainPage extends Component {
         for (let n=0; n < 10; n++) {
             map[n] = {
                 ignoreCompletely: false,
+                noWaitingAfternoon: false,
                 needsCar: false,
                 drivingSkip: false,
                 skipMorning: false,

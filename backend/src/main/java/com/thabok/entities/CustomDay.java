@@ -10,6 +10,7 @@ public class CustomDay {
 	private static final String pattern = "(\\d\\d?)(.*)(\\d\\d)";
 	
 	public boolean ignoreCompletely;
+	public boolean noWaitingAfternoon;
 	public boolean needsCar;
 	public boolean skipMorning;
 	public boolean skipAfternoon;
