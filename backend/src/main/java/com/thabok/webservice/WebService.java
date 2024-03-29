@@ -6,7 +6,6 @@ import static spark.Spark.options;
 import static spark.Spark.port;
 import static spark.Spark.post;
 
-import java.nio.file.Files;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -48,10 +47,10 @@ public class WebService {
 		get("/check", (req, res) -> true, JsonUtil.json());
 		post("/checkConnection", (req, res) -> checkConnection(req, res), JsonUtil.json());
 		post("/login", (req, res) -> login(req, res), JsonUtil.json());
+		post("/logout", (req, res) -> logout(req, res), JsonUtil.json());
 		post("/calculatePlan", (req, res) -> calculatePlan(req, res), JsonUtil.strippedDrivingPlan());
 		post("/cancel", (req, res) -> cancel(req, res), JsonUtil.json());
 		get("/progress", (req, res) -> getProgress(req, res), JsonUtil.json());
-		post("/logout", (req, res) -> logout(req, res), JsonUtil.json());
 	}
 
 	private Object getProgress(Request req, Response res) {
@@ -83,9 +82,13 @@ public class WebService {
 	 */
 	public Object calculatePlan(Request req, Response res) throws Exception {
 		isCancelled = false;
+		
+		// deserialize input data from frontend
 		PlanInputData inputData = new Gson().fromJson(req.body(), PlanInputData.class);
 		List<Person> persons = inputData.persons;
 		Controller.referenceWeekStartDate = inputData.scheduleReferenceStartDate;
+		
+		// query timetable from WebUntis Server
 		int personCount = 0;
 		for (Person person : persons) {
 			if (isCancelled) {
@@ -107,6 +110,8 @@ public class WebService {
 			// calculate the winning plan once more (for debugging, tracability, etc.)
 			
 			MasterPlan mp2 = controller.calculateWeekPlan(mp);
+			
+			// safety measure, because we had some bugs in the past...
 			if (!mp.toString().equals(mp2.toString())) {
 				throw new IllegalStateException("Traceability plan doesn't match originally calculated plan!");
 			}
@@ -175,42 +180,39 @@ public class WebService {
 	 */
 	private MasterPlan findBestWeekPlan(Controller controller, List<Person> persons, int iterationsWithoutImprovementLimit) throws Exception {
 		MasterPlan mp = null;
-		int lowestNoPersonsWithMoreThan4Drives = 100;
-		int lowestNoPersonsWithMoreThan5Drives = 100;
-		int lowestNoInvoluntaryDrives = 100;
+		int bestFitness = Integer.MAX_VALUE;
 		int estimatedTotal = Math.round(iterationsWithoutImprovementLimit * 1.3f);
 		int iterationsWithoutImprovement = 0;
 		int i = 0;
 		while (iterationsWithoutImprovement < iterationsWithoutImprovementLimit) {
+			// progress reporting
+			float progressValue = 0.5f + ((float) i++ / estimatedTotal) * 0.5f;
+			WebService.updateProgress(progressValue, "Calculating plan... (current fitness: " + bestFitness + ")");
+
 			// whenever the user cancels: return best candidate
 			if (isCancelled) {
 				return mp;
 			}
-			
+			// shuffle persons and weekdays
 			Collections.shuffle(persons);
-			float progressValue = 0.5f + ((float) i++ / estimatedTotal) * 0.5f;
+			Collections.shuffle(Util.weekdayListAB);
+			
+			// calculate plan based on current shuffles
 			MasterPlan mpCandidate = controller.calculateWeekPlan(persons);
+			
+			// determine fitness (with factors based on priority (10000,1000,1)
 			int gt4 = calculateNumberOfPersonsAboveThreshold(mpCandidate, 4);
 			int gt5 = calculateNumberOfPersonsAboveThreshold(mpCandidate, 5);
 			int involuntaryDrives = calculateNumberOfInvoluntaryDrives(mpCandidate);
-			WebService.updateProgress(progressValue, "Calculating plan... (persons with more than four drives: " + lowestNoPersonsWithMoreThan4Drives + ")");
-			if (gt4 < lowestNoPersonsWithMoreThan4Drives) {
-				System.out.println("Found a better plan (gt4): " + lowestNoPersonsWithMoreThan4Drives + " -> " + gt4);
-				lowestNoPersonsWithMoreThan4Drives = gt4;
-				lowestNoPersonsWithMoreThan5Drives = gt5;
+			int currentPlanFitness = (gt4 * 10000) + (gt5 * 100) + involuntaryDrives;
+			
+			// if current candidate is better apply and reset counter,
+			// otherwise discard and increase counter 
+			if (bestFitness < currentPlanFitness) {
+				System.out.println("Found a better plan: " + bestFitness + " -> " + currentPlanFitness);
 				mp = mpCandidate;
 				iterationsWithoutImprovement = 0;
-			} else if (gt4 == lowestNoPersonsWithMoreThan4Drives && gt5 < lowestNoPersonsWithMoreThan5Drives) {
-				System.out.println("Found a better plan (gt5): " + lowestNoPersonsWithMoreThan5Drives + " -> " + gt5);
-				lowestNoPersonsWithMoreThan4Drives = gt4;
-				lowestNoPersonsWithMoreThan5Drives = gt5;
-				mp = mpCandidate;
-				iterationsWithoutImprovement = 0;
-			} else if (gt4 == lowestNoPersonsWithMoreThan4Drives && gt5 == lowestNoPersonsWithMoreThan5Drives && involuntaryDrives < lowestNoInvoluntaryDrives) {
-				System.out.println("Found a better plan (invol.drives): " + lowestNoInvoluntaryDrives + " -> " + involuntaryDrives);
-				lowestNoInvoluntaryDrives = involuntaryDrives;
-				mp = mpCandidate;
-				iterationsWithoutImprovement = 0;
+				bestFitness = currentPlanFitness;
 			} else {
 				iterationsWithoutImprovement++;
 			}

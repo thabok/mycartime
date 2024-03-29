@@ -1,10 +1,9 @@
 package com.thabok.main;
 
+import java.util.Collections;
+import java.util.List;
+
 import com.thabok.webservice.WebService;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.DefaultServlet;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
 
 public class Main {
 
@@ -21,5 +20,10 @@ public class Main {
 //		server.setHandler(context);
 //		server.start();
 //		server.join();
+		
+	}
+	
+	private static void shuffle(List<String> strings) {
+		Collections.shuffle(strings);
 	}
 }

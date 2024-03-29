@@ -24,7 +24,7 @@ public class Period {
 	/**
 	 * This attribute lists the subjects for a period. The su with id 255 is the on-call-substitution
 	 */
-	public List<Subject> su = new ArrayList<>(0);
+	public List<Subject> su = new ArrayList<>(1);
 	
 	/**
 	 * This attribute seems to be set for break supervision items only. Value: "bs" (...break supervision?)

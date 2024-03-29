@@ -36,6 +36,9 @@ public class Util {
 
 	public static int maximumWaitingTimeInMinutes = 30;
 	
+	/**
+	 * This list must maintain its natural order (used to map timetable integers to weekdays)
+	 */
 	public static final List<DayOfWeek> weekdays = Arrays.asList(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY);
 
 	public static List<DayOfWeekABCombo> weekdayListAB = Arrays.asList(
