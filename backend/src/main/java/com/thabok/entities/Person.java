@@ -21,8 +21,22 @@ public class Person {
      * Integer keys from 0-9 indicate days from Monday-A thru Friday-B.
      * The Boolean value says if the person should be considered as a designated driver on this day.  
      */
-    public Map<Integer, CustomDay> customDays = Util.initializeEmptyCustomDays();
+    private Map<Integer, CustomDay> customDays = Util.initializeEmptyCustomDays();
     
+    public void clearCustomDays() {
+    	this.customDays = null;
+    }
+    
+    public CustomDay getCustomPrefsForCombo(DayOfWeekABCombo combo) {
+    	int customDaysIndex;
+		if (combo.getUniqueNumber() <= 5) {
+			customDaysIndex = combo.getUniqueNumber() - 1;
+		} else {
+			customDaysIndex = combo.getUniqueNumber() - 3;
+		}
+		CustomDay customDayInfo = this.customDays.get(customDaysIndex);
+		return customDayInfo;
+    }
 
     public String getName() {
     	return firstName + " " + lastName;
@@ -52,4 +66,8 @@ public class Person {
     		return schedule.get(dayOfWeekABCombo.getUniqueNumber()).getStartTime();
     	}
     }
+
+	public CustomDay accessCustomDaysWithCalculatedIndex(int customDayIndex) {
+		return this.customDays.get(customDayIndex);
+	}
 }

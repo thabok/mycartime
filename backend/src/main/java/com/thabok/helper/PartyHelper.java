@@ -56,7 +56,7 @@ public class PartyHelper {
      * @throws Exception 
      */
     public static PartyTuple addSoloParty(DayPlan dayPlan, Person driver, Map<Integer, DayPlanInput> inputsPerDay, String reasonPhrase, Reason reason) throws Exception {
-    	CustomDay driverPreferences = Util.getCustomDayObject(driver, dayPlan.getDayOfWeekABCombo());
+    	CustomDay driverPreferences = driver.getCustomPrefsForCombo(dayPlan.getDayOfWeekABCombo()); 
     	// create party tuple
     	PartyTuple partyTuple = new PartyTuple();
     	
@@ -108,13 +108,13 @@ public class PartyHelper {
 	}
 	
 	public static boolean canDriverTakePersons(Person driver, DayOfWeekABCombo combo, boolean isWayBack) {
-		int customPreferenceIndex = Util.dowComboToCustomDaysIndex(combo);
+		CustomDay driverCustomPrefs = driver.getCustomPrefsForCombo(combo);
 		// in case of a partyThere: check if driver wants to be alone in the morning
-		if (!isWayBack && driver.customDays.get(customPreferenceIndex).skipMorning) {
+		if (!isWayBack && driverCustomPrefs.skipMorning) {
 			return false;
 		}
 		// in case of a partyBack: check if driver wants to be alone in the afternoon
-		if (isWayBack && driver.customDays.get(customPreferenceIndex).skipAfternoon) {
+		if (isWayBack && driverCustomPrefs.skipAfternoon) {
 			return false;
 		}
 		return true;
@@ -193,7 +193,7 @@ public class PartyHelper {
 			 */
 			if (!TimetableHelper.isPersonActiveOnThisDay(driverCandidate, combo)
 					|| Util.alreadyCoveredOnGivenDay(driverCandidate, dayPlan)
-					|| Util.getCustomDayObject(driverCandidate, combo).drivingSkip) {
+					|| driverCandidate.getCustomPrefsForCombo(combo).drivingSkip) {
 				continue;
 			}
 

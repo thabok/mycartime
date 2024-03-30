@@ -48,7 +48,7 @@ public class AlternativeDriverHelper {
 				for (DayPlan dayPlan : theMasterPlan.getDayPlans().values()) {
 					DayOfWeekABCombo mirrorCombo = Util.getMirrorCombo(dayPlan.getDayOfWeekABCombo());
 					DayPlan mirrorDayPlan = theMasterPlan.get(mirrorCombo.getUniqueNumber());
-					CustomDay customDayConfig = Util.getCustomDayObject(sirDrivesALot, dayPlan.getDayOfWeekABCombo());
+					CustomDay customDayConfig = sirDrivesALot.getCustomPrefsForCombo(dayPlan.getDayOfWeekABCombo()); 
 					boolean drivesOnGivenDay = Util.drivesOnGivenDay(sirDrivesALot, dayPlan);
 					boolean drivesOnMirrorDay = Util.drivesOnGivenDay(sirDrivesALot, mirrorDayPlan);
 					boolean doesntNeedTheCar = !customDayConfig.needsCar;
@@ -151,7 +151,7 @@ public class AlternativeDriverHelper {
 		for (Person alternativeDriverCandidate : persons) {
 			boolean notActiveOnThatDay = !TimetableHelper.isPersonActiveOnThisDay(alternativeDriverCandidate, combo);
 			boolean samePerson = alternativeDriverCandidate.equals(sirDrivesALot);
-			boolean drivingSkipRequested = Util.getCustomDayObject(sirDrivesALot, dayPlan.getDayOfWeekABCombo()).drivingSkip;
+			boolean drivingSkipRequested = sirDrivesALot.getCustomPrefsForCombo(dayPlan.getDayOfWeekABCombo()).drivingSkip;
 			boolean alreadyDrivingTooOften = new NumberOfDrivesStatus(theMasterPlan)
 				.getNumberOfDrives().get(alternativeDriverCandidate) >= Constants.EXPECTED_DRIVING_DAYS_THRESHOLD;
 			if (samePerson || notActiveOnThatDay || alreadyDrivingTooOften || drivingSkipRequested) {

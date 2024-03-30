@@ -1,8 +1,5 @@
 package com.thabok.main;
 
-import java.util.Collections;
-import java.util.List;
-
 import com.thabok.webservice.WebService;
 
 public class Main {
@@ -23,7 +20,4 @@ public class Main {
 		
 	}
 	
-	private static void shuffle(List<String> strings) {
-		Collections.shuffle(strings);
-	}
 }

@@ -11,10 +11,10 @@ import com.thabok.entities.CustomDay;
 import com.thabok.entities.DayOfWeekABCombo;
 import com.thabok.entities.Person;
 import com.thabok.entities.Schedule;
-import com.thabok.entities.Teacher;
 import com.thabok.entities.TimingInfo;
 import com.thabok.main.Controller;
 import com.thabok.untis.Period;
+import com.thabok.untis.Teacher;
 import com.thabok.util.Util;
 
 /**
@@ -84,7 +84,7 @@ public class TimetableHelper {
 	}
 	
 	public static boolean isPersonActiveOnThisDay(Person p, DayOfWeekABCombo dayOfWeekABCombo) {
-		CustomDay customDayObject = Util.getCustomDayObject(p, dayOfWeekABCombo);
+		CustomDay customDayObject = p.getCustomPrefsForCombo(dayOfWeekABCombo);
 		boolean active = getTimingInfoForDay(p, dayOfWeekABCombo) != null;
 		
 		return active && !customDayObject.ignoreCompletely;
@@ -102,7 +102,7 @@ public class TimetableHelper {
 	private static void applyCustomPreferencesToDayInfo(TimingInfo dayInfo, int date, Person person) {
 		int daysBetween = getDaysBetweenDateAndReferenceWeekStartDate(date);
 		int customDayIndex = daysBetween > 4 ? daysBetween - 2 : daysBetween;
-		CustomDay customDayInfo = person.customDays.get(customDayIndex);
+		CustomDay customDayInfo = person.accessCustomDaysWithCalculatedIndex(customDayIndex);
 		if (!customDayInfo.customStart.isBlank()) {
 			dayInfo.setStartTime(customDayInfo.getCustomStartTimeInteger());
 		}

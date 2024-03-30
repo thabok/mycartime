@@ -1,6 +1,7 @@
 package com.thabok.untis;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +20,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.thabok.helper.TimetableHelper;
 import com.thabok.util.Util;
 
@@ -29,7 +31,7 @@ public class WebUntisAdapter {
     private static final String APP_ACCESS_ID = "id1234";
     private static final String SCHOOL_NAME = "NG%20Wilhelmshaven";
     private static final String URL_SCHOOL_NGW = "https://cissa.webuntis.com/WebUntis/jsonrpc.do?school=" + SCHOOL_NAME;
-//	private static final String CACHE_FILE = "/Users/thabok/Git/mycartime/webuntis-cache.json";
+    private static final String CACHE_FILE = "/Users/thabok/Git/mycartime/webuntis-cache.json";
     
     public static String sessionId = null;
     
@@ -98,15 +100,7 @@ public class WebUntisAdapter {
         params.put("password", password);
         params.put("client", "Java");
         
-        // load cache from file
-//        if (requestResultCache.isEmpty() && CACHE_FILE != null) {
-//        	String content = Util.readStringFromFile(CACHE_FILE);
-//        	if (content != null && !content.isBlank()) {
-//        		Type type = new TypeToken<Map<String, String>>() {
-//    			}.getType();
-//            	requestResultCache = new Gson().fromJson(content, type);
-//        	}
-//        }
+        loadCacheFile();
         
         String responseString = execute("authenticate", params);
         
@@ -125,36 +119,34 @@ public class WebUntisAdapter {
         
         return sessionId;
     }
+
+    private static void writeCacheFile() {
+    	if (CACHE_FILE != null) {
+    		String serializedCache = new Gson().toJson(requestResultCache);
+    		Util.writeStringToFile(CACHE_FILE, serializedCache);
+    	}
+    }
+    
+	private static void loadCacheFile() throws IOException {
+        if (requestResultCache.isEmpty() && CACHE_FILE != null) {
+        	String content = Util.readStringFromFile(CACHE_FILE);
+        	if (content != null && !content.isBlank()) {
+        		Type type = new TypeToken<Map<String, String>>() {
+    			}.getType();
+            	requestResultCache = new Gson().fromJson(content, type);
+        	}
+        }
+	}
     
     public static String logout() throws Exception {
-        
-//        if (sessionId == null) throw new Exception("Not logged in!");
-        
         Map<String, Object> params = new HashMap<>();
-        
         String responseString = execute("logout", params);
-        
         sessionId = null;
-        
-        // store cache in file
-//        if (CACHE_FILE != null) {
-//        	String content = JsonUtil.toJson(requestResultCache);
-//        	Util.writeStringToFile(CACHE_FILE, content);
-//        }
-        
+        writeCacheFile();
         return responseString;
     }
     
-    public static String execute(String methodName) {
-    	Map<String, Object> obj = new HashMap<>();
-        obj.put("method", methodName);
-        obj.put("id", APP_ACCESS_ID);
-        obj.put("jsonrpc", JSON_RPC_VERSION);
-        String requestId = methodName;
-        return post(obj, requestId);
-    }
-    
-    public static String execute(String methodName, Map<String, Object> params) {
+    private static String execute(String methodName, Map<String, Object> params) {
                 
         Map<String, Object> obj = new HashMap<>();
         obj.put("method", methodName);
@@ -204,18 +196,6 @@ public class WebUntisAdapter {
         }
         // cache result
         requestResultCache.put(requestId, responseString);
-        
-//        if (requestId != null && requestId.contains("Kl")) {
-//        	System.err.println();
-//        	System.err.println("Request ID:");
-//            System.err.println(requestId);
-//            System.err.println("Cached Result:");
-//            System.err.println(cachedResult);
-//            System.err.println("Retrieved Result:");
-//            System.err.println(responseString);
-//            System.err.println(responseString.equals(cachedResult));
-//            System.err.println();
-//        }
         
         return responseString;
     }

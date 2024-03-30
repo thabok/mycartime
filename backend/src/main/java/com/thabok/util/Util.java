@@ -79,23 +79,6 @@ public class Util {
 		}
 		return map;
 	}
-
-	/**
-	 * Converts the {@link DayOfWeekABCombo} unique number into a customDayIndex
-	 * (0-based, without weekend gaps)
-	 * 
-	 * @param dayOfTheWeekABCombo
-	 * @return customDayIndex (0 - 9)
-	 */
-	public static int dowComboToCustomDaysIndex(DayOfWeekABCombo dayOfTheWeekABCombo) {
-		int customDaysIndex;
-		if (dayOfTheWeekABCombo.getUniqueNumber() <= 5) {
-			customDaysIndex = dayOfTheWeekABCombo.getUniqueNumber() - 1;
-		} else {
-			customDaysIndex = dayOfTheWeekABCombo.getUniqueNumber() - 3;
-		}
-		return customDaysIndex;
-	}
 	
 	/**
      * Writes the given String to the specified file. Existing files will be
@@ -126,16 +109,20 @@ public class Util {
      *         not available.
      */
     public static String readStringFromFile(String path) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        // Read file line by line using uft-8 encoding
-        InputStreamReader isr = new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8);
-        BufferedReader reader = new BufferedReader(isr);
-        while (reader.ready()) {
-            sb.append(reader.readLine()).append("\n");
-        }
-        isr.close();
-        reader.close();
-        return sb.toString();
+    	try {
+    		StringBuilder sb = new StringBuilder();
+            // Read file line by line using uft-8 encoding
+            InputStreamReader isr = new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8);
+            BufferedReader reader = new BufferedReader(isr);
+            while (reader.ready()) {
+                sb.append(reader.readLine()).append("\n");
+            }
+            isr.close();
+            reader.close();
+            return sb.toString();
+		} catch (Exception e) {
+			return null;
+		}
     }
 
 	public static boolean drivesOnGivenDay(Person person, DayPlan referencePlan) {
@@ -179,12 +166,6 @@ public class Util {
 		return timeString;
 	}
 
-
-	public static CustomDay getCustomDayObject(Person person, DayOfWeekABCombo dayOfWeekABCombo) {
-		int customDaysIndex = dowComboToCustomDaysIndex(dayOfWeekABCombo);
-		CustomDay customDay = person.customDays.get(customDaysIndex);
-		return customDay;
-	}
 
 
 	/**

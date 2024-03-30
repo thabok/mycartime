@@ -78,7 +78,7 @@ public class ControllerInitHelper {
     	Map<Integer, List<Person>> personsByStartOrEndTime = new HashMap<>(); 
         // place persons into groups based on start/end time
         for (Person person : persons) {
-        	CustomDay preferences = Util.getCustomDayObject(person, dayOfWeekABCombo);
+        	CustomDay preferences = person.getCustomPrefsForCombo(dayOfWeekABCombo); 
         	// skip persons based on their preferences
         	if ((isWayBack && preferences.skipAfternoon) || (!isWayBack && preferences.skipMorning)) {
         		continue;
@@ -141,7 +141,7 @@ public class ControllerInitHelper {
         // 3. Add persons based on custom preferences
         // pay attention: key is 0 based while uniqueNumber is 1 based
         for (Person person : allPersonsForThisDay) {
-        	CustomDay customDayObject = Util.getCustomDayObject(person, dayOfTheWeekABCombo);
+        	CustomDay customDayObject = person.getCustomPrefsForCombo(dayOfTheWeekABCombo); 
             if (!customDayObject.ignoreCompletely && customDayObject.needsCar) {
                 designatedDrivers.add(person);
             }

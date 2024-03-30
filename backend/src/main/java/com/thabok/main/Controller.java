@@ -132,7 +132,7 @@ public class Controller {
         		.filter(dp -> {
 	                boolean generallyAvailable = TimetableHelper.isPersonActiveOnThisDay(lowNodsPerson, dp.getDayOfWeekABCombo());
 	                boolean notAlreadyDriving = !Util.drivesOnGivenDay(lowNodsPerson, dp);
-	                boolean drivingSkipRequested = Util.getCustomDayObject(lowNodsPerson, dp.getDayOfWeekABCombo()).drivingSkip;
+	                boolean drivingSkipRequested = lowNodsPerson.getCustomPrefsForCombo(dp.getDayOfWeekABCombo()).drivingSkip;
 	                return generallyAvailable && notAlreadyDriving && !drivingSkipRequested;
 	            })
 	            .collect(Collectors.toList());
@@ -141,7 +141,7 @@ public class Controller {
                 .filter(dp -> {
                     boolean generallyAvailable = TimetableHelper.isPersonActiveOnThisDay(lowNodsPerson, dp.getDayOfWeekABCombo());
                     boolean notAlreadyDriving = !Util.drivesOnGivenDay(lowNodsPerson, dp);
-                    boolean drivingSkipRequested = Util.getCustomDayObject(lowNodsPerson, dp.getDayOfWeekABCombo()).drivingSkip;
+                    boolean drivingSkipRequested = lowNodsPerson.getCustomPrefsForCombo(dp.getDayOfWeekABCombo()).drivingSkip;
                     return generallyAvailable && notAlreadyDriving && !drivingSkipRequested;
                 })
                 .collect(Collectors.toList());

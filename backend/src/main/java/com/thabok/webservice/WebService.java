@@ -135,7 +135,7 @@ public class WebService {
 	
 	private void clearDataFromPerson(Person p) {
 		p.schedule = null;
-		p.customDays = null;
+		p.clearCustomDays();
 	}
 	
 	/**
@@ -208,7 +208,7 @@ public class WebService {
 			
 			// if current candidate is better apply and reset counter,
 			// otherwise discard and increase counter 
-			if (bestFitness < currentPlanFitness) {
+			if (currentPlanFitness < bestFitness) {
 				System.out.println("Found a better plan: " + bestFitness + " -> " + currentPlanFitness);
 				mp = mpCandidate;
 				iterationsWithoutImprovement = 0;
@@ -225,7 +225,7 @@ public class WebService {
 		for (DayPlan dayPlan : mpCandidate.getDayPlans().values()) {
 			for (PartyTuple tuple : dayPlan.getPartyTuples()) {
 				Person driver = tuple.getDriver();
-				CustomDay customDay = driver.customDays.get(dayPlan.getDayOfWeekABCombo().getUniqueNumber());
+				CustomDay customDay = driver.getCustomPrefsForCombo(dayPlan.getDayOfWeekABCombo());
 				boolean passengersHomebound = !tuple.getPartyThere().getPassengers().isEmpty();
 				boolean passengersSchoolbound = !tuple.getPartyBack().getPassengers().isEmpty();
 				if (customDay.drivingSkip && (passengersSchoolbound || passengersHomebound)) {
