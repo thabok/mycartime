@@ -5,8 +5,8 @@ import java.util.Set;
 
 public class PartyTuple {
 
-	private Party partyThere;
-	private Party partyBack;
+	private Party schoolboundParty;
+	private Party homeboundParty;
 	private boolean isDesignatedDriver;
 	private boolean drivesDespiteCustomPrefs;
 	
@@ -16,39 +16,39 @@ public class PartyTuple {
 	private Set<Person> possibleDrivers = new HashSet<>();
 	
 	public Person getDriver() {
-		if (partyThere != null) {
-			return partyThere.getDriver();
-		} else if (partyBack != null) {
-			return partyBack.getDriver();
+		if (schoolboundParty != null) {
+			return schoolboundParty.getDriver();
+		} else if (homeboundParty != null) {
+			return homeboundParty.getDriver();
 		} else {
 			return null;
 		}
 	}
 	
-	public void setPartyThere(Party partyThere) throws Exception {
+	public void setSchoolboundParty(Party partyThere) throws Exception {
 		if (this.getDriver() != null && this.getDriver() != partyThere.getDriver()) {
 			throw new Exception("You cannot add a party with another driver to this tuple!");
 		}
-		this.partyThere = partyThere;
+		this.schoolboundParty = partyThere;
 	}
 	
-	public void setPartyBack(Party partyBack) throws Exception {
+	public void setHomeboundParty(Party partyBack) throws Exception {
 		if (this.getDriver() != null && this.getDriver() != partyBack.getDriver()) {
 			throw new Exception("You cannot add a party with another driver to this tuple!");
 		}
-		this.partyBack = partyBack;
+		this.homeboundParty = partyBack;
 	}
 	
-	public Party getPartyThere() {
-		return partyThere;
+	public Party getSchoolboundParty() {
+		return schoolboundParty;
 	}
 	
-	public Party getPartyBack() {
-		return partyBack;
+	public Party getHomeboundParty() {
+		return homeboundParty;
 	}
 	
 	public String toString() {
-		return partyThere.toString() + "\n" + partyBack.toString();
+		return schoolboundParty.toString() + "\n" + homeboundParty.toString();
 	}
 
 	public Set<Person> getPossibleDrivers() {

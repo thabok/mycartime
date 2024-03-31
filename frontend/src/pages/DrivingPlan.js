@@ -26,7 +26,7 @@ class DrivingPlan extends Component {
             let targetParty = null
             let pts = plan.dayPlans[changeRequest.dayNumber].partyTuples
             for (let ptsIndex=0; ptsIndex<pts.length; ptsIndex++) {
-                let party = changeRequest.schoolbound ? pts[ptsIndex].partyThere : pts[ptsIndex].partyBack
+                let party = changeRequest.schoolbound ? pts[ptsIndex].schoolboundParty : pts[ptsIndex].homeboundParty
                 if (party.driver.initials === changeRequest.sourcePartyDriver) {
                     sourceParty = party
                 }

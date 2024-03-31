@@ -76,7 +76,7 @@ public class PartyHelper {
         } else {
         	partyThere.setReason(reason);
         }
-        partyTuple.setPartyThere(partyThere);
+        partyTuple.setSchoolboundParty(partyThere);
         
         // - way back
         Party partyBack = new Party(reasonPhrase);
@@ -90,7 +90,7 @@ public class PartyHelper {
         } else {
         	partyBack.setReason(reason);
         }
-        partyTuple.setPartyBack(partyBack);
+        partyTuple.setHomeboundParty(partyBack);
         partyTuple.setDesignatedDriver(Reason.DESIGNATED_DRIVER == reason);
    
         // add party tuple to day plan
@@ -122,10 +122,10 @@ public class PartyHelper {
 	
 	public static Party getPartyTupleByPassengerAndDay(Person person, DayPlan referencePlan, boolean isWayBack) {
 		for (PartyTuple pt : referencePlan.getPartyTuples()) {
-			if (isWayBack && pt.getPartyBack().getPassengers().contains(person)) {
-				return pt.getPartyBack();
-			} else if (!isWayBack && pt.getPartyThere().getPassengers().contains(person)) {
-				return pt.getPartyThere();
+			if (isWayBack && pt.getHomeboundParty().getPassengers().contains(person)) {
+				return pt.getHomeboundParty();
+			} else if (!isWayBack && pt.getSchoolboundParty().getPassengers().contains(person)) {
+				return pt.getSchoolboundParty();
 			}
 		}
 		return null;
@@ -135,9 +135,9 @@ public class PartyHelper {
 	public static List<Party> getParties(DayPlan dayPlan, boolean schoolbound) {
 		List<Party> parties;
 		if (schoolbound) {
-			parties = dayPlan.getPartyTuples().stream().map(pt -> pt.getPartyThere()).collect(Collectors.toList());
+			parties = dayPlan.getPartyTuples().stream().map(pt -> pt.getSchoolboundParty()).collect(Collectors.toList());
 		} else {
-			parties = dayPlan.getPartyTuples().stream().map(pt -> pt.getPartyBack()).collect(Collectors.toList());
+			parties = dayPlan.getPartyTuples().stream().map(pt -> pt.getHomeboundParty()).collect(Collectors.toList());
 		}
 		return parties;
 	}
@@ -149,7 +149,7 @@ public class PartyHelper {
 		PartyTuple partyTupleByDriver = getPartyTupleByDriver(dayPlan, person);
 		Party party = null;
 		if (partyTupleByDriver != null) {
-			party = isWayBack ? partyTupleByDriver.getPartyBack() : partyTupleByDriver.getPartyThere();
+			party = isWayBack ? partyTupleByDriver.getHomeboundParty() : partyTupleByDriver.getSchoolboundParty();
 		} else {
 			party = getPartyTupleByPassengerAndDay(person, dayPlan, isWayBack);
 		}
@@ -264,20 +264,20 @@ public class PartyHelper {
 			// same person for there and back
 			
 			PartyTuple partyTuple = addSoloParty(dayPlan, driverForWayThere, inputsPerDay, reasonPhrase + " > same persons for there and back", Reason.ACCOMMODATE_PERSON);
-			partyTuple.getPartyThere().addPassenger(personToBeSeated, reasonPhrase + " > same persons for there and back");
-			partyTuple.getPartyBack().addPassenger(personToBeSeated, reasonPhrase + " > same persons for there and back");
+			partyTuple.getSchoolboundParty().addPassenger(personToBeSeated, reasonPhrase + " > same persons for there and back");
+			partyTuple.getHomeboundParty().addPassenger(personToBeSeated, reasonPhrase + " > same persons for there and back");
 			Util.out.println(String.format("  - %s creates a new party, %s can join in the morning and afternoon.", driverForWayThere, personToBeSeated));
 			
 		} else {
 			// different persons driving there and back
 			if (driverForWayThere != null) {
 				PartyTuple partyTupleThere = addSoloParty(dayPlan, driverForWayThere, inputsPerDay, reasonPhrase + " > different persons for there and back", Reason.ACCOMMODATE_PERSON);
-				partyTupleThere.getPartyThere().addPassenger(personToBeSeated, reasonPhrase + " > different persons for there and back");
+				partyTupleThere.getSchoolboundParty().addPassenger(personToBeSeated, reasonPhrase + " > different persons for there and back");
 				Util.out.println(String.format("  - %s creates a new party, %s can join in the morning.", driverForWayThere, personToBeSeated));
 			}
 			if (driverForWayBack != null) {
 				PartyTuple partyTupleBack = addSoloParty(dayPlan, driverForWayBack, inputsPerDay, reasonPhrase + " > different persons for there and back", Reason.ACCOMMODATE_PERSON);
-				partyTupleBack.getPartyBack().addPassenger(personToBeSeated, reasonPhrase + " > different persons for there and back");
+				partyTupleBack.getHomeboundParty().addPassenger(personToBeSeated, reasonPhrase + " > different persons for there and back");
 				Util.out.println(String.format("  - %s creates a new party, %s can join in the afternoon.", driverForWayBack, personToBeSeated));
 			}
 			

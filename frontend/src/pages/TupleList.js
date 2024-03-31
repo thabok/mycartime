@@ -88,9 +88,9 @@ class TupleList extends Component {
             const tuple = unsortedTuples[i]
             let party = null
             if (schoolbound) {
-                party = tuple.partyThere
+                party = tuple.schoolboundParty
             } else {
-                party = tuple.partyBack
+                party = tuple.homeboundParty
             }
             party.isDesignatedDriver = tuple.isDesignatedDriver
             party.drivesDespiteCustomPrefs = tuple.drivesDespiteCustomPrefs

@@ -22,6 +22,7 @@ import com.thabok.helper.AlternativeDriverHelper;
 import com.thabok.helper.PartyHelper;
 import com.thabok.helper.PlanOptimizationHelper;
 import com.thabok.helper.TimetableHelper;
+import com.thabok.io.HtmlDump;
 import com.thabok.util.Util;
 
 public class Controller {
@@ -47,6 +48,7 @@ public class Controller {
     public MasterPlan calculateWeekPlan(List<Person> persons, MasterPlan preset) throws Exception {
         
         MasterPlan theMasterPlan = new MasterPlan(persons, preset);
+    	HtmlDump.toHtml(theMasterPlan, "/Users/thabok/Git/mycartime/plan_dump_1.html");
         
         /*
          * At this point, we have the following state  (not necessarily for every day):
@@ -60,12 +62,13 @@ public class Controller {
          * before the first lesson).
          */
         AlternativeDriverHelper.findAlternativeForSirDrivesALots(theMasterPlan);
-        
+        HtmlDump.toHtml(theMasterPlan, "/Users/thabok/Git/mycartime/plan_dump_2.html");
         
         /*
          * Next up, we add people to existing parties _if possible_ and create new parties _when needed_
          */
         coreAlgorithm(theMasterPlan);
+        HtmlDump.toHtml(theMasterPlan, "/Users/thabok/Git/mycartime/plan_dump_3.html");
         
         /*
          * Fill add drives for lazy drivers while trying to optimize:
@@ -73,6 +76,7 @@ public class Controller {
          * - additional parties on days where it's tight
          */
         addPartiesForLazyDrivers(theMasterPlan);
+        HtmlDump.toHtml(theMasterPlan, "/Users/thabok/Git/mycartime/plan_dump_4.html");
         
         /*
          * Once we've done everything we can to make sure, no one drives more often than needed
@@ -81,6 +85,7 @@ public class Controller {
 	    // FIXME: currently ignores people's sizes (too many tall people in small cars)
         // FIXME: currently doesn't try to keep passengers with the same driver between A & B week (if possible)
         balancePassengersInCars(theMasterPlan);
+        HtmlDump.toHtml(theMasterPlan, "/Users/thabok/Git/mycartime/plan_dump_5.html");
         
         /*
          * Printy printy all the stuffy stuffs
@@ -158,11 +163,11 @@ public class Controller {
             DayPlan referenceDayPlan = theMasterPlan.getDayPlans().get(mirrorDayNumber);
 
             List<Party> partiesThere = dp.getPartyTuples().stream()
-				.map(pt -> pt.getPartyThere())
+				.map(pt -> pt.getSchoolboundParty())
 				.filter(p -> PartyHelper.partyIsAvailable(p))
 				.collect(Collectors.toList());
             List<Party> partiesBack = dp.getPartyTuples().stream()
-				.map(pt -> pt.getPartyBack())
+				.map(pt -> pt.getHomeboundParty())
 				.filter(p -> PartyHelper.partyIsAvailable(p))
 				.collect(Collectors.toList());
             
@@ -327,7 +332,7 @@ public class Controller {
         if (parties[0] == null) {
             int time = person.getTimeForDowCombo(combo, isWayBack);
             // check if end time matches, etc.
-            parties[0] = isWayBack ? pt.getPartyBack() : pt.getPartyThere();
+            parties[0] = isWayBack ? pt.getHomeboundParty() : pt.getSchoolboundParty();
             boolean isAvailable = PartyHelper.partyIsAvailable(parties[0]) && parties[0].hasAFreeSeat();
             if (parties[0].getTime() == time && isAvailable) {
                 parties[0].addPassenger(person, reasonPhrase);

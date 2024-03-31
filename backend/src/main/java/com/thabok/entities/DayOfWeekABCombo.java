@@ -43,14 +43,7 @@ public class DayOfWeekABCombo implements Comparable<DayOfWeekABCombo> {
 
     @Override
     public int compareTo(DayOfWeekABCombo o) {
-        if (this.isWeekA && !((DayOfWeekABCombo)o).isWeekA()) {
-            return -1;
-        } else if (!this.isWeekA && ((DayOfWeekABCombo)o).isWeekA()) {
-            return 1;
-        } else {
-            // both in the same week
-            return this.dayOfWeek.compareTo(((DayOfWeekABCombo)o).dayOfWeek);
-        }
+        return Integer.compare(this.getUniqueNumber(), o.uniqueNumber);
     }
     
 }

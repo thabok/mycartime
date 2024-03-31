@@ -160,11 +160,11 @@ public class WebService {
 		
 		for (DayPlan dp : mp.getDayPlans().values()) {
 			for (PartyTuple pt : dp.getPartyTuples()) {
-				clearDataFromPerson(pt.getPartyThere().getDriver());
-				pt.getPartyThere().getPassengers().forEach(p -> clearDataFromPerson(p));
+				clearDataFromPerson(pt.getSchoolboundParty().getDriver());
+				pt.getSchoolboundParty().getPassengers().forEach(p -> clearDataFromPerson(p));
 				
-				clearDataFromPerson(pt.getPartyBack().getDriver());
-				pt.getPartyBack().getPassengers().forEach(p -> clearDataFromPerson(p));
+				clearDataFromPerson(pt.getHomeboundParty().getDriver());
+				pt.getHomeboundParty().getPassengers().forEach(p -> clearDataFromPerson(p));
 			}
 		}
 	}
@@ -226,8 +226,8 @@ public class WebService {
 			for (PartyTuple tuple : dayPlan.getPartyTuples()) {
 				Person driver = tuple.getDriver();
 				CustomDay customDay = driver.getCustomPrefsForCombo(dayPlan.getDayOfWeekABCombo());
-				boolean passengersHomebound = !tuple.getPartyThere().getPassengers().isEmpty();
-				boolean passengersSchoolbound = !tuple.getPartyBack().getPassengers().isEmpty();
+				boolean passengersHomebound = !tuple.getSchoolboundParty().getPassengers().isEmpty();
+				boolean passengersSchoolbound = !tuple.getHomeboundParty().getPassengers().isEmpty();
 				if (customDay.drivingSkip && (passengersSchoolbound || passengersHomebound)) {
 					// unvoluntary drive with passengers
 					numberOfInvoluntaryDrives++;
