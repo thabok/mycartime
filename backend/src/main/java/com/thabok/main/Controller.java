@@ -1,5 +1,8 @@
 package com.thabok.main;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,6 +15,7 @@ import java.util.stream.Collectors;
 
 import com.thabok.entities.DayOfWeekABCombo;
 import com.thabok.entities.DayPlan;
+import com.thabok.entities.DayPlanInput;
 import com.thabok.entities.MasterPlan;
 import com.thabok.entities.NumberOfDrivesStatus;
 import com.thabok.entities.Party;
@@ -23,6 +27,7 @@ import com.thabok.helper.PartyHelper;
 import com.thabok.helper.PlanOptimizationHelper;
 import com.thabok.helper.TimetableHelper;
 import com.thabok.io.HtmlDump;
+import com.thabok.util.Constants;
 import com.thabok.util.Util;
 
 public class Controller {
@@ -55,15 +60,20 @@ public class Controller {
          * - a bunch of parties for designated drivers
          */
 
-        
-        /*
-         * If someone is already driving a lot at this point (more than 4  times), let's try to reduce that
-         * by adding a tolerance on the wayThere (merges first-lesson with people who have hall-duty 
-         * before the first lesson).
-         */
-        AlternativeDriverHelper.findAlternativeForSirDrivesALots(theMasterPlan);
-        HtmlDump.toHtml(theMasterPlan, "/Users/thabok/Git/mycartime/plan_dump_2.html");
-        
+    	/*
+    	 * If someone is already driving a lot at this point (more than 4  times), let's try to reduce that
+    	 * by adding a tolerance on the wayThere (merges first-lesson with people who have hall-duty 
+    	 * before the first lesson).
+    	 */
+    	AlternativeDriverHelper.findAlternativeForSirDrivesALots(theMasterPlan);
+    	HtmlDump.toHtml(theMasterPlan, "/Users/thabok/Git/mycartime/plan_dump_2.html");
+
+    	/*
+    	 * Check who can help with a party (based on global number of drives)
+    	 */
+    	globallyBalancedSelectionOfDrivers(theMasterPlan);
+    	
+    	
         /*
          * Next up, we add people to existing parties _if possible_ and create new parties _when needed_
          */
@@ -97,8 +107,154 @@ public class Controller {
         return theMasterPlan;
     }
 
-
+    private Map<DayOfWeekABCombo, Set<Person>> findPossiblePartyStarters(MasterPlan theMasterPlan) {
+    	// at this point, we have some designated drivers (or replacement drivers)
+    	Map<DayOfWeekABCombo, Set<Person>> possiblePartyStartersByCombo = new HashMap<>();
+    	for (DayPlan dp : theMasterPlan.getDayPlans().values()) {
+    		DayPlanInput pool = theMasterPlan.inputsPerDay.get(dp.getDayOfWeekABCombo().getUniqueNumber());
+    		// find times where there are more people than we could place in existing parties (demand > supply)
+    		Set<Person> sbPersonsInParties = new HashSet<>();
+    		Set<Person> hbPersonsInParties = new HashSet<>();
+    		for (PartyTuple pt : dp.getPartyTuples()) {
+    			sbPersonsInParties.add(pt.getSchoolboundParty().getDriver());
+    			sbPersonsInParties.addAll(pt.getSchoolboundParty().getPassengers());
+    			hbPersonsInParties.add(pt.getHomeboundParty().getDriver());
+    			hbPersonsInParties.addAll(pt.getHomeboundParty().getPassengers());
+    		}
+    		
+    		// add possibel party starters to the set
+    		Set<Person> possiblePartyStarters = new HashSet<>();
+    		collectCandidatesAndPlaceFromPool(dp, possiblePartyStarters, pool.personsByFirstLesson, sbPersonsInParties, true);
+    		collectCandidatesAndPlaceFromPool(dp, possiblePartyStarters, pool.personsByLastLesson, hbPersonsInParties, false);
+    		
+    		// put possiblePartyStarters set into Map per day-combo
+    		possiblePartyStartersByCombo.put(dp.getDayOfWeekABCombo(), possiblePartyStarters);
+    	}
+    	return possiblePartyStartersByCombo;
+    }
+    
     /**
+     * Collects party starter candidates where the supply (plan) doesn't meet the demand (pool).
+     * Places people into parties where the supply (plan) meets the demand (pool).
+     *  
+     * @param dp
+     * @param possiblePartyStarters
+     * @param pool
+     * @param ignoreList
+     * @param isSchoolbound 
+     */
+    private void collectCandidatesAndPlaceFromPool(DayPlan dp, Set<Person> possiblePartyStarters, Map<Integer, List<Person>> pool, Set<Person> ignoreList, boolean isSchoolbound) {
+    	for (Integer startTime : pool.keySet()) {
+			List<Party> partiesMatchingStartTime = dp.getPartyTuples().stream().map(pt -> isSchoolbound ? pt.getSchoolboundParty() : pt.getHomeboundParty()).filter(party -> Util.isTimeDifferenceAcceptable(party.getTime(), startTime)).collect(Collectors.toList());
+			Set<Person> personsInPool = pool.get(startTime).stream().filter(p -> !ignoreList.contains(p)).collect(Collectors.toSet());
+			int demand = personsInPool.size();
+			int supply = 0;
+			for (Party p : partiesMatchingStartTime) { supply += p.getNumberOfFreeSeats(); }
+			if (demand > supply) {
+				possiblePartyStarters.addAll(personsInPool);
+			} else {
+				// all members of this pool timeslot can be placed (supply >= demand)
+				for (Party p : partiesMatchingStartTime) {
+					while (!personsInPool.isEmpty() &&  p.getNumberOfFreeSeats() > 0) {
+						Person sbPersonFromPool = personsInPool.iterator().next();
+						p.addPassenger(sbPersonFromPool, "supply >= demand for this timeslot");
+						personsInPool.remove(sbPersonFromPool);
+					}
+				}
+			}
+		}
+    }
+    
+    private void globallyBalancedSelectionOfDrivers(MasterPlan theMasterPlan) throws Exception {
+    	
+    	
+    	//FIXME broken af
+    	if (System.out.equals(Util.out)) {
+    		HtmlDump.toHtml(theMasterPlan, "/Users/thabok/Git/mycartime/plan_dump_gbsod.html");
+    		// attempt a maximum of 20 iterations, end if no further progress is being made
+    		for (int i=1; i<25; i++) {
+    			Map<DayOfWeekABCombo, Set<Person>> possiblePartyStarters = findPossiblePartyStarters(theMasterPlan);
+        		if (possiblePartyStarters.isEmpty()) { break; }
+    			createMirroredParties(theMasterPlan, possiblePartyStarters);
+    			// backup old dump
+    			Files.copy(Paths.get("/Users/thabok/Git/mycartime/plan_dump_gbsod.html"), Paths.get("/Users/thabok/Git/mycartime/plan_dump_gbsod_old.html"), StandardCopyOption.REPLACE_EXISTING);
+    			HtmlDump.toHtml(theMasterPlan, "/Users/thabok/Git/mycartime/plan_dump_gbsod.html");
+    		}
+    	}
+	}
+
+	private void createMirroredParties(MasterPlan theMasterPlan, Map<DayOfWeekABCombo, Set<Person>> possiblePartyStarters) throws Exception {
+
+		// 1. try to find people who
+		// - with no. drives <= (Constants.EXPECTED_DRIVING_DAYS_THRESHOLD - 2)
+		// - who can drive on a given day and its mirror day (e.g. day 1 and day 8 or day 9 and day 2) 
+		
+		Set<DayOfWeekABCombo> coveredCombos = new HashSet<>();
+		for (DayOfWeekABCombo combo : possiblePartyStarters.keySet()) {
+			// skip combos for which we already have a candidate (created via mirror combo)
+			if (!coveredCombos.contains(combo)) {
+				NumberOfDrivesStatus nods = new NumberOfDrivesStatus(theMasterPlan);
+    			DayOfWeekABCombo mirrorCombo = Util.getMirrorCombo(combo);
+    			Set<Person> todaysCandidates = possiblePartyStarters.get(combo);
+    			Set<Person> mirrorDaysCandidates = possiblePartyStarters.get(mirrorCombo);
+    			// create a set that only contains candidates that are present in both sets
+    			Set<Person> intersection = new HashSet<>(todaysCandidates);
+    			intersection.retainAll(mirrorDaysCandidates);
+    			intersection.retainAll(intersection);
+    			
+    			List<Person> personsSortedByNumberOfDrives = nods.getPersonsSortedByNumberOfDrive(true);
+    			// there are valid candidates for both days
+    			for (Person personWithLowNods : personsSortedByNumberOfDrives) {
+    				boolean nodsBelowThreshold = nods.getNumberOfDrives().get(personWithLowNods) < (Constants.EXPECTED_DRIVING_DAYS_THRESHOLD - 2);
+    				if (nodsBelowThreshold && intersection.contains(personWithLowNods)) {
+    					DayPlan dp1 = theMasterPlan.get(combo.getUniqueNumber());
+    					DayPlan dp2 = theMasterPlan.get(mirrorCombo.getUniqueNumber());
+    					// first remove person from (could be a passenger somewhere)
+    					PartyHelper.removePersonFromParties(personWithLowNods, dp1.getAllParties());
+    					PartyHelper.removePersonFromParties(personWithLowNods, dp2.getAllParties());
+    					// create solo party
+    					PartyHelper.addSoloParty(dp1, personWithLowNods, "balancedSelectionOfDrivers", Reason.BALANCED_SELECTION_OF_DRIVERS);
+    					PartyHelper.addSoloParty(dp2, personWithLowNods, "balancedSelectionOfDrivers", Reason.BALANCED_SELECTION_OF_DRIVERS);
+    					Util.out.println("Adding party for " + personWithLowNods + " - " + combo + ", " + mirrorCombo);
+
+    					// these combos can be skipped in future loop iterations
+    					coveredCombos.add(combo);
+    					coveredCombos.add(mirrorCombo);
+    					break;
+    				}
+    			}
+			}
+		}
+		
+		// 2. try the same but ignore mirror days
+		for (DayOfWeekABCombo combo : possiblePartyStarters.keySet()) {
+			// skip combos for which we already have a candidate
+			if (!coveredCombos.contains(combo)) {
+				NumberOfDrivesStatus nods = new NumberOfDrivesStatus(theMasterPlan);
+    			Set<Person> todaysCandidates = possiblePartyStarters.get(combo);
+    			
+    			List<Person> personsSortedByNumberOfDrives = nods.getPersonsSortedByNumberOfDrive(true);
+    			// there are valid candidates for both days
+    			for (Person personWithLowNods : personsSortedByNumberOfDrives) {
+    				boolean nodsBelowThreshold = nods.getNumberOfDrives().get(personWithLowNods) < (Constants.EXPECTED_DRIVING_DAYS_THRESHOLD - 1);
+    				if (nodsBelowThreshold && todaysCandidates.contains(personWithLowNods)) {
+    					DayPlan dp = theMasterPlan.get(combo.getUniqueNumber());
+    					// first remove person from (could be a passenger somewhere)
+    					PartyHelper.removePersonFromParties(personWithLowNods, dp.getAllParties());
+    					// create solo party
+    					PartyHelper.addSoloParty(dp, personWithLowNods, "balancedSelectionOfDrivers", Reason.BALANCED_SELECTION_OF_DRIVERS);
+    					Util.out.println("Adding party for " + personWithLowNods + " - " + combo);
+    					
+    					// these combos can be skipped in future loop iterations
+    					coveredCombos.add(combo);
+    					break;
+    				}
+    			}
+			}
+		}
+	}
+
+	/**
      * Ensure no one drives less than 4 times:
      * - Add parties on days where it's tight (capacity close to 100%)
      * - Add parties to complete unmatched mirror days
@@ -124,7 +280,7 @@ public class Controller {
             Party partyThere = PartyHelper.getParty(dayPlan, lowNodsPerson, false);
             Party partyBack  = PartyHelper.getParty(dayPlan, lowNodsPerson, true);
             PartyHelper.removePersonFromParties(lowNodsPerson, partyThere, partyBack);
-            PartyHelper.addSoloParty(dayPlan, lowNodsPerson, theMasterPlan.inputsPerDay, "addPartiesForLazyDrivers", Reason.LAZY_DRIVER);
+            PartyHelper.addSoloParty(dayPlan, lowNodsPerson, "addPartiesForLazyDrivers", Reason.LAZY_DRIVER);
             Util.out.println("Creating lazy driver party for " + lowNodsPerson + " on " + dayPlan.getDayOfWeekABCombo());
         }
     }

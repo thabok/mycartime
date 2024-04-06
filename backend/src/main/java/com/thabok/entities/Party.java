@@ -27,6 +27,7 @@ public class Party {
 	}
 
 	public int getTime() {
+		updateTime();
 		return time;
 	}
 

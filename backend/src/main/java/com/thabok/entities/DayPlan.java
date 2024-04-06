@@ -28,6 +28,17 @@ public class DayPlan {
 	public List<PartyTuple> getPartyTuples() {
 		return partyTuples;
 	}
+	/**
+	 * Returns all parties, homebound and schoolbound.
+	 */
+	public List<Party> getAllParties() {
+		List<Party> allParties = new ArrayList<>();
+		for (PartyTuple pt : partyTuples) {
+			allParties.add(pt.getSchoolboundParty());
+			allParties.add(pt.getHomeboundParty());
+		}
+		return allParties;
+	}
 	public void setPartyTuples(List<PartyTuple> partyTuples) {
 		this.partyTuples = partyTuples;
 	}

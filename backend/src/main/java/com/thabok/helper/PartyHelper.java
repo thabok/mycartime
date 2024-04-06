@@ -1,6 +1,7 @@
 package com.thabok.helper;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,7 @@ public class PartyHelper {
     public static void addPartiesForDesignatedDrivers(DayPlan dayPlan, Map<Integer, DayPlanInput> inputsPerDay, Map<Integer, DayPlan> dayPlans) throws Exception {
         Set<Person> designatedDrivers = inputsPerDay.get(dayPlan.getDayOfWeekABCombo().getUniqueNumber()).designatedDrivers;
     	for (Person driver : designatedDrivers ) {
-            addSoloParty(dayPlan, driver, inputsPerDay, "designated driver", Reason.DESIGNATED_DRIVER);
+            addSoloParty(dayPlan, driver, "designated driver", Reason.DESIGNATED_DRIVER);
         }
     }
     
@@ -55,7 +56,7 @@ public class PartyHelper {
      * @return 
      * @throws Exception 
      */
-    public static PartyTuple addSoloParty(DayPlan dayPlan, Person driver, Map<Integer, DayPlanInput> inputsPerDay, String reasonPhrase, Reason reason) throws Exception {
+    public static PartyTuple addSoloParty(DayPlan dayPlan, Person driver, String reasonPhrase, Reason reason) throws Exception {
     	CustomDay driverPreferences = driver.getCustomPrefsForCombo(dayPlan.getDayOfWeekABCombo()); 
     	// create party tuple
     	PartyTuple partyTuple = new PartyTuple();
@@ -65,32 +66,32 @@ public class PartyHelper {
     	}
     	
     	// - way there
-        Party partyThere = new Party(reasonPhrase);
-        partyThere.setDayOfTheWeekABCombo(dayPlan.getDayOfWeekABCombo());
-        partyThere.setDriver(driver);
-        partyThere.setWayBack(false);
+        Party schoolboundParty = new Party(reasonPhrase);
+        schoolboundParty.setDayOfTheWeekABCombo(dayPlan.getDayOfWeekABCombo());
+        schoolboundParty.setDriver(driver);
+        schoolboundParty.setWayBack(false);
         int startTime = driver.getTimeForDowCombo(dayPlan.getDayOfWeekABCombo(), false);
-        partyThere.setTime(startTime);
+        schoolboundParty.setTime(startTime);
         if (driverPreferences.skipMorning) {
-        	partyThere.setReason(Reason.LONELY_DRIVER);
+        	schoolboundParty.setReason(Reason.LONELY_DRIVER);
         } else {
-        	partyThere.setReason(reason);
+        	schoolboundParty.setReason(reason);
         }
-        partyTuple.setSchoolboundParty(partyThere);
+        partyTuple.setSchoolboundParty(schoolboundParty);
         
         // - way back
-        Party partyBack = new Party(reasonPhrase);
-        partyBack.setDayOfTheWeekABCombo(dayPlan.getDayOfWeekABCombo());
-        partyBack.setDriver(driver);
-        partyBack.setWayBack(true);
+        Party homeboundParty = new Party(reasonPhrase);
+        homeboundParty.setDayOfTheWeekABCombo(dayPlan.getDayOfWeekABCombo());
+        homeboundParty.setDriver(driver);
+        homeboundParty.setWayBack(true);
         int endTime = driver.getTimeForDowCombo(dayPlan.getDayOfWeekABCombo(), true);
-        partyBack.setTime(endTime);
+        homeboundParty.setTime(endTime);
         if (driverPreferences.skipAfternoon) {
-        	partyBack.setReason(Reason.LONELY_DRIVER);
+        	homeboundParty.setReason(Reason.LONELY_DRIVER);
         } else {
-        	partyBack.setReason(reason);
+        	homeboundParty.setReason(reason);
         }
-        partyTuple.setHomeboundParty(partyBack);
+        partyTuple.setHomeboundParty(homeboundParty);
         partyTuple.setDesignatedDriver(Reason.DESIGNATED_DRIVER == reason);
    
         // add party tuple to day plan
@@ -249,7 +250,7 @@ public class PartyHelper {
 			// remove person from any previous parties
 			removePersonFromParties(personToBeSeated, partyThere, partyBack);
 			// create solo party
-			addSoloParty(dayPlan, personToBeSeated, inputsPerDay, reasonPhrase + " > No one found to take " + personToBeSeated + " along -> needs solo party", Reason.ACCOMMODATE_PERSON);
+			addSoloParty(dayPlan, personToBeSeated, reasonPhrase + " > No one found to take " + personToBeSeated + " along -> needs solo party", Reason.ACCOMMODATE_PERSON);
 
 		} else if (personToBeSeated.equals(driverForWayThere) || personToBeSeated.equals(driverForWayBack)) {
 			// person to be seated seems to be the best candidate for a new party!
@@ -257,13 +258,13 @@ public class PartyHelper {
 			// remove person from any previous parties
 			removePersonFromParties(personToBeSeated, partyThere, partyBack);
 			// create solo party
-			addSoloParty(dayPlan, personToBeSeated, inputsPerDay, reasonPhrase + " > " + personToBeSeated + " is the best candidate for the party -> solo party", Reason.ACCOMMODATE_PERSON);
+			addSoloParty(dayPlan, personToBeSeated, reasonPhrase + " > " + personToBeSeated + " is the best candidate for the party -> solo party", Reason.ACCOMMODATE_PERSON);
 			Util.out.println(String.format("  - who would have thought: %s is the best candidate for a new party -> creating new solo party.", personToBeSeated));
 			
 		} else if (driverForWayThere != null && driverForWayThere.equals(driverForWayBack)) {
 			// same person for there and back
 			
-			PartyTuple partyTuple = addSoloParty(dayPlan, driverForWayThere, inputsPerDay, reasonPhrase + " > same persons for there and back", Reason.ACCOMMODATE_PERSON);
+			PartyTuple partyTuple = addSoloParty(dayPlan, driverForWayThere, reasonPhrase + " > same persons for there and back", Reason.ACCOMMODATE_PERSON);
 			partyTuple.getSchoolboundParty().addPassenger(personToBeSeated, reasonPhrase + " > same persons for there and back");
 			partyTuple.getHomeboundParty().addPassenger(personToBeSeated, reasonPhrase + " > same persons for there and back");
 			Util.out.println(String.format("  - %s creates a new party, %s can join in the morning and afternoon.", driverForWayThere, personToBeSeated));
@@ -271,12 +272,12 @@ public class PartyHelper {
 		} else {
 			// different persons driving there and back
 			if (driverForWayThere != null) {
-				PartyTuple partyTupleThere = addSoloParty(dayPlan, driverForWayThere, inputsPerDay, reasonPhrase + " > different persons for there and back", Reason.ACCOMMODATE_PERSON);
+				PartyTuple partyTupleThere = addSoloParty(dayPlan, driverForWayThere, reasonPhrase + " > different persons for there and back", Reason.ACCOMMODATE_PERSON);
 				partyTupleThere.getSchoolboundParty().addPassenger(personToBeSeated, reasonPhrase + " > different persons for there and back");
 				Util.out.println(String.format("  - %s creates a new party, %s can join in the morning.", driverForWayThere, personToBeSeated));
 			}
 			if (driverForWayBack != null) {
-				PartyTuple partyTupleBack = addSoloParty(dayPlan, driverForWayBack, inputsPerDay, reasonPhrase + " > different persons for there and back", Reason.ACCOMMODATE_PERSON);
+				PartyTuple partyTupleBack = addSoloParty(dayPlan, driverForWayBack, reasonPhrase + " > different persons for there and back", Reason.ACCOMMODATE_PERSON);
 				partyTupleBack.getHomeboundParty().addPassenger(personToBeSeated, reasonPhrase + " > different persons for there and back");
 				Util.out.println(String.format("  - %s creates a new party, %s can join in the afternoon.", driverForWayBack, personToBeSeated));
 			}
@@ -288,6 +289,10 @@ public class PartyHelper {
 	}
 
 
+	public static void removePersonFromParties(Person personToRemove, Collection<Party> parties) {
+		removePersonFromParties(personToRemove, parties.toArray(new Party[parties.size()]));
+	}
+	
 	public static void removePersonFromParties(Person personToRemove, Party ... parties) {
 		for (Party party : parties) {
 			if (party != null) {

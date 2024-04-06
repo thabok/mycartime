@@ -2,7 +2,6 @@ package com.thabok.io;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -73,7 +72,8 @@ public class HtmlDump {
 		 *  dump data into HTML file
 		 */
 		for (DayPlan_Dump dpd : dayPlanDumps) {
-			String comboString = dpd.combo.toString();
+			String comboString = dpd.combo.toString().substring(0,3).toUpperCase();
+			comboString += dpd.combo.isWeekA() ? "_A" : "_B";
 			String schoolboundPoolString = createPoolString(dpd.schoolboundPool);
 			String schoolboundPlanString = createPlanString(dpd.schoolboundPlan);
 			String homeboundPoolString = createPoolString(dpd.homeboundPool);
@@ -173,10 +173,10 @@ class DayPlan_Dump {
 	List<Plan_Dump> populatePlan(DayPlanInput dpi, DayPlan dayPlan, boolean isSchoolbound) {
 		List<Plan_Dump> plan = new ArrayList<>();
 		for (PartyTuple pt : dayPlan.getPartyTuples()) {
-			Party sbParty = pt.getSchoolboundParty();
-			boolean isDesignatedDriver = dpi.designatedDrivers.contains(sbParty.getDriver());
-			Plan_Dump sbPartyDump = new Plan_Dump(sbParty, isDesignatedDriver);
-			plan.add(sbPartyDump);
+			Party party = isSchoolbound ? pt.getSchoolboundParty() : pt.getHomeboundParty();
+			boolean isDesignatedDriver = dpi.designatedDrivers.contains(party.getDriver());
+			Plan_Dump partyDump = new Plan_Dump(party, isDesignatedDriver);
+			plan.add(partyDump);
 		}
 		Collections.sort(plan, (a, b) -> Integer.compare(a.time, b.time));
 		return plan;
@@ -197,6 +197,10 @@ class Person_Dump {
 	int time;
 	boolean isDesignatedDriver;
 	
+	public String toString() {
+		return (isDesignatedDriver ? "*" : "") + person.toString() + " (" + Util.getTimeAsString(time) + ")";
+	}
+	
 }
 
 class Pool_Dump {
@@ -208,6 +212,10 @@ class Pool_Dump {
 	
 	List<Person_Dump> persons;
 	int time;
+	
+	public String toString() {
+		return "[" + Util.getTimeAsString(time) + "] " + persons.toString();
+	}
 	
 }
 
@@ -223,4 +231,7 @@ class Plan_Dump {
 	int time;
 	List<Person> passengers;
 	
+	public String toString() {
+		return "[" + Util.getTimeAsString(time) + "] " + (driver.isDesignatedDriver ? "*" : "") + driver.person.toString() + ", " + passengers.toString();
+	}
 }
