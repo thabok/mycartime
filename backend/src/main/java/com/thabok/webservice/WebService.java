@@ -226,7 +226,7 @@ public class WebService {
 				CustomDay customDay = driver.customDays.get(dayPlan.getDayOfWeekABCombo().getUniqueNumber());
 				boolean passengersHomebound = !tuple.getPartyThere().getPassengers().isEmpty();
 				boolean passengersSchoolbound = !tuple.getPartyBack().getPassengers().isEmpty();
-				if (customDay.drivingSkip && (passengersSchoolbound || passengersHomebound)) {
+				if (customDay != null && customDay.drivingSkip && (passengersSchoolbound || passengersHomebound)) {
 					// unvoluntary drive with passengers
 					numberOfInvoluntaryDrives++;
 				}
