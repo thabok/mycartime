@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import com.thabok.entities.CustomDay;
 import com.thabok.entities.DayOfWeekABCombo;
@@ -32,8 +33,9 @@ public class TimetableHelper {
 	 * @param person the person can override some parts of the schedule based on preferences
 	 * @param timetable the timetable object (continuous)
 	 * @return the schedule object (discrete)
+	 * @throws Exception 
 	 */
-	public static Map<Integer, TimingInfo> timetableToSchedule(Person person, Map<Integer, Period> timetable) {
+	public static Map<Integer, TimingInfo> timetableToSchedule(Person person, Map<Integer, Period> timetable) throws Exception {
 		Map<Integer, TimingInfo> schedule = new HashMap<>();
 		for (Entry<Integer, Period> entry : timetable.entrySet()) {
 			DayOfWeekABCombo dayOfWeekABCombo = getDayOfWeekABCombo(entry.getKey() /* date */);
@@ -44,9 +46,21 @@ public class TimetableHelper {
 			
 			// the person may have custom preferences that override the timetable
 			applyCustomPreferencesToDayInfo(dayInfo, entry.getKey(), person);
-			
-			
 			schedule.put(dayOfWeekABCombo.getUniqueNumber(), dayInfo);
+			
+		}
+		// add missing days (can happen if people have gap days in their timetable (reffi)
+		for (DayOfWeekABCombo combo : Util.weekdayListAB) {
+			int dayNumber = combo.getUniqueNumber();
+			if (!schedule.containsKey(dayNumber)) {
+				TimingInfo dayInfo = new TimingInfo();
+				// the person may have custom preferences that override the timetable
+				int missingDateNumber = getDateNumber(dayNumber);
+				boolean customPrefsApplied = applyCustomPreferencesToDayInfo(dayInfo, missingDateNumber, person);
+				if (customPrefsApplied) {
+					schedule.put(dayNumber, dayInfo);
+				}
+			}
 		}
 		return schedule;
 	}
@@ -99,7 +113,7 @@ public class TimetableHelper {
 	 *  Private methods
 	 */
 	
-	private static void applyCustomPreferencesToDayInfo(TimingInfo dayInfo, int date, Person person) {
+	private static boolean applyCustomPreferencesToDayInfo(TimingInfo dayInfo, int date, Person person) throws Exception {
 		int daysBetween = getDaysBetweenDateAndReferenceWeekStartDate(date);
 		int customDayIndex = daysBetween > 4 ? daysBetween - 2 : daysBetween;
 		CustomDay customDayInfo = person.customDays.get(customDayIndex);
@@ -109,6 +123,18 @@ public class TimetableHelper {
 		if (!customDayInfo.customEnd.isBlank()) {
 			dayInfo.setEndTime(customDayInfo.getCustomEndTimeInteger());
 		}
+		boolean customStartAndEndPresent = !customDayInfo.customStart.isBlank() && !customDayInfo.customEnd.isBlank();
+		return customStartAndEndPresent;
+	}
+	
+	private static int getDateNumber(int dayNumber) {
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
+		LocalDate startDate = LocalDate.parse(String.valueOf(Controller.referenceWeekStartDate), dtf);
+		int daysToAdd = dayNumber - 1;
+		LocalDate targetDate = startDate.plusDays(daysToAdd);
+        String formattedDate = targetDate.format(dtf);
+        int dateAsInt = Integer.parseInt(formattedDate);
+        return dateAsInt;
 	}
 	
 	private static int getDaysBetweenDateAndReferenceWeekStartDate(int dateNumber) {
