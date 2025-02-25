@@ -36,3 +36,8 @@ build
 *.json
 *.png
 *.DS_Store
+
+**/cache_dir/
+**/__pycache__/
+**/*.pyc
+**/*.egg-info/

@@ -1,0 +1,6 @@
+untis:
+  schoolName: NG Wilhelmshaven
+  server: https://cissa.webuntis.com
+  appAccessId: github-carpoolparty-python
+  
+acceptableToleranceMinutes: 30
