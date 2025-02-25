@@ -1,13 +1,11 @@
 import Download from '@axetroy/react-download';
-import { Button, Callout, Card, Checkbox, Collapse, Dialog, FormGroup, Icon, InputGroup, NumericInput, ProgressBar, Switch, Toaster, Tooltip } from '@blueprintjs/core';
+import { Button, Callout, Card, Checkbox, Collapse, Dialog, FormGroup, Icon, InputGroup, NumericInput, ProgressBar, Radio, RadioGroup, Switch, Toaster, Tooltip } from '@blueprintjs/core';
 import { DateInput } from '@blueprintjs/datetime';
 import ls from 'local-storage';
 import React, { Component } from 'react';
 import DragAndDropFileUpload from '../components/DragAndDropFileUpload';
 import FileUploadDrivingPlan from '../components/FileUploadDrivingPlan';
 import DrivingPlan from './DrivingPlan';
-
-const BACKEND_URL = "http://127.0.0.1:1337"
 
 const dayNumbersA = [ 0, 1, 2, 3, 4]
 const dayNumbersB = [ 5, 6, 7, 8, 9]
@@ -37,6 +35,7 @@ class MainPage extends Component {
     constructor(props) {
         super(props)
         this.state = {
+            backendService: "java",
             username: "",
             password: "",
             loggingIn: false,
@@ -48,11 +47,9 @@ class MainPage extends Component {
             newMember_firstname: undefined,
             newMember_lastname: undefined,
             newMember_initials: undefined,
-            newMember_roomy: true,
-            newMember_noseats: 4,
-            newMember_maxdrives: 6,
-            newMember_isTall: true,
+            newMember_noseats: 5,
             newMember_customDays: this.getEmptyCustomDaysMap(),
+            newMember_isPartTime: false,
             progressValue: 0,
             progressMessage: "",
             showAdvancedOptions: false
@@ -78,6 +75,8 @@ class MainPage extends Component {
             <div className="bp3-dark main-form">
                 <br/>
                 <center><h2>Carpool Party</h2></center>
+                {/* {this.getBackendPicker()}
+                <br/> */}
                 {this.getWebuntisFieldset()}
                 <br/>
                 {this.getCarpoolMembersFieldset()}
@@ -91,6 +90,26 @@ class MainPage extends Component {
     /*****************************************************
      * MAIN SECTIONS
      *****************************************************/
+
+    getBackendPicker() {
+        return (
+            <fieldset className="main-form" style={{ padding: "20px" }}>
+                <legend style={{ padding: "5px 10px 5px 10px" }}>Backend</legend>
+                <div style={{ textAlign: "center" }}>
+                    <FormGroup inline={true} style={{ display: "inline-block" }}>
+                        <RadioGroup
+                            onChange={(e) => this.updateState("backendService", e.target.value)}
+                            selectedValue={this.state.backendService || "java"}
+                            inline={true}
+                        >
+                            <Radio label="Java" value="java" />
+                            <Radio label="Python" value="python" />
+                        </RadioGroup>
+                    </FormGroup>
+                </div>
+            </fieldset>
+        );
+    }
 
     getWebuntisFieldset() {
         const lockButton = (
@@ -191,6 +210,13 @@ class MainPage extends Component {
                         {this.state.persons.map((person) => {
                             return (this.createCard(person))
                         })}
+                        <Button 
+                            style={cardStyles}
+                            icon="graph-remove"
+                            minimal={true}
+                            intent="danger"
+                            onClick={() => this.clearCustomPrefs()}
+                            />
                         <Button 
                             style={cardStyles}
                             icon="add"
@@ -402,7 +428,7 @@ class MainPage extends Component {
         return (
             <Dialog 
                 className=""
-                style={{ width: "1000px"}}
+                style={{ width: "1000px", padding: "10px" }}
                 icon="person"
                 autoFocus={true}
                 title="New Carpool Party member"
@@ -452,40 +478,27 @@ class MainPage extends Component {
                 </FormGroup>
                 <FormGroup
                     helperText={undefined}
+                    label="Part-time"
+                    labelFor="input-part-time"
+                    labelInfo="Do they work part time? (e.g. Reffi)" >
+                    <Switch 
+                        id="input-part-time"
+                        checked={this.state.newMember_isPartTime}
+                        onChange={(e) => this.setState( { newMember_isPartTime: !this.state.newMember_isPartTime } )}/>
+                </FormGroup>
+                <FormGroup
+                    helperText={undefined}
                     label="Number of Seats"
                     labelFor="input-noseats"
                     labelInfo={undefined} >
                     <NumericInput 
                         id="input-noseats"
                         value={this.state.newMember_noseats}
-                        leftIcon="person"
+                        leftIcon="drive-time"
                         min={1}
                         max={10}
                         onKeyPress={(e) => this.handleKeyPress(e)}
                         onValueChange={(number, string) => { this.setState({newMember_noseats: number}) }} />
-                    <NumericInput 
-                        id="input-max-drives"
-                        value={this.state.newMember_maxdrives}
-                        leftIcon="less-than-or-equal-to"
-                        min={0}
-                        max={6}
-                        onKeyPress={(e) => this.handleKeyPress(e)}
-                        onValueChange={(number, string) => { this.setState({newMember_maxdrives: number}) }} />
-                    <FormGroup
-                        helperText={undefined}
-                        label="Tall Person"
-                        labelFor="input-tall"
-                        inline={true}
-                        labelInfo="Is this person tall?" >
-                        <Switch 
-                            id="input-tall"
-                            large={true}
-                            checked={this.state.newMember_isTall}
-                            onKeyPress={(e) => this.handleKeyPress(e)}
-                            onChange={(e) => {
-                                    this.setState({newMember_isTall: !this.state.newMember_isTall})
-                                }} />
-                    </FormGroup>
                 </FormGroup>
                 
                 <div>
@@ -500,21 +513,6 @@ class MainPage extends Component {
                 { this.state.showAdvancedOptions ?
                     <div>
                         <hr/>
-                        <FormGroup
-                            helperText={undefined}
-                            label="Roomy car"
-                            labelFor="input-roomy"
-                            inline={true}
-                            labelInfo="(comfortable for tall persons?)" >
-                            <Switch 
-                                id="input-roomy"
-                                large={true}
-                                checked={this.state.newMember_roomy}
-                                onKeyPress={(e) => this.handleKeyPress(e)}
-                                onChange={(e) => {
-                                        this.setState({newMember_roomy: !this.state.newMember_roomy})
-                                    }} />
-                        </FormGroup>
                         <FormGroup
                             helperText={undefined}
                             label="Customize preferences for specific days"
@@ -681,8 +679,7 @@ class MainPage extends Component {
                 <ul>
                     <li><b>Initials: </b> {person.initials}</li>
                     <li><b>Number of Seats: </b> {person.numberOfSeats}</li>
-                    <li><b>Tall: </b> {person.isTall ? "true" : "false"}</li>
-                    <li><b>Car Type: </b> {person.isCarRoomy ? "roomy" : "small"}</li>
+                    {person.isPartTime ? <li><b>Part-time </b></li> : null}
                 </ul>
                 {this.doesPersonHaveCustomPrefs(person) ? <div style={{position: "absolute", right: 10, bottom: 10}}><i>*custom prefs</i></div> : null}
             </Card>
@@ -716,40 +713,44 @@ class MainPage extends Component {
     }
     
     async getProgress() {
-        await fetch(BACKEND_URL + '/progress', {
-            method: 'GET',
-            headers: {
-                'Content-Type' : 'application/json'
-            }
-        })
-        .then(response => {
-            if (response.ok) {
-                // update progress in state
-                response.json().then(progressObj => {
-                    this.setState({
-                        progressValue: progressObj.value,
-                        progressMessage: progressObj.message
+        if (this.state.backendService === "java") {
+            await fetch(this.getBackendUrl() + '/progress', {
+                method: 'GET',
+                headers: {
+                    'Content-Type' : 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // update progress in state
+                    response.json().then(progressObj => {
+                        this.setState({
+                            progressValue: progressObj.value,
+                            progressMessage: progressObj.message
+                        })
                     })
-                })
-            }
-        })
-        .catch(() => {
-            this.stopProgressTimer()
-        })
+                }
+            })
+            .catch(() => {
+                this.stopProgressTimer()
+            })
+        }
     }
 
     async cancelCalculation() {
-        fetch(BACKEND_URL + '/cancel', {
-            method: 'POST',
-            headers: {
-                'Content-Type' : 'application/json'
-            }
-        })
-        this.setState({ 
-            waitingForPlan: false,
-            isProgressDialogOpen: false
-        })
-        this.stopProgressTimer()
+        if (this.state.backendService === "java") {
+            fetch(this.getBackendUrl() + '/cancel', {
+                method: 'POST',
+                headers: {
+                    'Content-Type' : 'application/json'
+                }
+            })
+            this.setState({ 
+                waitingForPlan: false,
+                isProgressDialogOpen: false
+            })
+            this.stopProgressTimer()
+        }
     }
 
     async requestDrivingPlan(weekDayPermutation=undefined) {
@@ -803,10 +804,8 @@ class MainPage extends Component {
                 person.firstName = this.state.newMember_firstname
                 person.lastName = this.state.newMember_lastname
                 person.initials = this.state.newMember_initials
+                person.isPartTime = this.state.newMember_isPartTime
                 person.numberOfSeats = this.state.newMember_noseats
-                person.maxDrives = this.state.newMember_maxdrives
-                person.isTall = this.state.newMember_isTall
-                person.isCarRoomy = this.state.newMember_roomy
                 person.customDays = this.state.newMember_customDays
             }
             persons.push(person)
@@ -830,10 +829,8 @@ class MainPage extends Component {
             person.firstName = this.state.newMember_firstname
             person.lastName = this.state.newMember_lastname
             person.initials = this.state.newMember_initials
+            person.isPartTime = this.state.newMember_isPartTime
             person.numberOfSeats = this.state.newMember_noseats
-            person.maxDrives = this.state.newMember_maxdrives
-            person.isTall = this.state.newMember_isTall
-            person.isCarRoomy = this.state.newMember_roomy
             persons.push(person)
             this.updateState("persons", persons)
             this.setState({ isDialogOpen: false })
@@ -880,6 +877,17 @@ class MainPage extends Component {
         e.stopPropagation()
     }
 
+    /* Big remove button below persons */
+    clearCustomPrefs() {
+        let persons = this.state.persons
+        for (let i=0; i < persons.length; i++) {
+            let person = persons[i]
+            person.customDays = undefined
+        }
+        this.updateState("persons", persons)
+    }
+
+    /* Big + button below persons */
     openDialogForNewPerson() {
         this.setState({
             isDialogOpen: true,
@@ -887,10 +895,8 @@ class MainPage extends Component {
             newMember_firstname: "",
             newMember_lastname: "",
             newMember_initials: "",
-            newMember_roomy: true,
+            newMember_isPartTime: false,
             newMember_noseats: 5,
-            newMember_maxdrives: 6,
-            newMember_isTall: true,
             newMember_customDays: this.getEmptyCustomDaysMap(),
         })
     }
@@ -928,10 +934,8 @@ class MainPage extends Component {
                 newMember_firstname: person.firstName,
                 newMember_lastname: person.lastName,
                 newMember_initials: person.initials,
-                newMember_roomy: person.isCarRoomy,
+                newMember_isPartTime: person.isPartTime,
                 newMember_noseats: person.numberOfSeats,
-                newMember_maxdrives: person.maxDrives,
-                newMember_isTall: person.isTall,
                 newMember_customDays: person.customDays !== undefined ? person.customDays : this.getEmptyCustomDaysMap(),
             })
         }
@@ -941,15 +945,21 @@ class MainPage extends Component {
      * REQUESTS TO BACKEND
      *****************************************************/ 
 
+    getBackendUrl() {
+        return this.state.backendService === 'java' ? "http://127.0.0.1:1337" : "http://127.0.0.1:1338"
+    }
+
     async calculatePlan(weekDayPermutation=undefined) {
         try {
             const referenceDate = (this.state.ABWeekStartDate.getFullYear() * 10000) + ((this.state.ABWeekStartDate.getMonth() + 1) * 100) + (this.state.ABWeekStartDate.getDate())
             const payload = {
                 persons: this.state.persons,
                 scheduleReferenceStartDate: referenceDate,
-                preset: weekDayPermutation
+                preset: weekDayPermutation,
+                username: this.state.username,
+                hash: Buffer.from(this.state.password).toString('base64')
             }
-            await fetch(BACKEND_URL + '/calculatePlan', {
+            await fetch(this.getBackendUrl() + '/calculatePlan', {
                 method: 'POST',
                 headers: {
                     'Content-Type' : 'application/json'
@@ -989,43 +999,47 @@ class MainPage extends Component {
 
     logout() {
         // can run in background, no need to wait for reply
-        fetch(BACKEND_URL + '/logout', { method: 'POST' })
+        if (this.state.backendService === "java") {
+            fetch(this.getBackendUrl() + '/logout', { method: 'POST' })
+        }
     }
 
     async login(route, quiet) {
-        await fetch(BACKEND_URL + '/' + route, {
-            method: 'POST',
-            headers: {
-                'Content-Type' : 'application/json'
-            },
-            body: JSON.stringify({ username: this.state.username, hash: Buffer.from(this.state.password).toString('base64')})
-        })
-        .then(response => {
-            if (response.ok) {
-                // connection succeeded
-                if (!quiet) {
-                    toast.show({message: "Successfully connected to WebUntis with user " + this.state.username, intent: "success", icon: "tick"})
-                }
-                this.setState( { connectionSuccessful: true, webuntisCollapsed: true })
-            } else {
-                // connection failed -> return object's message will contain details
-                response.json().then(pkg => {
-                    const msg = "Connection failed: " + pkg.message
+        if (this.state.backendService === "java") {
+            await fetch(this.getBackendUrl() + '/' + route, {
+                method: 'POST',
+                headers: {
+                    'Content-Type' : 'application/json'
+                },
+                body: JSON.stringify({ username: this.state.username, hash: Buffer.from(this.state.password).toString('base64')})
+            })
+            .then(response => {
+                if (response.ok) {
+                    // connection succeeded
                     if (!quiet) {
-                        toast.show({message: msg, intent: "danger", icon: "error"})
+                        toast.show({message: "Successfully connected to WebUntis with user " + this.state.username, intent: "success", icon: "tick"})
                     }
-                    this.setState({ connectionErrorMessage: msg})
-                })
-            }
-        })
-        .catch(error => {
-            // connection failed (no connection or exception on server)
-            const msg = "An error failed: " + error
-            if (!quiet) {
-                toast.show({message: msg, intent: "danger", icon: "error"})
-            }
-            this.setState({ connectionErrorMessage: msg })
-        })
+                    this.setState( { connectionSuccessful: true, webuntisCollapsed: true })
+                } else {
+                    // connection failed -> return object's message will contain details
+                    response.json().then(pkg => {
+                        const msg = "Connection failed: " + pkg.message
+                        if (!quiet) {
+                            toast.show({message: msg, intent: "danger", icon: "error"})
+                        }
+                        this.setState({ connectionErrorMessage: msg})
+                    })
+                }
+            })
+            .catch(error => {
+                // connection failed (no connection or exception on server)
+                const msg = "An error failed: " + error
+                if (!quiet) {
+                    toast.show({message: msg, intent: "danger", icon: "error"})
+                }
+                this.setState({ connectionErrorMessage: msg })
+            })
+        }
     }
     
     /*****************************************************

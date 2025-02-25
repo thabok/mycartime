@@ -12,10 +12,10 @@ import com.thabok.entities.CustomDay;
 import com.thabok.entities.DayOfWeekABCombo;
 import com.thabok.entities.Person;
 import com.thabok.entities.Schedule;
-import com.thabok.entities.Teacher;
 import com.thabok.entities.TimingInfo;
 import com.thabok.main.Controller;
 import com.thabok.untis.Period;
+import com.thabok.untis.Teacher;
 import com.thabok.util.Util;
 
 /**

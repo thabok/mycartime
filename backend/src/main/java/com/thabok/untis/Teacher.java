@@ -1,4 +1,4 @@
-package com.thabok.entities;
+package com.thabok.untis;
 
 public class Teacher {
 

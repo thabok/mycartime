@@ -3,8 +3,6 @@ package com.thabok.untis;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.thabok.entities.Subject;
-import com.thabok.entities.Teacher;
 
 public class Period {
 
