@@ -35,7 +35,7 @@ class MainPage extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            backendService: "java",
+            backendService: "python",
             username: "",
             password: "",
             loggingIn: false,
@@ -143,18 +143,6 @@ class MainPage extends Component {
                             type={this.state.showPassword ? "text" : "password"}
                             onChange={(e) => this.setState({ password: e.target.value})}
                             />
-                        <Button
-                            type="submit"
-                            fill={true}
-                            icon="signal-search"
-                            loading={this.state.loggingIn}
-                            text="Test Connection"
-                            disabled={this.disableConnectionButton()}
-                            intent="primary"
-                            onClick={() => {
-                                this.testWebUntisConnection()
-                            }}
-                            />
                         { !this.state.connectionSuccessful && this.state.connectionErrorMessage
                             ? 
                             <Callout intent="danger" icon="error">{this.state.connectionErrorMessage}</Callout>
@@ -210,20 +198,15 @@ class MainPage extends Component {
                         {this.state.persons.map((person) => {
                             return (this.createCard(person))
                         })}
-                        <Button 
-                            style={cardStyles}
-                            icon="graph-remove"
-                            minimal={true}
-                            intent="danger"
-                            onClick={() => this.clearCustomPrefs()}
-                            />
-                        <Button 
-                            style={cardStyles}
-                            icon="add"
-                            minimal={true}
-                            intent="primary"
-                            onClick={() => this.openDialogForNewPerson()}
-                            />
+                        <Tooltip content="Add a new member to the carpool party.">
+                            <Button 
+                                style={cardStyles}
+                                icon="add"
+                                minimal={true}
+                                intent="primary"
+                                onClick={() => this.openDialogForNewPerson()}
+                                />
+                        </Tooltip>
                     </div>
                     {this.getPersonDetailsDialog()}
                     <br/>
@@ -621,6 +604,22 @@ class MainPage extends Component {
             <legend style={{ padding: "5px 10px 5px 10px" }}>
                 Add Carpool Party Members
                 &nbsp;&nbsp;
+                <Tooltip content="Remove custom preferences from all members.">
+                    <Button 
+                        icon="graph-remove"
+                        minimal={true}
+                        onClick={() => this.clearCustomPrefs()}
+                        />
+                </Tooltip>
+                &nbsp;&nbsp;
+                <Tooltip content="Remove custom preferences from all members.">
+                    <Button 
+                        icon="trash"
+                        minimal={true}
+                        onClick={() => this.clearMembers()}
+                        />
+                </Tooltip>
+                &nbsp;&nbsp;&nbsp;&nbsp;
                 <Icon
                     style={{ cursor : "pointer" }}
                     icon={btnCaret}
@@ -879,12 +878,20 @@ class MainPage extends Component {
 
     /* Big remove button below persons */
     clearCustomPrefs() {
-        let persons = this.state.persons
-        for (let i=0; i < persons.length; i++) {
-            let person = persons[i]
-            person.customDays = undefined
+        if (window.confirm("Are you sure you want to clear custom preferences from all members?")) {
+            let persons = this.state.persons
+            for (let i=0; i < persons.length; i++) {
+                let person = persons[i]
+                person.customDays = undefined
+            }
+            this.updateState("persons", persons)
         }
-        this.updateState("persons", persons)
+    }
+
+    clearMembers() {
+        if (window.confirm("Are you sure you want to remove all members?")) {
+            this.updateState("persons", [])
+        }
     }
 
     /* Big + button below persons */

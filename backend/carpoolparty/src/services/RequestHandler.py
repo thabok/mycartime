@@ -2,14 +2,13 @@ import base64
 import json
 from typing import List
 
-from flask import Flask, jsonify, request
-from flask_cors import CORS
-from webuntis.session import Session
-
 from carpoolparty.src.objects import CustomDay, Person
 from carpoolparty.src.services.Controller import calculate_plan
 from carpoolparty.src.utils import Util as util
 from carpoolparty.src.utils.Config import get as get_config
+from flask import Flask, jsonify, request
+from flask_cors import CORS
+from webuntis.session import Session
 
 logger = util.configure_logging()
 
@@ -30,7 +29,7 @@ class RequestHandler:
 
         # login, query timetable and calculate plan
         with Session(
-            server=get_config('server'),
+            server=get_config('untisUrl'),
             username=data['username'],
             password=base64.b64decode(data['hash']).decode('utf-8'),
             school=get_config('schoolName'),
@@ -45,7 +44,7 @@ class RequestHandler:
         
         # return result
         logger.debug(f"Returning driving plan to client.")
-        #return jsonify(result)
+        util.dump_json(result, 'driving_plan.json', default=lambda o: o.to_dict(), sort_keys=False)
         return json.dumps(result, indent=2, default=lambda o: o.to_dict())
 
     def check_status(self):

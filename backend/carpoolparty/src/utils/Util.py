@@ -11,9 +11,9 @@ logger = None
 ON_CALL_SUBSTITUTION_ID = 255
 RELEVANT_DAYS = [ 1,2,3,4,5,8,9,10,11,12 ]
 
-def dump_json(data, file):
+def dump_json(data, file, default=None, sort_keys=True):
     with open(file, 'w') as f:
-        json.dump(data, f, indent=2, sort_keys=True)
+        json.dump(data, f, indent=2, sort_keys=sort_keys, default=default)
 
 def calculate_date_number(start_date: int, days_to_add: int) -> int:
     start_date_str = str(start_date)
@@ -71,24 +71,9 @@ def get_candidate_pools_of_size(size, candidate_pools) -> List[Pool]:
                 pools_of_size.append(pool)
     return pools_of_size
 
-def derive_time(party:Party) -> int:
-    if party.direction == 'schoolbound': # -> earliest time counts
-        time = party.driver.schedule[party.day_index]['startTime']
-        for passenger in party.passengers:
-            passenger_time = passenger.schedule[party.day_index]['startTime']
-            if passenger_time < time:
-                time = passenger_time
-    else: # homebound -> latest time counts
-        time = party.driver.schedule[party.day_index]['endTime']
-        for passenger in party.passengers:
-            passenger_time = passenger.schedule[party.day_index]['endTime']
-            if passenger_time > time:
-                time = passenger_time
-    return time
-
 def free_seats_in_existing_parties(day_plan:DayPlan, time:int, direction:str, tolerance:int=0) -> int:
     parties = day_plan.get_schoolbound_parties() if direction == 'schoolbound' else day_plan.get_homebound_parties()
-    parties = [ party for party in parties if times_match(derive_time(party), time, tolerance) ]
+    parties = [ party for party in parties if times_match(party.derive_time(), time, tolerance) ]
     free_seats = sum(party.driver.number_of_seats - 1 - len(party.passengers) for party in parties)
     return free_seats
 
@@ -151,58 +136,11 @@ def get_closest_match(time:int, parties:List[Party]) -> Party:
         closest_time = None
         for party in parties:
             if party.driver.number_of_seats - 1 - len(party.passengers) > 0:
-                party_time = derive_time(party)
+                party_time = party.derive_time()
                 if not closest_time or abs(party_time - time) < abs(closest_time - time):
                     closest_time = party_time
             else: continue
     assert closest_time != None, f"Could not find a party with free seats in {parties}"
-    parties_with_closest_time = [ party for party in parties if derive_time(party) == closest_time ]
+    parties_with_closest_time = [ party for party in parties if party.derive_time() == closest_time ]
     # from the 1-n parties with the closest time, return the one with the most free seats
     return max(parties_with_closest_time, key=lambda p: p.driver.number_of_seats - 1 - len(p.passengers))
-
-def create_summary_data(driving_plan, persons:List[Person]):
-    # create summary data for the following criteria:
-    # 1. gt4:  how many persons are driving more than 4 times?
-    # 2. high: highest number of drives
-    # 3. avg:  average number of drives per person
-    # 4. full: percentage of parties that are full (driver + number of passengers == driver.number_of_seats)
-    summary = {
-        'gt4': 0,
-        'high': 0,
-        'avg': 0.0,
-        'full': 0.0,
-        'drives': {}
-    }
-
-    drive_counts = { p : 0 for p in persons }
-    total_drives = 0
-    total_parties = 0
-    full_parties = 0
-
-    for day_plan in driving_plan.values():
-        # using a set to prevents duplicates due to schoolbound+homebound
-        # can't just take one of the two, because sometimes people are missing in one of the directions
-        drivers_of_day = set()
-        for party in day_plan.get_schoolbound_parties() + day_plan.get_homebound_parties():
-            # count drives
-            drivers_of_day.add(party.driver)
-            # count full parties
-            if len(party.passengers) == party.driver.number_of_seats - 1:
-                full_parties += 1
-            # count all parties
-            total_parties += 1
-
-        # sum up drives for the current day
-        for driver in drivers_of_day:
-            drive_counts[driver] += 1
-
-    total_drives = sum(drive_counts.values())
-
-    summary['gt4'] = sum(1 for count in drive_counts.values() if count > 4)
-    summary['high'] = max(drive_counts.values())
-    summary['avg'] = total_drives / len(drive_counts) # total drives * number of persons
-    summary['full'] = (float(full_parties) / float(total_parties)) * 100 if total_parties > 0 else 0.0
-    summary['drives'] = drive_counts
-
-    return summary
-    

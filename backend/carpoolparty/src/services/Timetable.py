@@ -1,8 +1,9 @@
 from datetime import datetime
-import diskcache as dc
-from webuntis.session import Session
+
 import carpoolparty.src.utils.Util as util
-from carpoolparty.src.objects import CustomDay, Person
+import diskcache as dc
+from carpoolparty.src.objects import CustomDay, Person, day_name
+from webuntis.session import Session
 
 logger = util.configure_logging()
 cache = dc.Cache('./cache_dir')
@@ -62,8 +63,8 @@ def fetch_timetable(session: Session, person: Person, start_date: int):
         # sanity check
         timetable_item = timetable.get(day_index)
         if timetable_item:
-            assert timetable_item['startTime'] is not None, f"[{person}] Start time is not defined for {util.day_name(day_index)}"
-            assert timetable_item['endTime'] is not None, f"[{person}] End time is not defined for {util.day_name(day_index)}"
+            assert timetable_item['startTime'] is not None, f"[{person}] Start time is not defined for {day_name(day_index)}"
+            assert timetable_item['endTime'] is not None, f"[{person}] End time is not defined for {day_name(day_index)}"
     
     person.set_schedule(timetable)
     return timetable
