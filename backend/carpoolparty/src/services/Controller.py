@@ -30,7 +30,7 @@ def calculate_plan(session: Session, persons: list, start_date: int) -> ResultWr
             # 1. while (number of available seats in existing parties is smaller < than the pool size): create new parties
             # -> create party with person with fewest drives and add to driving_plan
             # -> remove person from pool
-            create_needed_parties(driving_plan, pool_of_size_n, day_plan, candidate_pools)
+            create_needed_parties(driving_plan, pool_of_size_n, day_plan, candidate_pools, designated_driver=pool_size == 1)
             
             # 3. allocate remaining persons in existing parties
             # -> add person to party with the highest number of seats
@@ -48,7 +48,7 @@ def calculate_plan(session: Session, persons: list, start_date: int) -> ResultWr
 
     return result
 
-def create_needed_parties(driving_plan, pool_of_size_n:Pool, day_plan:DayPlan, candidate_pools):
+def create_needed_parties(driving_plan, pool_of_size_n:Pool, day_plan:DayPlan, candidate_pools, designated_driver):
     logger.debug(f"  Creating needed parties for {pool_of_size_n}")
     day_index = pool_of_size_n.day_index
     free_seats_in_parties = util.free_seats_in_existing_parties(day_plan, pool_of_size_n.time, pool_of_size_n.direction, TOLERANCE)
@@ -59,7 +59,7 @@ def create_needed_parties(driving_plan, pool_of_size_n:Pool, day_plan:DayPlan, c
         logger.debug(f"  Person from this pool with the fewest number of drives: {person}")
         
         # handle this direction
-        party = Party(day_index, pool_of_size_n.direction, person)
+        party = Party(day_index, pool_of_size_n.direction, person, designated_driver=designated_driver)
         logger.debug(f"  {pool_of_size_n.direction.capitalize()}: {party}")
         day_plan.add_party(party)
         pool_of_size_n.persons.remove(person)

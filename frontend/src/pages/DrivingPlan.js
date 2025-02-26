@@ -1,7 +1,7 @@
 import { Icon, InputGroup, Tab, Tabs } from '@blueprintjs/core';
 import React, { Component } from 'react';
 import ChangeRequestDialog from '../dialogs/ChangeRequestDialog';
-import TupleList from './TupleList';
+import PartyList from './PartyList';
 
 class DrivingPlan extends Component {
 
@@ -16,6 +16,7 @@ class DrivingPlan extends Component {
 
     componentDidMount() {}
 
+    //TODO: Update to new data structure
     processChangeRequests(changeRequests) {
         let plan = this.props.plan
         for (let crIndex=0; crIndex<changeRequests.length; crIndex++) {
@@ -65,136 +66,81 @@ class DrivingPlan extends Component {
     }
 
     getWeekA() {
+        return this.getPartyTable([1, 2, 3, 4, 5])
+    }
+
+    getWeekB() {
+        return this.getPartyTable([8, 9, 10, 11, 12])
+    }
+
+    getPartyTable(dayNumbers) {
         return (<tbody>
-            <tr>
-                <td><b>Monday (A)</b></td>
-                <td><TupleList tuples={this.props.plan.dayPlans[1].partyTuples} schoolbound={true} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[1]} /></td>
-                <td><TupleList tuples={this.props.plan.dayPlans[1].partyTuples} schoolbound={false} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[1]} /></td>
-                {this.getEditButton(1)}
-            </tr>
-            <tr>
-                <td><b>Tuesday (A)</b></td>
-                <td><TupleList tuples={this.props.plan.dayPlans[2].partyTuples} schoolbound={true} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[2]} /></td>
-                <td><TupleList tuples={this.props.plan.dayPlans[2].partyTuples} schoolbound={false} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[2]} /></td>
-                {this.getEditButton(2)}
-            </tr>
-            <tr>
-                <td><b>Wednesday (A)</b></td>
-                <td><TupleList tuples={this.props.plan.dayPlans[3].partyTuples} schoolbound={true} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[3]} /></td>
-                <td><TupleList tuples={this.props.plan.dayPlans[3].partyTuples} schoolbound={false} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[3]} /></td>
-                {this.getEditButton(3)}
-            </tr>
-            <tr>
-                <td><b>Thursday (A)</b></td>
-                <td><TupleList tuples={this.props.plan.dayPlans[4].partyTuples} schoolbound={true} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[4]} /></td>
-                <td><TupleList tuples={this.props.plan.dayPlans[4].partyTuples} schoolbound={false} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[4]} /></td>
-                {this.getEditButton(4)}
-            </tr>
-            <tr>
-                <td><b>Friday (A)</b></td>
-                <td><TupleList tuples={this.props.plan.dayPlans[5].partyTuples} schoolbound={true} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[5]} /></td>
-                <td><TupleList tuples={this.props.plan.dayPlans[5].partyTuples} schoolbound={false} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[5]} /></td>
-                {this.getEditButton(5)}
-            </tr>
+            {dayNumbers.map(dayNumber => (
+                <tr key={dayNumber}>
+                    <td><b>{this.getDayName(dayNumber)}</b></td>
+                    <td><PartyList parties={this.props.drivingPlan.plan[dayNumber]['schoolbound_parties']} filterForPerson={this.state.filterForPerson} dayPlan={this.props.drivingPlan.plan[dayNumber]} /></td>
+                    <td><PartyList parties={this.props.drivingPlan.plan[dayNumber]['homebound_parties']} filterForPerson={this.state.filterForPerson} dayPlan={this.props.drivingPlan.plan[dayNumber]} /></td>
+                    {this.getEditButton(dayNumber)}
+                </tr>
+            ))}
             {this.getLegend()}
         </tbody>)
     }
 
-    getWeekB() {
-        return (<tbody>
-            <tr>
-                <td><b>Monday (B)</b></td>
-                <td><TupleList tuples={this.props.plan.dayPlans[8].partyTuples} schoolbound={true} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[8]} /></td>
-                <td><TupleList tuples={this.props.plan.dayPlans[8].partyTuples} schoolbound={false} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[8]} /></td>
-                {this.getEditButton(8)}
-            </tr>
-            <tr>
-                <td><b>Tuesday (B)</b></td>
-                <td><TupleList tuples={this.props.plan.dayPlans[9].partyTuples} schoolbound={true} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[9]} /></td>
-                <td><TupleList tuples={this.props.plan.dayPlans[9].partyTuples} schoolbound={false} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[9]} /></td>
-                {this.getEditButton(9)}
-            </tr>
-            <tr>
-                <td><b>Wednesday (B)</b></td>
-                <td><TupleList tuples={this.props.plan.dayPlans[10].partyTuples} schoolbound={true} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[10]} /></td>
-                <td><TupleList tuples={this.props.plan.dayPlans[10].partyTuples} schoolbound={false} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[10]} /></td>
-                {this.getEditButton(10)}
-            </tr>
-            <tr>
-                <td><b>Thursday (B)</b></td>
-                <td><TupleList tuples={this.props.plan.dayPlans[11].partyTuples} schoolbound={true} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[11]} /></td>
-                <td><TupleList tuples={this.props.plan.dayPlans[11].partyTuples} schoolbound={false} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[11]} /></td>
-                {this.getEditButton(11)}
-            </tr>
-            <tr>
-                <td><b>Friday (B)</b></td>
-                <td><TupleList tuples={this.props.plan.dayPlans[12].partyTuples} schoolbound={true} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[12]} /></td>
-                <td><TupleList tuples={this.props.plan.dayPlans[12].partyTuples} schoolbound={false} filterForPerson={this.state.filterForPerson} dayPlan={this.props.plan.dayPlans[12]} /></td>
-                {this.getEditButton(12)}
-            </tr>
-            {this.getLegend()}
-        </tbody>)
+    getDayName(dayNumber) {
+        switch (dayNumber) {
+            case 1: return "Monday A"
+            case 2: return "Tuesday A"
+            case 3: return "Wednesday A"
+            case 4: return "Thursday A"
+            case 5: return "Friday A"
+            case 8: return "Monday B"
+            case 9: return "Tuesday B"
+            case 10: return "Wednesday B"
+            case 11: return "Thursday B"
+            case 12: return "Friday B"
+            default: return "Unknown"
+        }
     }
 
     getLegend() {
         return (<tr><td colSpan={3} style={{"color": "#98FF98"}}><center><b>
-            [*] Designated driver (must drive on given day)<br/>[**] Needs to drive alone (without passengers)
+            [*] Designated driver (=uncommon starting/leaving time)<br/>[**] Needs to drive alone (without passengers)
         </b></center></td></tr>)
     }
 
-    getCompletePlan() {
+    getPlan(week_a, week_b) {
         return (<table className="bp3-html-table bp3-html-table-striped bp3-small">
-                <tbody>
-                    <tr>
-                        <th></th>
-                        <th><center><b>Schoolbound</b></center></th>
-                        <th><center><b>Homebound</b></center></th>
-                    </tr>
-                </tbody>
-                <ChangeRequestDialog dayPlan={this.props.plan.dayPlans[this.state.crDayNumber]} closeCrDialog={() => this.setState({crDialogOpen: false})} crDialogOpen={this.state.crDialogOpen} applyChange={(crList) => this.processChangeRequests(crList)}/>
-                {this.getWeekA()}
-                {this.getWeekB()}
-            </table>)
+            <tr>
+                <th></th>
+                <th><center><b>Schoolbound</b></center></th>
+                <th><center><b>Homebound</b></center></th>
+            </tr>
+            <ChangeRequestDialog dayPlan={this.props.drivingPlan.plan[this.state.crDayNumber]} closeCrDialog={() => this.setState({crDialogOpen: false})} crDialogOpen={this.state.crDialogOpen} applyChange={(crList) => this.processChangeRequests(crList)}/>
+            {week_a === true ? this.getWeekA() : null}
+            {week_b === true ? this.getWeekB() : null}
+        </table>)
+    }
+
+    getCompletePlan() {
+        return (this.getPlan(true, true))
     }
 
     getPlanA() {
-        return (<table className="bp3-html-table bp3-html-table-striped bp3-small">
-                <tbody>
-                    <tr>
-                        <th></th>
-                        <th><center><b>Schoolbound</b></center></th>
-                        <th><center><b>Homebound</b></center></th>
-                    </tr>
-                </tbody>
-                <ChangeRequestDialog dayPlan={this.props.plan.dayPlans[this.state.crDayNumber]} closeCrDialog={() => this.setState({crDialogOpen: false})} crDialogOpen={this.state.crDialogOpen} applyChange={(crList) => this.processChangeRequests(crList)}/>
-                {this.getWeekA()}
-            </table>)
+        return (this.getPlan(true, false))
     }
 
     getPlanB() {
-        return (<table className="bp3-html-table bp3-html-table-striped bp3-small">
-                <tbody>
-                    <tr>
-                        <th></th>
-                        <th><center><b>Schoolbound</b></center></th>
-                        <th><center><b>Homebound</b></center></th>
-                    </tr>
-                </tbody>
-                <ChangeRequestDialog dayPlan={this.props.plan.dayPlans[this.state.crDayNumber]} closeCrDialog={() => this.setState({crDialogOpen: false})} crDialogOpen={this.state.crDialogOpen} applyChange={(crList) => this.processChangeRequests(crList)}/>
-                {this.getWeekB()}
-            </table>)
+        return (this.getPlan(false, true))
     }
 
     getSummaryHtml() {
-        let lines = []
-        try {
-            lines = this.props.plan.summary.replaceAll("- ", "").split("\n")
-        } catch (err) {
-            console.error(err)
-        }
+        const drives = this.props.drivingPlan.summary.drives
         return (
             <ul>
-                {lines.map((line, index) => line ? <li key={"sum_line_" + index}>{line}</li> : null)}
+                {Object.entries(drives).map(([key, value]) => (
+                    <li key={key}>{`${key}: ${value}`}</li>
+                ))}
             </ul>
         )
     }

@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
 
-class TupleList extends Component {
+class PartyList extends Component {
 
     constructor(props) {
         super()
         this.dayPlan = props.dayPlan
         this.state = {
-            parties: this.sortTuples(props.tuples, props.schoolbound)
+            parties: this.sortParties(props.parties)
         }
     }
 
@@ -48,27 +48,44 @@ class TupleList extends Component {
     }
 
     getIndicator(party) {
-        if (party.drivesDespiteCustomPrefs) {
+        if (party.problem_driver === true) {
             return '🚨'
-        } else if (party.reason === 'DESIGNATED_DRIVER') {
+        } else if (party.designated_driver === true) {
             return '*'
-        } else if (party.reason === 'LONELY_DRIVER') {
+        } else if (party.lonely_driver === true) {
             return '**'
         } else {
             return ' '
         }
     }
 
+    getPersonByInitials(initials) {
+        for (let i = 0; i < this.dayPlan.people.length; i++) {
+            if (this.dayPlan.people[i].initials === initials) {
+                return this.dayPlan.people[i]
+            }
+        }
+        return null
+    }
+
     calculatePartyTime(party) {
-        // refer to day plan map of person's times
-        const map = party.isWayBack ? this.dayPlan.homeboundTimesByInitials : this.dayPlan.schoolboundTimesByInitials
-        // set party time to driver time
-        let time = map[party.driver.initials]
-        // if there's a passenger time which is earlier (schoolbound) / later (homebound) -> adapt party time
-        for (let i = 0; i < party.passengers.length; i++) {
-            let passengerTime = map[party.passengers[i].initials]
-            if ((!party.isWayBack && passengerTime < time) || (party.isWayBack && passengerTime > time)) {
-                time = passengerTime
+        if (party.direction === 'schoolbound') {
+            driver = this.getPersonByInitials(party.driver.initials)
+            time = driver.schedule[party.day_index].startTime
+            for (let i = 0; i < party.passengers.length; i++) {
+                passenger = this.getPersonByInitials(party.passengers[i].initials)
+                if (passenger.schedule[party.day_index].startTime < time) {
+                    time = passenger.schedule[party.day_index].startTime
+                }
+            }
+        } else { /* homebound */
+            driver = this.getPersonByInitials(party.driver.initials)
+            time = driver.schedule[party.day_index].endTime
+            for (let i = 0; i < party.passengers.length; i++) {
+                passenger = this.getPersonByInitials(party.passengers[i].initials)
+                if (passenger.schedule[party.day_index].endTime > time) {
+                    time = passenger.schedule[party.day_index].endTime
+                }
             }
         }
         return time
@@ -82,23 +99,6 @@ class TupleList extends Component {
         return (hh + ":" + mm + "h")
     }
 
-    sortTuples(unsortedTuples, schoolbound) {
-        let parties = []
-        for (let i = 0; i < unsortedTuples.length; i++) {
-            const tuple = unsortedTuples[i]
-            let party = null
-            if (schoolbound) {
-                party = tuple.partyThere
-            } else {
-                party = tuple.partyBack
-            }
-            party.isDesignatedDriver = tuple.isDesignatedDriver
-            party.drivesDespiteCustomPrefs = tuple.drivesDespiteCustomPrefs
-            parties.push(party)
-        }
-        parties.sort((a, b) => this.calculatePartyTime(a) < this.calculatePartyTime(b) ? -1 : 1)
-        return parties
-    }
 }
 
-export default TupleList;
+export default PartyList;

@@ -249,7 +249,7 @@ class MainPage extends Component {
                     this.getDrivingPlanButton()
                 :
                     <div>
-                        <DrivingPlan plan={this.state.drivingPlan} updatePlan={(plan) => this.updateState("drivingPlan", plan)}/>
+                        <DrivingPlan drivingPlan={this.state.drivingPlan} updatePlan={(plan) => this.updateState("drivingPlan", plan)}/>
                         <div style={{"width":"950px"}}>
                             <Download file={"driving-plan.json"} content={JSON.stringify(this.state.drivingPlan, null, 2)}>
                                 <Button icon="download" text="Save to file" style={{float: "right"}} minimal={true} />

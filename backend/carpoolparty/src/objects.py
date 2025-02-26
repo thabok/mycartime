@@ -62,11 +62,13 @@ class Person:
         }
 
 class Party:
-    def __init__(self, day_index: int, direction: str, driver: Person, passengers = None):
+    def __init__(self, day_index: int, direction: str, driver: Person, passengers = None, designated_driver:bool = False):
         self.day_index = day_index
         self.direction = direction
         self.driver = driver
         self.passengers: List[Person] = passengers or []
+        self.designated_driver = designated_driver
+        self.lonely_driver, self.problem_driver = self.check_driver_prefs()
 
     def __str__(self) -> str:
         s = f"[{self.derive_time()}] [{self.driver}] "
@@ -93,11 +95,13 @@ class Party:
                     time = passenger_time
         return time
 
-    def is_lonely_driver(self) -> bool:
+    def check_driver_prefs(self) -> tuple[bool, bool]:
         custom_day = self.driver.custom_days.get(self.day_index, CustomDay())
         lonely_morning = custom_day.skip_morning and self.direction == 'schoolbound'
         lonely_afternoon = custom_day.skip_afternoon and self.direction == 'homebound'
-        return lonely_morning or lonely_afternoon
+        lonely_driver = (lonely_morning or lonely_afternoon)
+        problem_driver = custom_day.driving_skip
+        return lonely_driver, problem_driver
 
     def to_dict(self):
         return {
@@ -149,9 +153,10 @@ class DayPlan:
     def to_dict(self):
         return {
             'day_index': self.day_index,
-            'schoolbound_parties': [party.to_dict() for party in self.schoolbound_parties],
-            'homebound_parties': [party.to_dict() for party in self.homebound_parties]
+            'schoolbound_parties': [party.to_dict() for party in self.schoolbound_parties].sort(key=lambda p: p['time']),
+            'homebound_parties': [party.to_dict() for party in self.homebound_parties].sort(key=lambda p: p['time'])
         }
+
     
 
 class Pool:
