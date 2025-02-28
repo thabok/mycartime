@@ -3,7 +3,8 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict, List
 
-from carpoolparty.src.objects import CustomDay, DayPlan, Party, Person, Pool
+from carpoolparty.src.objects import (CustomDay, DayPlan, Party, Person, Pool,
+                                      day_name)
 from carpoolparty.src.utils.Config import get as get_config
 
 logger = None
@@ -71,6 +72,12 @@ def get_candidate_pools_of_size(size, candidate_pools) -> List[Pool]:
                 pools_of_size.append(pool)
     return pools_of_size
 
+def flatten_pools_list(candidate_pools) -> List[Pool]:
+    pools = []
+    for pool_group in candidate_pools.values():
+        pools += pool_group['schoolbound'] + pool_group['homebound']
+    return pools
+
 def free_seats_in_existing_parties(day_plan:DayPlan, time:int, direction:str, tolerance:int=0) -> int:
     parties = day_plan.get_schoolbound_parties() if direction == 'schoolbound' else day_plan.get_homebound_parties()
     parties = [ party for party in parties if times_match(party.derive_time(), time, tolerance) ]
@@ -78,13 +85,26 @@ def free_seats_in_existing_parties(day_plan:DayPlan, time:int, direction:str, to
     return free_seats
 
 def get_person_with_fewest_drives(driving_plan, persons:List[Person], day_index=None) -> Person:
-    def can_drive(person:Person, day_index) -> bool:
+    logger = configure_logging()
+    
+    def wants_to_drive(person:Person, day_index) -> bool:
         custom_day = person.custom_days.get(day_index, CustomDay())
         return not custom_day.driving_skip and not custom_day.ignore_completely
-    possible_drivers = [ person for person in persons if day_index and can_drive(person, day_index) ]
+    
+    # prevent persons from driving if they are already a driver or passenger in a party on this day
+    def can_drive(person:Person, day_index) -> bool:
+        parties = driving_plan[day_index].get_schoolbound_parties() + driving_plan[day_index].get_homebound_parties()
+        already_driver = any(person == party.driver for party in parties)
+        already_passenger = any(person in party.passengers for party in parties)
+        return not (already_driver or already_passenger)
+    
+    candidates = [ person for person in persons if can_drive(person, day_index) ]
+    if not candidates:
+        raise Exception("Didn't find any candidates to drive." + day_name(day_index) if day_index else '')
+    possible_drivers = [ candidate for candidate in candidates if day_index and wants_to_drive(candidate, day_index) ]
     if not possible_drivers:
-        configure_logging().warning("  No one can drive if we acknowledge custom day preferences. Will ignore them and consider everyone as a driver candidate.")
-        possible_drivers = persons
+        logger.warning("  No one can drive if we acknowledge custom day preferences. Will ignore them and consider everyone as a driver candidate.")
+        possible_drivers = candidates
     # calculate drives per person
     drives: Dict[Person, int] = { person: get_number_of_drives(person, driving_plan) for person in possible_drivers }
     # return best candidate
@@ -147,3 +167,7 @@ def get_closest_match(time:int, parties:List[Party]) -> Party:
     parties_with_closest_time = [ party for party in parties if party.derive_time() == closest_time ]
     # from the 1-n parties with the closest time, return the one with the most free seats
     return max(parties_with_closest_time, key=lambda p: p.driver.number_of_seats - 1 - len(p.passengers))
+
+def needs_more_parties(pool:Pool, day_plan:DayPlan, tolerance:int) -> bool:
+    free_seats_in_parties = free_seats_in_existing_parties(day_plan, pool.time, pool.direction, tolerance)
+    return free_seats_in_parties < len(pool.persons)

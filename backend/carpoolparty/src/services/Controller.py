@@ -16,46 +16,59 @@ def calculate_plan(session: Session, persons: list, start_date: int) -> ResultWr
     for person in persons: fetch_timetable(session, person, start_date)
     driving_plan = { day_index: DayPlan(day_index) for day_index in util.RELEVANT_DAYS }
     
-    # create candidate pools (grouped by start and end time)
+    # 1. create candidate pools (grouped by start and end time)
     candidate_pools = create_candidate_pools(persons)
 
-    for pool_size in range(1, len(persons)+1):
-        pools_of_size_n = util.get_candidate_pools_of_size(pool_size, candidate_pools)
-        logger.debug(f"\nConsidering {len(pools_of_size_n)} pools of size {pool_size}:")
-        for pool_of_size_n in pools_of_size_n:
-            if not pool_of_size_n.persons: continue
-            logger.debug(f"\n  Handling {pool_of_size_n}")
-            day_plan = driving_plan[pool_of_size_n.day_index]
-            
-            # 1. while (number of available seats in existing parties is smaller < than the pool size): create new parties
-            # -> create party with person with fewest drives and add to driving_plan
-            # -> remove person from pool
-            create_needed_parties(driving_plan, pool_of_size_n, day_plan, candidate_pools, designated_driver=pool_size == 1)
-            
-            # 3. allocate remaining persons in existing parties
-            # -> add person to party with the highest number of seats
-            # -> remove person from pool
-            allocate_remaining_persons(pool_of_size_n, day_plan)
+    # 2. create parties
+    create_parties(persons, driving_plan, candidate_pools)
 
-        summary = create_summary_data(driving_plan, persons)
-        logger.info(summary['drives'])
-        for day_plan in driving_plan.values():
-            day_plan.schoolbound_parties.sort(key=lambda party: party.derive_time())
-            day_plan.homebound_parties.sort(key=lambda party: party.derive_time())
+    # 3. allocate remaining persons in existing parties
+    # -> add person to party with the highest number of seats
+    # -> remove person from pool
+    for pool in util.flatten_pools_list(candidate_pools):
+        allocate_remaining_persons(pool, driving_plan[pool.day_index])
+
+    # 4. prepare data for response
+    summary = create_summary_data(driving_plan, persons)
+    logger.info(summary['drives'])
+    for day_plan in driving_plan.values():
+        day_plan.schoolbound_parties.sort(key=lambda party: party.derive_time())
+        day_plan.homebound_parties.sort(key=lambda party: party.derive_time())
     
     logger.debug(json.dumps(driving_plan, indent=2, default=lambda o: o.to_dict()))
     result = ResultWrapper(driving_plan, persons)
 
     return result
 
-def create_needed_parties(driving_plan, pool_of_size_n:Pool, day_plan:DayPlan, candidate_pools, designated_driver):
-    logger.debug(f"  Creating needed parties for {pool_of_size_n}")
-    day_index = pool_of_size_n.day_index
-    free_seats_in_parties = util.free_seats_in_existing_parties(day_plan, pool_of_size_n.time, pool_of_size_n.direction, TOLERANCE)
-    logger.debug(f"  Free seats in existing parties: {free_seats_in_parties}")
+def create_parties(persons, driving_plan, candidate_pools):
+    while True:
+        smalles_pool_that_needs_parties = get_smallest_pool_that_needs_parties(candidate_pools, driving_plan, persons)
+        if smalles_pool_that_needs_parties:
+            day_plan = driving_plan[smalles_pool_that_needs_parties.day_index]
+            pool_size = len(smalles_pool_that_needs_parties.persons)
+            # 1. while (number of available seats in existing parties is smaller < than the pool size): create new parties
+            # -> create party with person with fewest drives and add to driving_plan
+            # -> remove person from pool
+            create_needed_parties(driving_plan, smalles_pool_that_needs_parties, day_plan, candidate_pools, designated_driver=pool_size == 1)
+        else:
+            break
 
-    while free_seats_in_parties < len(pool_of_size_n.persons):
-        person = util.get_person_with_fewest_drives(driving_plan, pool_of_size_n.persons, day_plan.get_day_index())
+def get_smallest_pool_that_needs_parties(candidate_pools, driving_plan, persons:List[Person]):
+    for pool_size in range(1, len(persons)+1):
+        pools_of_size_n = util.get_candidate_pools_of_size(pool_size, candidate_pools)
+        pool_that_need_parties = next((pool for pool in pools_of_size_n if util.needs_more_parties(pool, driving_plan[pool.day_index], TOLERANCE)), None)
+        if pool_that_need_parties:
+            return pool_that_need_parties
+
+
+def create_needed_parties(driving_plan, pool_of_size_n:Pool, day_plan:DayPlan, candidate_pools, designated_driver):
+    logger.debug(f"\nCreating needed parties for {pool_of_size_n}")
+    day_index = pool_of_size_n.day_index
+    
+    while util.needs_more_parties(pool_of_size_n, day_plan, TOLERANCE):
+        logger.debug(f"  We need more parties for {pool_of_size_n}")
+        # TODO: consider picking someone from a different pool on the way back than the already existing drivers
+        person = util.get_person_with_fewest_drives(driving_plan, pool_of_size_n.persons, day_index)
         logger.debug(f"  Person from this pool with the fewest number of drives: {person}")
         
         # handle this direction
@@ -75,9 +88,7 @@ def create_needed_parties(driving_plan, pool_of_size_n:Pool, day_plan:DayPlan, c
             logger.debug(f"  Removing {person} from pool {pool}")
             pool.persons.remove(person)
         
-        # update free seats number
-        free_seats_in_parties = util.free_seats_in_existing_parties(day_plan, pool_of_size_n.time, pool_of_size_n.direction, TOLERANCE)
-        logger.debug(f"  Free seats in existing parties: {free_seats_in_parties}, remaining persons in pool: {len(pool_of_size_n.persons)}")
+    logger.debug(f"Created all needed parties for {pool_of_size_n}")
 
 def allocate_remaining_persons(pool_of_size_n:Pool, day_plan:DayPlan):
     if pool_of_size_n.persons: logger.debug(f"  Allocating remaining {len(pool_of_size_n.persons)} persons to existing parties")

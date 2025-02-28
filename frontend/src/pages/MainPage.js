@@ -71,7 +71,6 @@ class MainPage extends Component {
             drivingPlan: ls.get("drivingPlan") || undefined,
             ABWeekStartDate: storedDate !== null ? new Date(storedDate) : nextMonday,
         });
-        console.log(this.state.drivingPlan)
     }
 
     render() {
