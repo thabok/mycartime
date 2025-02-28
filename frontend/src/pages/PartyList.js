@@ -4,9 +4,8 @@ class PartyList extends Component {
 
     constructor(props) {
         super()
-        this.dayPlan = props.dayPlan
         this.state = {
-            parties: this.sortParties(props.parties)
+            parties: props.parties
         }
     }
 
@@ -40,10 +39,10 @@ class PartyList extends Component {
         let passengerStrings = []
         for (let i = 0; i < party.passengers.length; i++) {
             let p = party.passengers[i]
-            passengerStrings.push(p.firstName + "\u00A0(" + p.initials + ")")
+            passengerStrings.push(p.first_name + "\u00A0(" + p.initials + ")")
         }
         return (<li key={index}>
-            [{this.timeToString(this.calculatePartyTime(party))}] <b>{this.getIndicator(party)}{party.driver.firstName + "\u00A0(" + party.driver.initials + ")"}</b> {(party.passengers.length > 0 ? " - " + passengerStrings.join(" - ") : "")}
+            [{this.timeToString(this.calculatePartyTime(party))}] <b>{this.getIndicator(party)}{party.driver.first_name + "\u00A0(" + party.driver.initials + ")"}</b> {(party.passengers.length > 0 ? " - " + passengerStrings.join(" - ") : "")}
         </li>)
     }
 
@@ -60,29 +59,30 @@ class PartyList extends Component {
     }
 
     getPersonByInitials(initials) {
-        for (let i = 0; i < this.dayPlan.people.length; i++) {
-            if (this.dayPlan.people[i].initials === initials) {
-                return this.dayPlan.people[i]
+        for (let i = 0; i < this.props.persons.length; i++) {
+            if (this.props.persons[i].initials === initials) {
+                return this.props.persons[i]
             }
         }
         return null
     }
 
     calculatePartyTime(party) {
+        let time = 0
         if (party.direction === 'schoolbound') {
-            driver = this.getPersonByInitials(party.driver.initials)
+            let driver = this.getPersonByInitials(party.driver.initials)
             time = driver.schedule[party.day_index].startTime
             for (let i = 0; i < party.passengers.length; i++) {
-                passenger = this.getPersonByInitials(party.passengers[i].initials)
+                let passenger = this.getPersonByInitials(party.passengers[i].initials)
                 if (passenger.schedule[party.day_index].startTime < time) {
                     time = passenger.schedule[party.day_index].startTime
                 }
             }
         } else { /* homebound */
-            driver = this.getPersonByInitials(party.driver.initials)
+            let driver = this.getPersonByInitials(party.driver.initials)
             time = driver.schedule[party.day_index].endTime
             for (let i = 0; i < party.passengers.length; i++) {
-                passenger = this.getPersonByInitials(party.passengers[i].initials)
+                let passenger = this.getPersonByInitials(party.passengers[i].initials)
                 if (passenger.schedule[party.day_index].endTime > time) {
                     time = passenger.schedule[party.day_index].endTime
                 }

@@ -62,12 +62,16 @@ class MainPage extends Component {
     }
     
     componentDidMount() {
+        const storedDate = ls.get("ABWeekStartDate")
+        const nextMonday = new Date();
+        nextMonday.setDate(nextMonday.getDate() + ((1 + 7 - nextMonday.getDay()) % 7));
         this.setState({
             username: ls.get("username") || "",
             persons: ls.get("persons") || [],
             drivingPlan: ls.get("drivingPlan") || undefined,
-            ABWeekStartDate: new Date(ls.get("ABWeekStartDate")) || new Date(),
-        })
+            ABWeekStartDate: storedDate !== null ? new Date(storedDate) : nextMonday,
+        });
+        console.log(this.state.drivingPlan)
     }
 
     render() {

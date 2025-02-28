@@ -109,7 +109,10 @@ class Party:
             'direction': self.direction,
             'driver': self.driver.to_minimal_dict(),
             'passengers': [p.to_minimal_dict() for p in self.passengers],
-            'time' : self.derive_time()
+            'time' : self.derive_time(),
+            'lonely_driver': self.lonely_driver,
+            'problem_driver': self.problem_driver,
+            'designated_driver': self.designated_driver
         }
 
 class DayPlan:
@@ -151,13 +154,15 @@ class DayPlan:
         return self.__str__()
 
     def to_dict(self):
+        schoolbound_parties = [party.to_dict() for party in self.schoolbound_parties]
+        homebound_parties = [party.to_dict() for party in self.homebound_parties]
+        schoolbound_parties.sort(key=lambda p: p['time'])
+        homebound_parties.sort(key=lambda p: p['time'])
         return {
             'day_index': self.day_index,
-            'schoolbound_parties': [party.to_dict() for party in self.schoolbound_parties].sort(key=lambda p: p['time']),
-            'homebound_parties': [party.to_dict() for party in self.homebound_parties].sort(key=lambda p: p['time'])
+            'schoolbound_parties': schoolbound_parties,
+            'homebound_parties': homebound_parties
         }
-
-    
 
 class Pool:
     def __init__(self, day_index:int, direction:str, time:int, persons:List[Person], tolerance_minutes:int):

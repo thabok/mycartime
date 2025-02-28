@@ -1,6 +1,5 @@
 import { Icon, InputGroup, Tab, Tabs } from '@blueprintjs/core';
 import React, { Component } from 'react';
-import ChangeRequestDialog from '../dialogs/ChangeRequestDialog';
 import PartyList from './PartyList';
 
 class DrivingPlan extends Component {
@@ -78,12 +77,11 @@ class DrivingPlan extends Component {
             {dayNumbers.map(dayNumber => (
                 <tr key={dayNumber}>
                     <td><b>{this.getDayName(dayNumber)}</b></td>
-                    <td><PartyList parties={this.props.drivingPlan.plan[dayNumber]['schoolbound_parties']} filterForPerson={this.state.filterForPerson} dayPlan={this.props.drivingPlan.plan[dayNumber]} /></td>
-                    <td><PartyList parties={this.props.drivingPlan.plan[dayNumber]['homebound_parties']} filterForPerson={this.state.filterForPerson} dayPlan={this.props.drivingPlan.plan[dayNumber]} /></td>
+                    <td><PartyList parties={this.props.drivingPlan.plan[dayNumber]['schoolbound_parties']} filterForPerson={this.state.filterForPerson} persons={this.props.drivingPlan.persons} /></td>
+                    <td><PartyList parties={this.props.drivingPlan.plan[dayNumber]['homebound_parties']} filterForPerson={this.state.filterForPerson} persons={this.props.drivingPlan.persons} /></td>
                     {this.getEditButton(dayNumber)}
                 </tr>
             ))}
-            {this.getLegend()}
         </tbody>)
     }
 
@@ -111,14 +109,18 @@ class DrivingPlan extends Component {
 
     getPlan(week_a, week_b) {
         return (<table className="bp3-html-table bp3-html-table-striped bp3-small">
-            <tr>
-                <th></th>
-                <th><center><b>Schoolbound</b></center></th>
-                <th><center><b>Homebound</b></center></th>
-            </tr>
-            <ChangeRequestDialog dayPlan={this.props.drivingPlan.plan[this.state.crDayNumber]} closeCrDialog={() => this.setState({crDialogOpen: false})} crDialogOpen={this.state.crDialogOpen} applyChange={(crList) => this.processChangeRequests(crList)}/>
+            <tbody>
+                <tr>
+                    <th></th>
+                    <th><center><b>Schoolbound</b></center></th>
+                    <th><center><b>Homebound</b></center></th>
+                </tr>
+            </tbody>
+            {/* <ChangeRequestDialog dayPlan={this.props.drivingPlan.plan[this.state.crDayNumber]} closeCrDialog={() => this.setState({crDialogOpen: false})} crDialogOpen={this.state.crDialogOpen} applyChange={(crList) => this.processChangeRequests(crList)}/> */}
             {week_a === true ? this.getWeekA() : null}
+            {week_a && week_b ? <br/> : null}
             {week_b === true ? this.getWeekB() : null}
+            {this.getLegend()}
         </table>)
     }
 

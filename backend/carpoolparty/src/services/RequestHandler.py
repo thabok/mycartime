@@ -69,7 +69,8 @@ class RequestHandler:
         for person_json in persons_json:
             # map custom day properties
             custom_days = {}
-            for custom_day_index, custom_day_json in person_json['customDays'].items():
+            custom_days_json = person_json['customDays'].items() if 'customDays' in person_json else []
+            for custom_day_index, custom_day_json in custom_days_json:
                 day_index = util.to_day_index(custom_day_index)
                 custom_start_int = util.time_string_to_int(custom_day_json.get('customStart'))
                 custom_end_int = util.time_string_to_int(custom_day_json.get('customEnd'))

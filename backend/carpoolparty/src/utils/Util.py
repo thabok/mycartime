@@ -82,6 +82,9 @@ def get_person_with_fewest_drives(driving_plan, persons:List[Person], day_index=
         custom_day = person.custom_days.get(day_index, CustomDay())
         return not custom_day.driving_skip and not custom_day.ignore_completely
     possible_drivers = [ person for person in persons if day_index and can_drive(person, day_index) ]
+    if not possible_drivers:
+        configure_logging().warning("  No one can drive if we acknowledge custom day preferences. Will ignore them and consider everyone as a driver candidate.")
+        possible_drivers = persons
     # calculate drives per person
     drives: Dict[Person, int] = { person: get_number_of_drives(person, driving_plan) for person in possible_drivers }
     # return best candidate

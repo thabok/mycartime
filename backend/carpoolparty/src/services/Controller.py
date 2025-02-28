@@ -67,7 +67,7 @@ def create_needed_parties(driving_plan, pool_of_size_n:Pool, day_plan:DayPlan, c
         # handle other direction
         other_direction = util.get_opposite_direction(pool_of_size_n.direction)
         other_time = person.schedule[day_index]['startTime' if other_direction == 'schoolbound' else 'endTime']
-        other_party = Party(day_index, other_direction, person)
+        other_party = Party(day_index, other_direction, person, designated_driver=designated_driver)
         logger.debug(f"  {other_direction.capitalize()}: {other_party}")
         day_plan.add_party(other_party)
         pool = next((pool for pool in candidate_pools[day_index][other_direction] if util.times_match(pool.time, other_time)), None)
