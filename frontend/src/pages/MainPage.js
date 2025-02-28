@@ -998,8 +998,13 @@ class MainPage extends Component {
             })
             .catch(error => {
                 // connection failed (no connection or exception on server)
-                const msg = "Calculation of Driving Plan failed: " + error
-                toast.show({message: msg, intent: "danger", icon: "error"})
+                if (error instanceof TypeError && error.message === "Failed to fetch") {
+                    const msg = "Carpoolparty backend service not available";
+                    toast.show({ message: msg, intent: "danger", icon: "error" });
+                } else {
+                    const msg = "Calculation of Driving Plan failed: " + error;
+                    toast.show({ message: msg, intent: "danger", icon: "error" });
+                }
             })
         } catch (err) {
             console.log(err)
