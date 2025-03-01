@@ -72,11 +72,16 @@ def get_candidate_pools_of_size(size, candidate_pools) -> List[Pool]:
                 pools_of_size.append(pool)
     return pools_of_size
 
-def flatten_pools_list(candidate_pools) -> List[Pool]:
-    pools = []
+def get_pools(candidate_pools, day_index=None, direction=None) -> List[Pool]:
+    valid_pools = []
     for pool_group in candidate_pools.values():
-        pools += pool_group['schoolbound'] + pool_group['homebound']
-    return pools
+        # direction
+        pools = pool_group[direction] if direction else (pool_group['schoolbound'] + pool_group['homebound'])
+        # day_index
+        pools = [ pool for pool in pools if not day_index or pool.day_index == day_index ]
+        # collect valid pools
+        valid_pools += pools
+    return valid_pools
 
 def free_seats_in_existing_parties(day_plan:DayPlan, time:int, direction:str, tolerance:int=0) -> int:
     parties = day_plan.get_schoolbound_parties() if direction == 'schoolbound' else day_plan.get_homebound_parties()
@@ -84,7 +89,9 @@ def free_seats_in_existing_parties(day_plan:DayPlan, time:int, direction:str, to
     free_seats = sum(party.driver.number_of_seats - 1 - len(party.passengers) for party in parties)
     return free_seats
 
-def get_person_with_fewest_drives(driving_plan, persons:List[Person], day_index=None) -> Person:
+def find_best_driver(driving_plan, pool:Pool, candidate_pools, tolerance) -> Person:
+    day_index = pool.day_index
+    day_plan = driving_plan[day_index]
     logger = configure_logging()
     
     def wants_to_drive(person:Person, day_index) -> bool:
@@ -98,18 +105,44 @@ def get_person_with_fewest_drives(driving_plan, persons:List[Person], day_index=
         already_passenger = any(person in party.passengers for party in parties)
         return not (already_driver or already_passenger)
     
-    candidates = [ person for person in persons if can_drive(person, day_index) ]
+    candidates = [ person for person in pool.persons if can_drive(person, day_index) ]
     if not candidates:
         raise Exception("Didn't find any candidates to drive." + day_name(day_index) if day_index else '')
     possible_drivers = [ candidate for candidate in candidates if day_index and wants_to_drive(candidate, day_index) ]
     if not possible_drivers:
         logger.warning("  No one can drive if we acknowledge custom day preferences. Will ignore them and consider everyone as a driver candidate.")
         possible_drivers = candidates
+
     # calculate drives per person
     drives: Dict[Person, int] = { person: get_number_of_drives(person, driving_plan) for person in possible_drivers }
-    # return best candidate
-    return min(drives, key=drives.get) # type: ignore
+    min_no_drives = min(drives.values())
+    persons_with_min_drives = [ person for person in possible_drivers if drives[person] == min_no_drives ]
+    if len(persons_with_min_drives) > 1:
+        return get_driver_who_closes_gap_in_other_direction(persons_with_min_drives, candidate_pools, pool, day_plan, tolerance, logger)
+    else: # only one person with the fewest drives 
+        return persons_with_min_drives[0]
+
     
+def get_driver_who_closes_gap_in_other_direction(persons_with_min_drives, candidate_pools, pool, day_plan, tolerance, logger):
+    logger.debug(f"  Multiple persons have the same number of drives: {persons_with_min_drives}. Now searching for good pool coverage in other direction.")
+    # ideally, we want to have a driver from a pool (other direction) that still needs drivers
+    pools_opposite_direction = get_pools(candidate_pools, pool.day_index, get_opposite_direction(pool.direction))
+    drivers_of_current_direction = [ p.driver for p in (day_plan.schoolbound_parties if pool.direction == 'schoolbound' else day_plan.homebound_parties) ]
+    # iterate over pools in the opposite direction until none are left
+    while pools_opposite_direction:
+        smallest_pool = min(pools_opposite_direction, key=lambda p: len(p.persons))
+        overlapping_driver_candidate = next((d for d in persons_with_min_drives if d in smallest_pool.persons), None)
+        pool_already_covered = any(d in smallest_pool.persons for d in drivers_of_current_direction)
+        needs_parties = needs_more_parties(smallest_pool, day_plan, tolerance)
+        if not pool_already_covered and needs_parties and overlapping_driver_candidate:
+            logger.debug(f"  Found a pool with a driver from the current direction: {smallest_pool}")
+            return overlapping_driver_candidate
+        else:
+            pools_opposite_direction.remove(smallest_pool) # move on to the next one
+    # if we didn't find a good candidate, we will just pick the first one
+    logger.debug("  Couldn't find a good candidate. Will pick the first one.")
+    return persons_with_min_drives[0]
+
 def get_number_of_drives(person, driving_plan):
     drives = 0
     for day_plan in driving_plan.values():

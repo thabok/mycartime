@@ -39,6 +39,7 @@ class RequestHandler:
                 logger.debug(f"Successfully logged in as {data['username']}")
                 result = calculate_plan(session, persons, data['scheduleReferenceStartDate'])
             except Exception as e:
+                raise e
                 logger.error(f"Error while calculating plan: {e}")
                 return jsonify({'error': str(e)})
         

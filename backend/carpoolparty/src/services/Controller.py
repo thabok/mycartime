@@ -25,12 +25,12 @@ def calculate_plan(session: Session, persons: list, start_date: int) -> ResultWr
     # 3. allocate remaining persons in existing parties
     # -> add person to party with the highest number of seats
     # -> remove person from pool
-    for pool in util.flatten_pools_list(candidate_pools):
+    for pool in util.get_pools(candidate_pools):
         allocate_remaining_persons(pool, driving_plan[pool.day_index])
 
     # 4. prepare data for response
     summary = create_summary_data(driving_plan, persons)
-    logger.info(summary['drives'])
+    logger.info(summary['driveMaps'])
     for day_plan in driving_plan.values():
         day_plan.schoolbound_parties.sort(key=lambda party: party.derive_time())
         day_plan.homebound_parties.sort(key=lambda party: party.derive_time())
@@ -67,26 +67,26 @@ def create_needed_parties(driving_plan, pool_of_size_n:Pool, day_plan:DayPlan, c
     
     while util.needs_more_parties(pool_of_size_n, day_plan, TOLERANCE):
         logger.debug(f"  We need more parties for {pool_of_size_n}")
-        # TODO: consider picking someone from a different pool on the way back than the already existing drivers
-        person = util.get_person_with_fewest_drives(driving_plan, pool_of_size_n.persons, day_index)
-        logger.debug(f"  Person from this pool with the fewest number of drives: {person}")
+        
+        best_driver = util.find_best_driver(driving_plan, pool_of_size_n, candidate_pools, TOLERANCE)
+        logger.debug(f"  best_driver from this pool with the fewest number of drives: {best_driver}")
         
         # handle this direction
-        party = Party(day_index, pool_of_size_n.direction, person, designated_driver=designated_driver)
+        party = Party(day_index, pool_of_size_n.direction, best_driver, designated_driver=designated_driver)
         logger.debug(f"  {pool_of_size_n.direction.capitalize()}: {party}")
         day_plan.add_party(party)
-        pool_of_size_n.persons.remove(person)
+        pool_of_size_n.persons.remove(best_driver)
         
         # handle other direction
         other_direction = util.get_opposite_direction(pool_of_size_n.direction)
-        other_time = person.schedule[day_index]['startTime' if other_direction == 'schoolbound' else 'endTime']
-        other_party = Party(day_index, other_direction, person, designated_driver=designated_driver)
+        other_time = best_driver.schedule[day_index]['startTime' if other_direction == 'schoolbound' else 'endTime']
+        other_party = Party(day_index, other_direction, best_driver, designated_driver=designated_driver)
         logger.debug(f"  {other_direction.capitalize()}: {other_party}")
         day_plan.add_party(other_party)
         pool = next((pool for pool in candidate_pools[day_index][other_direction] if util.times_match(pool.time, other_time)), None)
-        if pool and person in pool.persons:
-            logger.debug(f"  Removing {person} from pool {pool}")
-            pool.persons.remove(person)
+        if pool and best_driver in pool.persons:
+            logger.debug(f"  Removing {best_driver} from pool {pool}")
+            pool.persons.remove(best_driver)
         
     logger.debug(f"Created all needed parties for {pool_of_size_n}")
 

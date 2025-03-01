@@ -207,12 +207,28 @@ class ResultWrapper:
     def __repr__(self):
         return self.__str__()
 
+
 # ---------------------------------------------------
 # Helper Functions
 # ---------------------------------------------------
 
 def create_summary_data(driving_plan, persons:List[Person]):
+    # to prevent redundant data when serialized
     def person_key(person:Person): return f"{person.first_name} ({person.initials})"
+    # just for understanding
+    def create_drive_map_str(drive_map:dict) -> str:
+        return """| Mon | Tue | Wed | Thu | Fri |
+-------------------------------
+|  {0}  |  {1}  |  {2}  |  {3}  |  {4}  |
+|  {5}  |  {6}  |  {7}  |  {8}  |  {9}  |
+-------------------------------""".format(*[v for v in drive_map.values()])
+    def driving_days(drive_maps:dict) -> int:
+        driving_days = set()
+        for day_index, str in drive_maps.items():
+            if str != " ":
+                normalized_day_index = day_index % 7
+                driving_days.add(normalized_day_index)
+        return len(driving_days)
 
     # create summary data for the following criteria:
     # 1. gt4:  how many persons are driving more than 4 times?
@@ -224,21 +240,27 @@ def create_summary_data(driving_plan, persons:List[Person]):
         'high': 0,
         'avg': 0.0,
         'full': 0.0,
-        'drives': {}
+        'drives': None,
+        'driveMaps': None
     }
 
     drive_counts = { person_key(p) : 0 for p in persons }
     total_drives = 0
     total_parties = 0
     full_parties = 0
+    drive_maps = { person_key(p): { di : " " for di in [1,2,3,4,5,8,9,10,11,12] } for p in persons }
+    drive_maps_str = ""
 
     for day_plan in driving_plan.values():
         # using a set to prevents duplicates due to schoolbound+homebound
         # can't just take one of the two, because sometimes people are missing in one of the directions
         drivers_of_day = set()
+        designated_drivers_of_day = set()
         for party in day_plan.get_schoolbound_parties() + day_plan.get_homebound_parties():
             # count drives
             drivers_of_day.add(party.driver)
+            if party.designated_driver:
+                designated_drivers_of_day.add(party.driver)
             # count full parties
             if len(party.passengers) == party.driver.number_of_seats - 1:
                 full_parties += 1
@@ -247,7 +269,14 @@ def create_summary_data(driving_plan, persons:List[Person]):
 
         # sum up drives for the current day
         for driver in drivers_of_day:
+            drive_maps[person_key(driver)][day_plan.day_index] = "x"
             drive_counts[person_key(driver)] += 1
+        for driver in designated_drivers_of_day:
+            drive_maps[person_key(driver)][day_plan.day_index] = "*"
+
+
+    for key, drive_map in drive_maps.items():
+        drive_maps_str += f"\n{key}\n{create_drive_map_str(drive_map)}\n"
 
     total_drives = sum(drive_counts.values())
 
@@ -256,6 +285,8 @@ def create_summary_data(driving_plan, persons:List[Person]):
     summary['avg'] = total_drives / len(drive_counts) # total drives * number of persons
     summary['full'] = (float(full_parties) / float(total_parties)) * 100 if total_parties > 0 else 0.0
     summary['drives'] = dict(sorted(drive_counts.items()))
+    summary['driveMaps'] = drive_maps_str
+    summary['driveMapsRate'] = sum(driving_days(drive_map) for drive_map in drive_maps.values()) / float(len(drive_maps))
 
     return summary
 
