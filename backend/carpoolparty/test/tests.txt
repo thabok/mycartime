@@ -1,6 +1,0 @@
-- ensure that the UntisAdapter.py yields a reasonable response when incorrect credentials were passed
-- for a given DrivingPlan.py, ensure that every person is accounted for on all days (depending on their timetable)
-    - this means they are either a driver
-    - or are part of a schoolbound party and part of a homebound party
-- for a given DayPlan.py, ensure that all CustomDay options are accounted for
-- 

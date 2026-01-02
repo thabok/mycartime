@@ -1,0 +1,94 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Carpool Party Members",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "firstName",
+      "lastName",
+      "initials",
+      "numberOfSeats"
+    ],
+    "properties": {
+      "firstName": {
+        "type": "string",
+        "description": "First name of the carpool member"
+      },
+      "lastName": {
+        "type": "string",
+        "description": "Last name of the carpool member"
+      },
+      "initials": {
+        "type": "string",
+        "description": "Initials of the carpool member"
+      },
+      "numberOfSeats": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "Number of available seats in the member's vehicle"
+      },
+      "isPartTime": {
+        "type": "boolean",
+        "description": "Whether the member is part-time"
+      },
+      "customDays": {
+        "type": "object",
+        "description": "Custom day configurations for the member",
+        "patternProperties": {
+          "^[0-9]$": {
+            "type": "object",
+            "properties": {
+              "ignoreCompletely": {
+                "type": "boolean",
+                "description": "Whether to completely ignore this member on this day"
+              },
+              "noWaitingAfternoon": {
+                "type": "boolean",
+                "description": "Whether the member cannot wait in the afternoon"
+              },
+              "needsCar": {
+                "type": "boolean",
+                "description": "Whether the member needs a car on this day"
+              },
+              "drivingSkip": {
+                "type": "boolean",
+                "description": "Whether to skip driving on this day"
+              },
+              "skipMorning": {
+                "type": "boolean",
+                "description": "Whether to skip morning carpool on this day"
+              },
+              "skipAfternoon": {
+                "type": "boolean",
+                "description": "Whether to skip afternoon carpool on this day"
+              },
+              "customStart": {
+                "type": "string",
+                "pattern": "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$|^$",
+                "description": "Custom start time in HH:MM format or empty string"
+              },
+              "customEnd": {
+                "type": "string",
+                "pattern": "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$|^$",
+                "description": "Custom end time in HH:MM format or empty string"
+              }
+            },
+            "required": [
+              "ignoreCompletely",
+              "noWaitingAfternoon",
+              "needsCar",
+              "drivingSkip",
+              "skipMorning",
+              "skipAfternoon",
+              "customStart",
+              "customEnd"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "additionalProperties": false
+  }
+}

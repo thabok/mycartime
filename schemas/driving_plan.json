@@ -1,0 +1,134 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Driving Plan",
+  "type": "object",
+  "required": ["summary", "dayPlans"],
+  "properties": {
+    "summary": {
+      "type": "string",
+      "description": "Summary of the driving plan with member counts"
+    },
+    "dayPlans": {
+      "type": "object",
+      "description": "Plans for each day, keyed by day number",
+      "patternProperties": {
+        "^[0-9]+$": {
+          "type": "object",
+          "required": [
+            "dayOfWeekABCombo",
+            "parties",
+            "schoolboundTimesByInitials",
+            "homeboundTimesByInitials"
+          ],
+          "properties": {
+            "dayOfWeekABCombo": {
+              "$ref": "#/definitions/dayOfWeekABCombo"
+            },
+            "parties": {
+              "type": "array",
+              "description": "Flat array of all carpool parties for the day (both schoolbound and homebound)",
+              "items": {
+                "$ref": "#/definitions/party"
+              }
+            },
+            "schoolboundTimesByInitials": {
+              "type": "object",
+              "description": "School-bound departure times by member initials",
+              "patternProperties": {
+                "^[A-Z][a-zöüäßA-Z]$": {
+                  "type": "integer",
+                  "description": "Time in HHMM format (e.g., 755 for 7:55)"
+                }
+              },
+              "additionalProperties": false
+            },
+            "homeboundTimesByInitials": {
+              "type": "object",
+              "description": "Homebound departure times by member initials",
+              "patternProperties": {
+                "^[A-Z][a-zöüäßA-Z]$": {
+                  "type": "integer",
+                  "description": "Time in HHMM format (e.g., 1530 for 15:30)"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "dayOfWeekABCombo": {
+      "type": "object",
+      "required": ["dayOfWeek", "isWeekA", "uniqueNumber"],
+      "properties": {
+        "dayOfWeek": {
+          "type": "string",
+          "enum": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
+          "description": "Day of the week"
+        },
+        "isWeekA": {
+          "type": "boolean",
+          "description": "Whether this is week A (true) or week B (false)"
+        },
+        "uniqueNumber": {
+          "type": "integer",
+          "description": "Unique identifier for this day in the schedule"
+        }
+      },
+      "additionalProperties": false
+    },
+    "party": {
+      "type": "object",
+      "required": [
+        "dayOfWeekABCombo",
+        "driver",
+        "time",
+        "passengers",
+        "isDesignatedDriver",
+        "drivesDespiteCustomPrefs",
+        "schoolbound"
+      ],
+      "properties": {
+        "dayOfWeekABCombo": {
+          "$ref": "#/definitions/dayOfWeekABCombo"
+        },
+        "driver": {
+          "type": "string",
+          "pattern": "^[A-Z][a-zöüäßA-Z]$",
+          "description": "Driver's initials"
+        },
+        "time": {
+          "type": "integer",
+          "description": "Departure time in HHMM format (e.g., 755 for 7:55)"
+        },
+        "passengers": {
+          "type": "array",
+          "description": "List of passenger initials in this party",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z][a-zöüäßA-Z]$",
+            "description": "Passenger initials"
+          }
+        },
+        "isDesignatedDriver": {
+          "type": "boolean",
+          "description": "Whether this is a designated driver"
+        },
+        "drivesDespiteCustomPrefs": {
+          "type": "boolean",
+          "description": "Whether the driver drives despite custom preferences"
+        },
+        "schoolbound": {
+          "type": "boolean",
+          "description": "Whether this party is going to school (true) or returning home (false)"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

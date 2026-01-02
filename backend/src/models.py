@@ -1,0 +1,212 @@
+"""
+Data models for the Carpool Time backend service.
+"""
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional
+from datetime import datetime, time
+
+
+@dataclass
+class CustomDay:
+    """Custom day configuration for a member."""
+    ignore_completely: bool = False
+    no_waiting_afternoon: bool = False
+    needs_car: bool = False
+    driving_skip: bool = False
+    skip_morning: bool = False
+    skip_afternoon: bool = False
+    custom_start: Optional[str] = None  # HH:MM format
+    custom_end: Optional[str] = None    # HH:MM format
+
+    @classmethod
+    def from_dict(cls, data: dict) -> 'CustomDay':
+        """Create CustomDay from dictionary."""
+        return cls(
+            ignore_completely=data.get('ignoreCompletely', False),
+            no_waiting_afternoon=data.get('noWaitingAfternoon', False),
+            needs_car=data.get('needsCar', False),
+            driving_skip=data.get('drivingSkip', False),
+            skip_morning=data.get('skipMorning', False),
+            skip_afternoon=data.get('skipAfternoon', False),
+            custom_start=data.get('customStart') or None,
+            custom_end=data.get('customEnd') or None
+        )
+
+
+@dataclass
+class Member:
+    """Represents a carpool party member."""
+    first_name: str
+    last_name: str
+    initials: str
+    number_of_seats: int
+    is_part_time: bool = False
+    custom_days: Dict[int, CustomDay] = field(default_factory=dict)
+    
+    # Runtime fields (populated during algorithm execution)
+    drive_count: int = 0
+    max_drives: int = 0
+    timetable: Dict[int, 'Timetable'] = field(default_factory=dict)  # Populated by timetable_service
+    
+    @classmethod
+    def from_dict(cls, data: dict) -> 'Member':
+        """Create Member from dictionary."""
+        custom_days = {}
+        if 'customDays' in data:
+            for day_num, day_data in data['customDays'].items():
+                custom_days[int(day_num)] = CustomDay.from_dict(day_data)
+        
+        return cls(
+            first_name=data['firstName'],
+            last_name=data['lastName'],
+            initials=data['initials'],
+            number_of_seats=data['numberOfSeats'],
+            is_part_time=data.get('isPartTime', False),
+            custom_days=custom_days
+        )
+    
+    def get_custom_day(self, day_num: int) -> Optional[CustomDay]:
+        """Get custom day configuration for a specific day."""
+        return self.custom_days.get(day_num)
+    
+    def should_ignore_on_day(self, day_num: int) -> bool:
+        """
+        Check if member should be ignored on a specific day.
+        
+        Args:
+            day_num: Day number (0-9)
+            timetable: Optional timetable for this day
+            
+        Returns:
+            True if member should be ignored (day off or custom ignore)
+        """
+        # Check custom day settings first
+        custom = self.get_custom_day(day_num)
+        if custom and custom.ignore_completely:
+            return True
+        
+        # Check if member has a schedule for this day
+        has_timetable = day_num in self.timetable and self.timetable[day_num].is_present
+        
+        # Check if member has custom times that override the schedule
+        has_custom_times = custom and (custom.custom_start or custom.custom_end)
+        
+        # Member should be ignored if they have neither timetable nor custom times
+        return not has_timetable and not has_custom_times
+    
+    def needs_car_on_day(self, day_num: int) -> bool:
+        """Check if member needs a car on a specific day.
+        This means that the person cannot be a passenger, they must be a driver!"""
+        custom = self.get_custom_day(day_num)
+        return custom.needs_car if custom else False
+    
+    def can_drive_on_day(self, day_num: int) -> bool:
+        """
+        Check if member can drive on a specific day.
+        
+        Args:
+            day_num: Day number (0-9)
+            timetable: Optional timetable for this day
+            
+        Returns:
+            True if member can drive (has schedule or custom times, not ignored, not needs_car, not driving_skip)
+        """
+        should_ignore = self.should_ignore_on_day(day_num)
+        if should_ignore:
+            return False
+        # Check custom day settings first
+        custom = self.get_custom_day(day_num)
+        if custom and custom.driving_skip:
+            return False
+        # No reason why this member cannot drive
+        return True
+
+
+@dataclass
+class DayOfWeekABCombo:
+    """Represents a day in the 2-week cycle."""
+    day_of_week: str  # MONDAY, TUESDAY, etc.
+    is_week_a: bool
+    unique_number: int
+    
+    def to_dict(self) -> dict:
+        """Convert to dictionary."""
+        return {
+            'dayOfWeek': self.day_of_week,
+            'isWeekA': self.is_week_a,
+            'uniqueNumber': self.unique_number
+        }
+
+
+@dataclass
+class Party:
+    """Represents a carpool party (one direction, one time)."""
+    day_of_week_ab_combo: DayOfWeekABCombo
+    driver: str  # initials
+    time: int  # HHMM format
+    passengers: List[str]  # list of initials
+    is_designated_driver: bool
+    drives_despite_custom_prefs: bool
+    schoolbound: bool
+    
+    def to_dict(self) -> dict:
+        """Convert to dictionary."""
+        return {
+            'dayOfWeekABCombo': self.day_of_week_ab_combo.to_dict(),
+            'driver': self.driver,
+            'time': self.time,
+            'passengers': self.passengers,
+            'isDesignatedDriver': self.is_designated_driver,
+            'drivesDespiteCustomPrefs': self.drives_despite_custom_prefs,
+            'schoolbound': self.schoolbound
+        }
+
+
+@dataclass
+class DayPlan:
+    """Represents the plan for a single day."""
+    day_of_week_ab_combo: DayOfWeekABCombo
+    parties: List[Party] = field(default_factory=list)
+    schoolbound_times_by_initials: Dict[str, int] = field(default_factory=dict)
+    homebound_times_by_initials: Dict[str, int] = field(default_factory=dict)
+    
+    def to_dict(self) -> dict:
+        """Convert to dictionary."""
+        return {
+            'dayOfWeekABCombo': self.day_of_week_ab_combo.to_dict(),
+            'parties': [p.to_dict() for p in self.parties],
+            'schoolboundTimesByInitials': self.schoolbound_times_by_initials,
+            'homeboundTimesByInitials': self.homebound_times_by_initials
+        }
+
+
+@dataclass
+class DrivingPlan:
+    """Represents the complete driving plan for 2 weeks."""
+    summary: str
+    day_plans: Dict[int, DayPlan] = field(default_factory=dict)
+    
+    def to_dict(self) -> dict:
+        """Convert to dictionary."""
+        return {
+            'summary': self.summary,
+            'dayPlans': {str(k): v.to_dict() for k, v in self.day_plans.items()}
+        }
+
+
+@dataclass
+class Timetable:
+    """Represents a member's timetable for a day."""
+    member_initials: str
+    day_number: int  # 0-9 for the 10 days in the cycle
+    start_time: Optional[int] = None  # HHMM format
+    end_time: Optional[int] = None    # HHMM format
+    is_present: bool = True
+    
+    def get_start_time(self) -> Optional[int]:
+        """Get the effective start time."""
+        return self.start_time if self.is_present else None
+    
+    def get_end_time(self) -> Optional[int]:
+        """Get the effective end time."""
+        return self.end_time if self.is_present else None

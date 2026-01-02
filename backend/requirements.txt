@@ -1,3 +1,6 @@
-flask
-webuntis
-flask_cors
+flask>=3.0.0
+flask-cors>=4.0.0
+python-dateutil>=2.8.2
+webuntis>=0.1.24
+requests>=2.31.0
+diskcache>=5.6.0

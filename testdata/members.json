@@ -1,0 +1,1537 @@
+[
+  {
+    "firstName": "Lina",
+    "lastName": "Linster",
+    "initials": "Li",
+    "numberOfSeats": 5,
+    "customDays": {
+      "0": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "1": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "2": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "3": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "4": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "5": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "6": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "7": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "8": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "9": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      }
+    }
+  },
+  {
+    "firstName": "Tim",
+    "lastName": "Kiel",
+    "initials": "Ki",
+    "numberOfSeats": 3,
+    "customDays": {
+      "0": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "1": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "2": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "3": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "4": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "9:40",
+        "customEnd": ""
+      },
+      "5": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "6": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "7": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "8": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "9": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      }
+    }
+  },
+  {
+    "firstName": "Rabea",
+    "lastName": "Wirth",
+    "initials": "Wr",
+    "numberOfSeats": 5,
+    "customDays": {
+      "0": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "1": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": "11:10"
+      },
+      "2": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "3": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "4": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "5": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "6": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": "11:10"
+      },
+      "7": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "8": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "9": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      }
+    }
+  },
+  {
+    "firstName": "Svenja",
+    "lastName": "Christoffers",
+    "initials": "Ch",
+    "numberOfSeats": 4,
+    "customDays": {
+      "0": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "1": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "2": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "3": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "4": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "5": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "6": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "7": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "8": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "9": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      }
+    }
+  },
+  {
+    "firstName": "Felix",
+    "lastName": "Nolte",
+    "initials": "Nl",
+    "numberOfSeats": 5,
+    "customDays": {
+      "0": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "1": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": "14:15"
+      },
+      "2": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "3": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "4": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "5": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "6": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": "14:15"
+      },
+      "7": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "8": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "9": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      }
+    }
+  },
+  {
+    "firstName": "Nico",
+    "lastName": "Heibült",
+    "initials": "Ht",
+    "numberOfSeats": 5,
+    "customDays": {
+      "0": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "1": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "2": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "3": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "4": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "5": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "6": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "7": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "8": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "9": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      }
+    }
+  },
+  {
+    "firstName": "Laura",
+    "lastName": "Freund",
+    "initials": "Fd",
+    "numberOfSeats": 5,
+    "customDays": {
+      "0": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "1": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "2": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "3": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "4": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "5": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "6": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "7": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "8": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "9": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      }
+    }
+  },
+  {
+    "firstName": "Kaatje",
+    "lastName": "Scheibel",
+    "initials": "Sb",
+    "numberOfSeats": 5,
+    "customDays": {
+      "0": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "10:00",
+        "customEnd": "13:40"
+      },
+      "1": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "2": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "3": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": "13:40"
+      },
+      "4": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "5": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "10:00",
+        "customEnd": "13:40"
+      },
+      "6": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "7": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "8": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": "13:40"
+      },
+      "9": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      }
+    }
+  },
+  {
+    "firstName": "Michel",
+    "lastName": "Bornhorst",
+    "initials": "Bo",
+    "numberOfSeats": 5,
+    "customDays": {
+      "0": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "1": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "2": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "3": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "4": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "5": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "6": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "7": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "8": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": "15:30"
+      },
+      "9": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      }
+    }
+  },
+  {
+    "firstName": "Jan",
+    "lastName": "Czogalla",
+    "initials": "Cz",
+    "numberOfSeats": 5,
+    "customDays": {
+      "0": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "1": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "2": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "3": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "4": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "5": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "6": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "7": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "8": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "9": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      }
+    }
+  },
+  {
+    "firstName": "Karsten",
+    "lastName": "Gerdes",
+    "initials": "Gr",
+    "numberOfSeats": 4,
+    "customDays": {
+      "0": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "1": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": "14:00"
+      },
+      "2": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "3": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "4": {
+        "ignoreCompletely": true,
+        "noWaitingAfternoon": false,
+        "needsCar": true,
+        "drivingSkip": false,
+        "skipMorning": true,
+        "skipAfternoon": true,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "5": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "6": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": "14:00"
+      },
+      "7": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "8": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "9": {
+        "ignoreCompletely": true,
+        "noWaitingAfternoon": false,
+        "needsCar": true,
+        "drivingSkip": false,
+        "skipMorning": true,
+        "skipAfternoon": true,
+        "customStart": "",
+        "customEnd": ""
+      }
+    }
+  },
+  {
+    "firstName": "Benjamin",
+    "lastName": "Kleinke",
+    "initials": "Kl",
+    "numberOfSeats": 3,
+    "customDays": {
+      "0": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": true,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": true,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "1": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "2": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "3": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "4": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "5": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": true,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": true,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "6": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "7": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "8": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "9": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      }
+    }
+  },
+  {
+    "firstName": "Jonas",
+    "lastName": "Ortmann",
+    "initials": "Ot",
+    "isPartTime": false,
+    "numberOfSeats": 5
+  },
+  {
+    "firstName": "Julia",
+    "lastName": "Baumeister",
+    "initials": "Bt",
+    "isPartTime": false,
+    "numberOfSeats": 5
+  },
+  {
+    "firstName": "Johannes",
+    "lastName": "Wielspütz",
+    "initials": "Wl",
+    "isPartTime": false,
+    "numberOfSeats": 5,
+    "customDays": {
+      "0": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "1": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": "15:30"
+      },
+      "2": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "3": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": true,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": true,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "4": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "5": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "6": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": "15:30"
+      },
+      "7": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "8": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": true,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": true,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "9": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      }
+    }
+  },
+  {
+    "firstName": "Mareike",
+    "lastName": "Krick",
+    "initials": "Kc",
+    "isPartTime": false,
+    "numberOfSeats": 3,
+    "customDays": {
+      "0": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": true,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "1": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": true,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": true,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "2": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "3": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "4": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "5": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": true,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "6": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": true,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": true,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "7": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "8": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "9": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      }
+    }
+  },
+  {
+    "firstName": "Arne",
+    "lastName": "Höppner",
+    "initials": "Hö",
+    "isPartTime": false,
+    "numberOfSeats": 5
+  }
+]

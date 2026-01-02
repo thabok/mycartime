@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Driving Plan Request",
+  "type": "object",
+  "required": [
+    "persons",
+    "scheduleReferenceStartDate",
+    "username",
+    "hash"
+  ],
+  "properties": {
+    "persons": {
+      "$ref": "schemas/members.json",
+      "description": "Array of carpool party members"
+    },
+    "scheduleReferenceStartDate": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{8}$",
+          "description": "Reference start date as string in YYYYMMDD format"
+        },
+        {
+          "type": "integer",
+          "minimum": 19000101,
+          "maximum": 21001231,
+          "description": "Reference start date as integer in YYYYMMDD format"
+        }
+      ],
+      "description": "Reference start date in YYYYMMDD format (e.g., 20250123 or '20250123' for January 23rd, 2025)"
+    },
+    "username": {
+      "type": "string",
+      "description": "Username of the person making the request"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9+/]*={0,2}$",
+      "description": "Base64 encoded hash string"
+    }
+  },
+  "additionalProperties": false
+}

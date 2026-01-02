@@ -1,0 +1,39 @@
+Rewrite the algorithm_service.calculate_driving_plan_logic function according to the following specification:
+
+- Overall goal:
+    - Create a driving plan that consists of 10 day plans. Each day plan consists of multiple parties. Each party has a driver, direction, list of passengers and a time property that is derived from the earliest time of the party's members for schoolbound parties / the latest time of the party's members for homebound parties.
+    - The driving plan should balance the number of drives among members, taking into account their preferences and constraints.
+
+- Steps to achieve the goal:
+
+    - Phase 1: Create pools
+    Create a list of pools. A pool is specific to a day, a direction and a time slot (considering a tolerance of config.TIME_TOLERANCE_MINUTES). Each pool contains all members that drive at the same time for the given day and direction.
+    Sort the pools by size in ascending order (size: length of the members that drive at the same time).
+    Expected outcome: A list of pools for all days, directions and time-slots, sorted by size
+
+    - Phase 2: Select drivers and create parties for each pool to be able to accommodate all members in the pool
+    Iterate over all pools starting with the smallest ones. For each pool, select drivers from the members in the pool and create two parties for each driver: one for the direction of the pool, and one for the opposite direction (=same day, time based on driver's schedule).
+
+    The selection should consider the following:
+        - Prefer members with lower drive counts to balance the number of drives.
+        - Consider member preferences (e.g., preferred drivers, non-preferred drivers).
+        - Ensure that members who cannot drive (custom preferences) are not assigned as drivers.
+        - When creating the opposite direction party, ensure that this is registered with the pool of the opposite direction for the time slot based on the driver's schedule.
+        - The goal of this phase is to create enough parties to make room for the reminaining members without adding them to the parties yet (=number of available seats in the parties >= number of remaining members in the pool)
+    
+    - Phase 3: Fill parties with passengers
+    Once all pools have enough party seats for their members, iterate over all pools again and fill the parties with passengers from the pool.
+    The selection should consider the following:
+        - When adding passengers to parties, only add 1 passenger at a time, don't add a list of passengers in one call (for logging/traceability reasons).
+        - The party time is a dynamic property of the earliest time of the party's members for schoolbound parties / the latest time of the party's members for homebound parties.
+        - The members of a slot don't necissarily have the same time (due to the tolerance), so try to keep members with the same time together in the same party as much as possible.
+        - When there are multiple parties available, balance the number of passengers among the parties, so that no party is overfilled while others have plenty of space. The requirement to keep people with the same time together has higher priority than balancing the number of passengers.
+
+Additionally, please respect the following requirements:
+- Add logging to clearly show important events and decisions in the console:
+    1. I want to get a clear overview in the console, which phase is currently handled and which step inside that phase (if applicable)
+    2. When a driver is selected and the two parties are created: log day, schoolbound party time, homebound party time, reason for selecting the driver, updated total number of driving days
+    3. When a Passengers hs been added to a party: log day, direction, party time before adding the passenger, passengers time
+- Before returning the completed plan, run validations to ensure consistency of the day plans:
+    1. There must be no day plan in which the same person is a driver and also a passenger
+    2. Each day plan must contain all members that are active on the given day (i.e., their schedule isn't empty and their custom preferences don't indicate that they shall be ignored on that day)
