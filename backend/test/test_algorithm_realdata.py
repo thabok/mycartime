@@ -42,6 +42,16 @@ def main():
             password=password
         )
         print("✅ Driving plan calculated successfully.")
+
+        # Convert to dict for JSON serialization
+        driving_plan_dict = driving_plan.to_dict()
+        print(json.dumps(driving_plan_dict, indent=2))
+
+        # Save to file
+        output_file = Path(__file__).parent.parent.parent / f'driving_plan_{start_date_str}.json'
+        with open(output_file, 'w') as f:
+            json.dump(driving_plan_dict, f, indent=2)
+        print(f"\n💾 Saved to: {output_file}")
     except Exception as e:
         print(f"\n❌ ERROR: {e}")
         import traceback

@@ -33,9 +33,6 @@ node_modules
 members.json
 build
 .vscode
-*.json
-!/schemas/*.json
-!/testdata/*.json
 testdata/request.json
 *.png
 *.DS_Store
