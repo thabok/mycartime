@@ -140,6 +140,12 @@ class AlgorithmService:
         logger.info("=" * 80)
         self._select_drivers_and_create_parties(all_pools)
         
+        # PHASE 2.5: Rebalance driving distribution
+        logger.info("\n" + "=" * 80)
+        logger.info("PHASE 2.5: REBALANCE DRIVING DISTRIBUTION")
+        logger.info("=" * 80)
+        self._rebalance_driving_distribution(all_pools)
+        
         # PHASE 3: Fill parties with passengers
         logger.info("\n" + "=" * 80)
         logger.info("PHASE 3: FILL PARTIES WITH PASSENGERS")
@@ -448,6 +454,241 @@ class AlgorithmService:
                         else:
                             logger.warning(f"  ! Could not find party for passenger {passenger}")
     
+    def _rebalance_driving_distribution(self, all_pools: List[DriverPool]) -> None:
+        """
+        PHASE 2.5: Rebalance driving distribution by replacing high-drive-count drivers
+        with lower-drive-count alternatives where possible.
+        
+        Args:
+            all_pools: All driver pools
+        """
+        logger.info("Analyzing driving distribution for rebalancing...")
+        
+        # Dump state BEFORE rebalancing
+        self._dump_plan_state("1-BEFORE_PHASE_2.5.txt")
+        
+        # Identify problematic drivers (drive_count > 4, not mandatory)
+        problematic_drivers = []
+        for initials, member in self.members.items():
+            if member.drive_count > 4:
+                # Check if ALL their parties are mandatory
+                all_mandatory = True
+                for day_num in member.driving_days:
+                    for direction_key in ["schoolbound", "homebound"]:
+                        for party in self.all_parties[day_num][direction_key]:
+                            if party.driver == initials and not party.is_designated_driver:
+                                all_mandatory = False
+                                break
+                        if not all_mandatory:
+                            break
+                    if not all_mandatory:
+                        break
+                
+                if not all_mandatory:
+                    problematic_drivers.append(initials)
+                    logger.info(f"Found problematic driver: {initials} with {member.drive_count} drives")
+        
+        if not problematic_drivers:
+            logger.info("No problematic drivers found, skipping rebalancing")
+            return
+        
+        # For each problematic driver, try to find saviors
+        for problematic_initials in problematic_drivers:
+            problematic_member = self.members[problematic_initials]
+            logger.info(f"\\nAttempting to rebalance {problematic_initials} (currently {problematic_member.drive_count} drives)...")
+            
+            # Look at each driving day
+            for day_num in list(problematic_member.driving_days):
+                # Find non-mandatory parties for this driver
+                for direction_key in ["schoolbound", "homebound"]:
+                    schoolbound = (direction_key == "schoolbound")
+                    parties = self.all_parties[day_num][direction_key]
+                    
+                    # Find the problematic driver's party
+                    problematic_party = None
+                    for party in parties:
+                        if party.driver == problematic_initials and not party.is_designated_driver:
+                            problematic_party = party
+                            break
+                    
+                    if not problematic_party:
+                        continue
+                    
+                    logger.info(f"  Checking day {day_num + 1}, {direction_key} party (time {problematic_party.time})...")
+                    
+                    # Find pool containing the problematic driver
+                    matching_pool = None
+                    for pool in all_pools:
+                        if (pool.day_num == day_num and 
+                            pool.schoolbound == schoolbound and
+                            problematic_initials in pool.time_slot.members):
+                            matching_pool = pool
+                            break
+                    
+                    if not matching_pool:
+                        logger.info(f"    No matching pool found")
+                        continue
+                    
+                    # Find potential saviors in the same pool with drive_count < 4
+                    potential_saviors = [
+                        member_init for member_init in matching_pool.time_slot.members
+                        if (member_init != problematic_initials and
+                            member_init in matching_pool.candidates and
+                            self.members[member_init].drive_count < 4 and
+                            day_num not in self.members[member_init].driving_days)
+                    ]
+                    
+                    if not potential_saviors:
+                        logger.info(f"    No saviors available (all have drive_count >= 4 or already driving)")
+                        continue
+                    
+                    # Select the best savior (lowest drive count, highest capacity)
+                    savior_initials = min(
+                        potential_saviors,
+                        key=lambda s: (self.members[s].drive_count, -self.members[s].number_of_seats)
+                    )
+                    savior = self.members[savior_initials]
+                    
+                    logger.info(f"    Found savior: {savior_initials} (currently {savior.drive_count} drives)")
+                    
+                    # Get savior's times for both directions
+                    savior_timetable = savior.timetable.get(day_num)
+                    savior_custom = savior.get_custom_day(day_num)
+                    
+                    # Get schoolbound time
+                    savior_schoolbound_time = None
+                    if savior_custom and savior_custom.custom_start:
+                        savior_schoolbound_time = int(savior_custom.custom_start.replace(':', ''))
+                    elif savior_timetable:
+                        savior_schoolbound_time = savior_timetable.get_start_time()
+                    
+                    # Get homebound time
+                    savior_homebound_time = None
+                    if savior_custom and savior_custom.custom_end:
+                        savior_homebound_time = int(savior_custom.custom_end.replace(':', ''))
+                    elif savior_timetable:
+                        savior_homebound_time = savior_timetable.get_end_time()
+                    
+                    if savior_schoolbound_time is None or savior_homebound_time is None:
+                        logger.info(f"    Savior has no valid times, skipping")
+                        continue
+                    
+                    # Create new parties for the savior (both directions)
+                    new_schoolbound_party = Party(
+                        day_of_week_ab_combo=None,
+                        driver=savior_initials,
+                        time=savior_schoolbound_time,
+                        passengers=[],
+                        is_designated_driver=False,
+                        drives_despite_custom_prefs=False,
+                        schoolbound=True
+                    )
+                    
+                    new_homebound_party = Party(
+                        day_of_week_ab_combo=None,
+                        driver=savior_initials,
+                        time=savior_homebound_time,
+                        passengers=[],
+                        is_designated_driver=False,
+                        drives_despite_custom_prefs=False,
+                        schoolbound=False
+                    )
+                    
+                    # All checks passed - commit the changes
+                    logger.info(f"    ✓ Rebalancing successful!")
+                    logger.info(f"    Savior will drive, problematic driver will be assigned as passenger in Phase 3")
+                    
+                    # Remove problematic driver's parties from both directions
+                    self.all_parties[day_num]["schoolbound"] = [
+                        p for p in self.all_parties[day_num]["schoolbound"]
+                        if p.driver != problematic_initials
+                    ]
+                    self.all_parties[day_num]["homebound"] = [
+                        p for p in self.all_parties[day_num]["homebound"]
+                        if p.driver != problematic_initials
+                    ]
+                    
+                    # Add savior's parties
+                    self.all_parties[day_num]["schoolbound"].append(new_schoolbound_party)
+                    self.all_parties[day_num]["homebound"].append(new_homebound_party)
+                    
+                    # Update drive counts and driving days
+                    problematic_member.drive_count -= 1
+                    problematic_member.driving_days.discard(day_num)
+                    savior.drive_count += 1
+                    savior.driving_days.add(day_num)
+                    
+                    logger.info(f"    Updated counts: {problematic_initials}={problematic_member.drive_count}, {savior_initials}={savior.drive_count}")
+                    
+                    # Only rebalance one day per problematic driver to avoid over-correction
+                    break
+                
+                if problematic_member.drive_count <= 4:
+                    logger.info(f"  {problematic_initials} now has acceptable drive count ({problematic_member.drive_count})")
+                    break
+        
+        # Dump state AFTER rebalancing
+        self._dump_plan_state("2-AFTER_PHASE_2.5.txt")
+    
+    def _dump_plan_state(self, filename: str) -> None:
+        """
+        Dump the current state of all parties and drive counts to a file.
+        
+        Args:
+            filename: Name of the file to write
+        """
+        import os
+        output_path = os.path.join(os.path.dirname(__file__), "..", "..", filename)
+        
+        with open(output_path, 'w') as f:
+            f.write("=" * 80 + "\n")
+            f.write(f"PLAN STATE: {filename}\n")
+            f.write("=" * 80 + "\n\n")
+            
+            # Write drive counts
+            f.write("DRIVE COUNTS:\n")
+            sorted_members = sorted(
+                self.members.items(),
+                key=lambda x: (-x[1].drive_count, x[0])
+            )
+            for initials, member in sorted_members:
+                f.write(f"  {initials}: {member.drive_count} drives")
+                if member.driving_days:
+                    f.write(f" on days {sorted([d+1 for d in member.driving_days])}")
+                f.write("\n")
+            
+            f.write("\n" + "=" * 80 + "\n")
+            f.write("PARTIES BY DAY\n")
+            f.write("=" * 80 + "\n\n")
+            
+            # Write parties for each day
+            for day_num in range(10):
+                f.write(f"DAY {day_num + 1}:\n")
+                
+                # Schoolbound
+                schoolbound_parties = self.all_parties[day_num]["schoolbound"]
+                if schoolbound_parties:
+                    f.write("  Schoolbound:\n")
+                    for party in sorted(schoolbound_parties, key=lambda p: (p.time or 0, p.driver)):
+                        time_str = f"{party.time:04d}" if party.time else "----"
+                        mandatory = "*" if party.is_designated_driver else ""
+                        passengers_str = f" + [{', '.join(party.passengers)}]" if party.passengers else ""
+                        f.write(f"    {time_str} | {party.driver}{mandatory}{passengers_str}\n")
+                
+                # Homebound
+                homebound_parties = self.all_parties[day_num]["homebound"]
+                if homebound_parties:
+                    f.write("  Homebound:\n")
+                    for party in sorted(homebound_parties, key=lambda p: (p.time or 0, p.driver)):
+                        time_str = f"{party.time:04d}" if party.time else "----"
+                        mandatory = "*" if party.is_designated_driver else ""
+                        passengers_str = f" + [{', '.join(party.passengers)}]" if party.passengers else ""
+                        f.write(f"    {time_str} | {party.driver}{mandatory}{passengers_str}\n")
+                
+                f.write("\n")
+        
+        logger.info(f"Dumped plan state to {output_path}")
+    
     def _select_best_driver(self, candidates: List[str], all_pools: List[DriverPool], current_pool: DriverPool) -> str:
         """
         Select the best driver from candidates based on drive count, capacity, and future needs.
@@ -573,6 +814,7 @@ class AlgorithmService:
         
         # Collect all parties for this day
         for schoolbound_party in self.all_parties[day_num]["schoolbound"]:
+            schoolbound_party.passengers.sort()
             schoolbound_party.day_of_week_ab_combo = day_of_week_ab
             parties.append(schoolbound_party)
             
@@ -584,6 +826,7 @@ class AlgorithmService:
                     schoolbound_times[passenger] = passenger_timetable.get_start_time()
         
         for homebound_party in self.all_parties[day_num]["homebound"]:
+            homebound_party.passengers.sort()
             homebound_party.day_of_week_ab_combo = day_of_week_ab
             parties.append(homebound_party)
             

@@ -1,0 +1,192 @@
+Add a phase 2.5 (between phase 2 and 3) to the algorithm_service to solve the following situation:
+
+Driving plan output from the debug.log (summary):
+[app - DEBUG] Drive counts:
+[app - DEBUG]  - 3: Rabea (Wr), Felix (Nl), Kaatje (Sb), Michel (Bo), Mareike (Kc)
+[app - DEBUG]  - 4: Lina (Li), Tim (Ki), Svenja (Ch), Laura (Fd), Karsten (Gr), Benjamin (Kl), Jonas (Ot), Julia (Bt), Johannes (Wl), Arne (Hö)
+[app - DEBUG]  - 5: Nico (Ht), Jan (Cz)
+
+Ht needs to drive 5 times because of bad luck (on each day he's alone in a pool), this is accepted.
+However, for Cz it's different:
+- Cz drives 5 times because in the pool from which he was chosen for his 5th drive, all other candidates also already had 4 drives. Naturally, someone had to be chosen.
+- However, ony day 9 (a pool that was handled at a point in time where Cz only had 3 drives), Wr could have been chosen. This would have been the better choice, as Wr. only has 3 drives in total (see driving plan console output below)
+
+Add some logic as "Phase 2.5" to solve these kinds of issues:
+- look at members with a drive count above 4 (="problematic drivers")
+- ignore those who are mandatory drivers (party.is_designated_driver == True)
+- for each of the problematic driver's driving days, check if there is a direction in which the pool "P" containing the problematic driver also contains a member with a drive count below 4: let's call this person "the savior"
+- if applicable, have "the savior" create the two parties (schoolbound and homebound):
+    - By definition, the savior and the problematic driver have matching times (considering tolerances) for the direction of the pool "P".
+    - For this direction, add the problematic driver to the newly created savior party
+    - For the other direction, the savior's time could be entirely different. Try to find other parties that can accommodate the driver for the other direction (matching time, sufficient capacity, load balancing, etc.)
+- remove the "problematic driver"'s parties
+- ensure that the problematic driver's and the savior's driving days + drive count values are adapted consistently
+
+Driving plan output from the debug.log (plan):
+[app - DEBUG] === Day 1 ===
+[app - DEBUG]   Schoolbound:
+[app - DEBUG]     0745 | Driver: Wl*
+[app - DEBUG]     0755 | Driver: Bt | Passengers: Wr, Ch, Ht, Cz
+[app - DEBUG]     0755 | Driver: Ki | Passengers: Fd, Bo, Kc
+[app - DEBUG]     0940 | Driver: Nl* | Passengers: Hö, Kl, Sb
+[app - DEBUG]     0940 | Driver: Li
+[app - DEBUG]     0940 | Driver: Ot
+[app - DEBUG]     1140 | Driver: Gr*
+[app - DEBUG]   Homebound:
+[app - DEBUG]     0925 | Driver: Wl*
+[app - DEBUG]     1110 | Driver: Li | Passengers: Kc
+[app - DEBUG]     1310 | Driver: Bt | Passengers: Wr, Ch
+[app - DEBUG]     1400 | Driver: Gr* | Passengers: Sb
+[app - DEBUG]     1530 | Driver: Ot | Passengers: Hö, Fd, Ht, Bo
+[app - DEBUG]     1530 | Driver: Ki | Passengers: Cz
+[app - DEBUG]     1710 | Driver: Nl*
+[app - DEBUG] 
+[app - DEBUG] === Day 2 ===
+[app - DEBUG]   Schoolbound:
+[app - DEBUG]     0755 | Driver: Ht* | Passengers: Nl, Wr, Hö, Ot
+[app - DEBUG]     0755 | Driver: Cz* | Passengers: Bo, Wl, Kc, Sb
+[app - DEBUG]     0755 | Driver: Bt
+[app - DEBUG]     0755 | Driver: Ki
+[app - DEBUG]     0925 | Driver: Kl
+[app - DEBUG]     0940 | Driver: Fd | Passengers: Ch, Li
+[app - DEBUG]     1110 | Driver: Gr*
+[app - DEBUG]   Homebound:
+[app - DEBUG]     0940 | Driver: Cz*
+[app - DEBUG]     1140 | Driver: Bt | Passengers: Wr, Ot
+[app - DEBUG]     1310 | Driver: Fd | Passengers: Hö, Ch, Bo, Sb
+[app - DEBUG]     1320 | Driver: Ki
+[app - DEBUG]     1415 | Driver: Gr* | Passengers: Nl
+[app - DEBUG]     1530 | Driver: Kl | Passengers: Li, Wl
+[app - DEBUG]     1710 | Driver: Ht*
+[app - DEBUG] 
+[app - DEBUG] === Day 3 ===
+[app - DEBUG]   Schoolbound:
+[app - DEBUG]     0755 | Driver: Bo* | Passengers: Nl, Wr, Li, Cz
+[app - DEBUG]     0755 | Driver: Kc* | Passengers: Bt, Ki
+[app - DEBUG]     0755 | Driver: Ot
+[app - DEBUG]     0925 | Driver: Ht* | Passengers: Gr, Hö, Wl, Sb
+[app - DEBUG]     1110 | Driver: Fd
+[app - DEBUG]     1140 | Driver: Kl
+[app - DEBUG]     1400 | Driver: Ch*
+[app - DEBUG]   Homebound:
+[app - DEBUG]     0925 | Driver: Kc*
+[app - DEBUG]     1140 | Driver: Ht*
+[app - DEBUG]     1320 | Driver: Ot | Passengers: Wr, Bt, Nl
+[app - DEBUG]     1530 | Driver: Ch* | Passengers: Li, Cz, Hö
+[app - DEBUG]     1530 | Driver: Fd | Passengers: Gr, Wl, Ki, Sb
+[app - DEBUG]     1530 | Driver: Kl
+[app - DEBUG]     1710 | Driver: Bo*
+[app - DEBUG] 
+[app - DEBUG] === Day 4 ===
+[app - DEBUG]   Schoolbound:
+[app - DEBUG]     0745 | Driver: Sb* | Passengers: Ot
+[app - DEBUG]     0755 | Driver: Ht* | Passengers: Li, Fd, Gr, Ki
+[app - DEBUG]     0755 | Driver: Ch
+[app - DEBUG]     0755 | Driver: Bo
+[app - DEBUG]     0755 | Driver: Bt
+[app - DEBUG]     0940 | Driver: Hö | Passengers: Nl, Wr, Cz, Wl
+[app - DEBUG]     1140 | Driver: Kl | Passengers: Kc
+[app - DEBUG]   Homebound:
+[app - DEBUG]     0925 | Driver: Ht*
+[app - DEBUG]     1110 | Driver: Bt | Passengers: Ot
+[app - DEBUG]     1140 | Driver: Hö | Passengers: Nl, Gr, Ki
+[app - DEBUG]     1310 | Driver: Ch | Passengers: Wr, Li, Cz
+[app - DEBUG]     1310 | Driver: Bo
+[app - DEBUG]     1400 | Driver: Sb*
+[app - DEBUG]     1530 | Driver: Kl | Passengers: Fd, Kc
+[app - DEBUG] 
+[app - DEBUG] === Day 5 ===
+[app - DEBUG]   Schoolbound:
+[app - DEBUG]     0745 | Driver: Ch | Passengers: Sb
+[app - DEBUG]     0755 | Driver: Kl | Passengers: Nl, Hö, Ot, Ht
+[app - DEBUG]     0755 | Driver: Fd | Passengers: Bo, Li, Cz, Bt
+[app - DEBUG]     0940 | Driver: Ki | Passengers: Wl
+[app - DEBUG]     0940 | Driver: Wr
+[app - DEBUG]   Homebound:
+[app - DEBUG]     0940 | Driver: Fd | Passengers: Li, Bo
+[app - DEBUG]     1140 | Driver: Kl | Passengers: Ht
+[app - DEBUG]     1310 | Driver: Ki | Passengers: Nl, Hö, Ot
+[app - DEBUG]     1310 | Driver: Ch | Passengers: Cz, Wl, Sb
+[app - DEBUG]     1330 | Driver: Wr | Passengers: Bt
+[app - DEBUG] 
+[app - DEBUG] === Day 6 ===
+[app - DEBUG]   Schoolbound:
+[app - DEBUG]     0745 | Driver: Wl* | Passengers: Cz, Kc, Ki
+[app - DEBUG]     0755 | Driver: Bt | Passengers: Wr, Fd, Ch, Bo
+[app - DEBUG]     0940 | Driver: Nl* | Passengers: Ot, Ht, Kl, Sb
+[app - DEBUG]     0940 | Driver: Li
+[app - DEBUG]     0940 | Driver: Hö
+[app - DEBUG]     1140 | Driver: Gr*
+[app - DEBUG]   Homebound:
+[app - DEBUG]     0925 | Driver: Wl*
+[app - DEBUG]     1140 | Driver: Li | Passengers: Cz, Kc, Wr
+[app - DEBUG]     1310 | Driver: Bt | Passengers: Bo
+[app - DEBUG]     1400 | Driver: Gr* | Passengers: Ki, Sb
+[app - DEBUG]     1530 | Driver: Hö | Passengers: Fd, Ot, Ch, Ht
+[app - DEBUG]     1710 | Driver: Nl*
+[app - DEBUG] 
+[app - DEBUG] === Day 7 ===
+[app - DEBUG]   Schoolbound:
+[app - DEBUG]     0755 | Driver: Ht* | Passengers: Nl, Wr, Bo, Bt
+[app - DEBUG]     0755 | Driver: Cz* | Passengers: Wl, Kc, Sb
+[app - DEBUG]     0755 | Driver: Ot
+[app - DEBUG]     0755 | Driver: Ki
+[app - DEBUG]     0755 | Driver: Hö
+[app - DEBUG]     0925 | Driver: Li | Passengers: Ch, Kl, Fd
+[app - DEBUG]     1110 | Driver: Gr*
+[app - DEBUG]   Homebound:
+[app - DEBUG]     0940 | Driver: Cz*
+[app - DEBUG]     1140 | Driver: Ot | Passengers: Wr, Bo, Bt
+[app - DEBUG]     1310 | Driver: Hö | Passengers: Fd, Ch, Sb
+[app - DEBUG]     1320 | Driver: Ki
+[app - DEBUG]     1415 | Driver: Gr* | Passengers: Nl
+[app - DEBUG]     1530 | Driver: Li | Passengers: Kl, Wl
+[app - DEBUG]     1710 | Driver: Ht*
+[app - DEBUG] 
+[app - DEBUG] === Day 8 ===
+[app - DEBUG]   Schoolbound:
+[app - DEBUG]     0755 | Driver: Bo* | Passengers: Nl, Ht, Li, Ki
+[app - DEBUG]     0755 | Driver: Kc*
+[app - DEBUG]     0755 | Driver: Ot
+[app - DEBUG]     0755 | Driver: Cz
+[app - DEBUG]     0925 | Driver: Wr | Passengers: Gr
+[app - DEBUG]     0940 | Driver: Sb | Passengers: Hö, Bt, Wl
+[app - DEBUG]     1110 | Driver: Ch | Passengers: Fd, Kl
+[app - DEBUG]   Homebound:
+[app - DEBUG]     0925 | Driver: Kc*
+[app - DEBUG]     1140 | Driver: Wr | Passengers: Ht
+[app - DEBUG]     1320 | Driver: Ot | Passengers: Bt, Nl
+[app - DEBUG]     1530 | Driver: Ch | Passengers: Li, Hö, Fd
+[app - DEBUG]     1530 | Driver: Sb | Passengers: Kl, Gr, Wl, Ki
+[app - DEBUG]     1530 | Driver: Cz
+[app - DEBUG]     1710 | Driver: Bo*
+[app - DEBUG] 
+[app - DEBUG] === Day 9 ===
+[app - DEBUG]   Schoolbound:
+[app - DEBUG]     0745 | Driver: Sb* | Passengers: Ot, Bt
+[app - DEBUG]     0755 | Driver: Ht* | Passengers: Ch, Li, Fd, Bo
+[app - DEBUG]     0755 | Driver: Kc | Passengers: Kl, Gr
+[app - DEBUG]     0940 | Driver: Hö | Passengers: Wr, Wl, Ki
+[app - DEBUG]     0940 | Driver: Nl
+[app - DEBUG]     0940 | Driver: Cz
+[app - DEBUG]   Homebound:
+[app - DEBUG]     0925 | Driver: Ht*
+[app - DEBUG]     1140 | Driver: Nl | Passengers: Ot, Bt, Gr, Ki
+[app - DEBUG]     1310 | Driver: Cz | Passengers: Wr, Fd, Ch
+[app - DEBUG]     1310 | Driver: Kc
+[app - DEBUG]     1400 | Driver: Sb*
+[app - DEBUG]     1530 | Driver: Hö | Passengers: Bo, Kl, Li
+[app - DEBUG] 
+[app - DEBUG] === Day 10 ===
+[app - DEBUG]   Schoolbound:
+[app - DEBUG]     0745 | Driver: Li | Passengers: Ch
+[app - DEBUG]     0755 | Driver: Fd | Passengers: Nl, Hö, Ot, Ht
+[app - DEBUG]     0755 | Driver: Cz | Passengers: Bo, Bt, Sb
+[app - DEBUG]     0940 | Driver: Wl* | Passengers: Kl, Ki
+[app - DEBUG]     1140 | Driver: Wr*
+[app - DEBUG]   Homebound:
+[app - DEBUG]     0940 | Driver: Li | Passengers: Bo
+[app - DEBUG]     1140 | Driver: Fd | Passengers: Ht, Kl
+[app - DEBUG]     1310 | Driver: Cz | Passengers: Nl, Hö, Ch, Ot
+[app - DEBUG]     1330 | Driver: Wr* | Passengers: Ki, Sb, Bt
+[app - DEBUG]     1500 | Driver: Wl* 

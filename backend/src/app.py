@@ -3,6 +3,7 @@ Flask application for Carpool Time backend service.
 """
 import base64
 import logging
+from collections import defaultdict
 
 import config
 from algorithm_service import AlgorithmService
@@ -10,7 +11,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from models import Member
 from timetable_service import TimetableService
-from utils import parse_date_yymmdd, parse_time_to_hhmm
+from utils import parse_date_yymmdd
 
 # Configure logging
 logging.basicConfig(
@@ -178,7 +179,6 @@ def _print_to_console(driving_plan, members):
     logger.debug(f"Total days: {len(driving_plan.day_plans)}")
     
     # Group members by drive count
-    from collections import defaultdict
     drive_count_groups = defaultdict(list)
     for m in members:
         drive_count_groups[m.drive_count].append(f"{m.first_name} ({m.initials})")
