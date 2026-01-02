@@ -260,16 +260,37 @@ export function DayPlanEditDialog({
     .filter(p => p.schoolbound === false)
     .sort((a, b) => a.time - b.time);
 
-  const renderPartyPreview = (party: Party) => (
-    <div key={`${party.driver}-${party.time}`} className="text-xs py-1 border-b border-border/30 last:border-b-0">
-      <span className="font-mono text-muted-foreground">[{formatTime(party.time)}]</span>
-      {' '}
-      <span className="font-medium">{formatPerson(party.driver)}</span>
-      {party.passengers.length > 0 && (
-        <span className="text-muted-foreground"> · {party.passengers.map(p => formatPerson(p)).join(' · ')}</span>
-      )}
-    </div>
-  );
+  const renderPartyPreview = (party: Party, isLast: boolean) => {
+    const driverPrefix = party.isDesignatedDriver ? '*' : '';
+    
+    const passengersFormatted = party.passengers.map(p => {
+      const member = membersByInitials.get(p.toLowerCase());
+      if (member) {
+        return `${member.firstName}\u00A0(${member.initials})`;
+      }
+      return p;
+    });
+    
+    const passengersText = passengersFormatted.length > 0 
+      ? ' · ' + passengersFormatted.join(' · ')
+      : '';
+
+    return (
+      <div key={`${party.driver}-${party.time}`} className={cn(
+        "text-sm leading-tight py-0.5 pl-[7ch]",
+        !isLast && "border-b border-border/30"
+      )} style={{ textIndent: '-7ch' }}>
+        <span className="text-muted-foreground font-mono">[{formatTime(party.time)}]</span>
+        {' '}
+        <span className="font-semibold">
+          {driverPrefix}{formatPerson(party.driver)}
+        </span>
+        {passengersText && (
+          <span className="text-muted-foreground">{passengersText}</span>
+        )}
+      </div>
+    );
+  };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -288,7 +309,7 @@ export function DayPlanEditDialog({
                 <p className="text-xs font-semibold text-muted-foreground mb-2">Schoolbound</p>
                 <ScrollArea className="max-h-40">
                   {schoolboundParties.length > 0 ? (
-                    schoolboundParties.map(renderPartyPreview)
+                    schoolboundParties.map((party, idx) => renderPartyPreview(party, idx === schoolboundParties.length - 1))
                   ) : (
                     <p className="text-xs text-muted-foreground">—</p>
                   )}
@@ -299,7 +320,7 @@ export function DayPlanEditDialog({
                 <p className="text-xs font-semibold text-muted-foreground mb-2">Homebound</p>
                 <ScrollArea className="max-h-40">
                   {homeboundParties.length > 0 ? (
-                    homeboundParties.map(renderPartyPreview)
+                    homeboundParties.map((party, idx) => renderPartyPreview(party, idx === homeboundParties.length - 1))
                   ) : (
                     <p className="text-xs text-muted-foreground">—</p>
                   )}

@@ -474,9 +474,6 @@ class AlgorithmService:
         """
         logger.info("Analyzing driving distribution for rebalancing...")
         
-        # Dump state BEFORE rebalancing
-        self._dump_plan_state("1-BEFORE_PHASE_2.5.txt")
-        
         # Identify problematic drivers (drive_count > 4, not mandatory)
         problematic_drivers = []
         for initials, member in self.members.items():
@@ -636,10 +633,8 @@ class AlgorithmService:
                 if problematic_member.drive_count <= 4:
                     logger.info(f"  {problematic_initials} now has acceptable drive count ({problematic_member.drive_count})")
                     break
-        
-        # Dump state AFTER rebalancing
-        self._dump_plan_state("2-AFTER_PHASE_2.5.txt")
     
+        
     def _add_additional_driver_parties(self, all_pools: List[DriverPool]) -> None:
         """
         PHASE 4: Add additional driver parties from underutilized members to reduce overcrowding.

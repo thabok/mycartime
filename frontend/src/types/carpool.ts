@@ -46,12 +46,5 @@ export interface DrivingPlan {
   dayPlans: Record<string, DayPlan>;
 }
 
-export interface DrivingPlanRequest {
-  persons: Member[];
-  scheduleReferenceStartDate: number;
-  username: string;
-  hash: string;
-}
-
 export type ViewMode = 'members' | 'plan';
 export type MemberViewMode = 'card' | 'list';

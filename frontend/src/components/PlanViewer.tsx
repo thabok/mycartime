@@ -152,32 +152,47 @@ export function PlanViewer({ plan, onPlanChange, members }: PlanViewerProps) {
         driverMember.lastName.toLowerCase().includes(query)
       ))
     );
-    const driverPrefix = isDriverHighlighted ? '*' : '';
+    const driverPrefix = party.isDesignatedDriver ? '*' : '';
     
     const passengersFormatted = party.passengers.map(p => {
       const member = membersByInitials.get(p.toLowerCase());
-      if (member) {
-        return `${member.firstName}\u00A0(${member.initials})`;
-      }
-      return p;
+      const isPassengerHighlighted = query && (
+        p.toLowerCase().includes(query) ||
+        (member && (
+          member.firstName.toLowerCase().includes(query) ||
+          member.lastName.toLowerCase().includes(query)
+        ))
+      );
+      const displayText = member ? `${member.firstName}\u00A0(${member.initials})` : p;
+      
+      return {
+        text: displayText,
+        highlighted: isPassengerHighlighted
+      };
     });
-    
-    const passengersText = passengersFormatted.length > 0 
-      ? ' · ' + passengersFormatted.join(' · ')
-      : '';
 
     return (
       <div key={`${party.driver}-${party.time}`} className={cn(
-        "text-sm leading-tight py-0.5",
+        "text-sm leading-tight py-0.5 pl-[7ch]",
         !isLast && "border-b border-border/30"
-      )}>
+      )} style={{ textIndent: '-7ch' }}>
         <span className="text-muted-foreground font-mono">[{formatTime(party.time)}]</span>
         {' '}
         <span className={cn("font-semibold", isDriverHighlighted && "text-primary")}>
           {driverPrefix}{formatPerson(party.driver)}
         </span>
-        {passengersText && (
-          <span className="text-muted-foreground">{passengersText}</span>
+        {passengersFormatted.length > 0 && (
+          <span className="text-muted-foreground">
+            {' · '}
+            {passengersFormatted.map((p, idx) => (
+              <span key={idx}>
+                {idx > 0 && ' · '}
+                <span className={cn(p.highlighted && "font-semibold text-primary")}>
+                  {p.text}
+                </span>
+              </span>
+            ))}
+          </span>
         )}
       </div>
     );
@@ -193,7 +208,7 @@ export function PlanViewer({ plan, onPlanChange, members }: PlanViewerProps) {
       .sort((a, b) => a.time - b.time);
     
     return (
-      <tr key={dayKey} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+      <tr key={dayKey} className="group border-b border-border/50 hover:bg-muted/30 transition-colors">
         <td className="py-1.5 px-4 align-top whitespace-nowrap font-medium">
           <div>
             {DAY_NAMES[dayOfWeekABCombo.dayOfWeek]}
@@ -223,7 +238,7 @@ export function PlanViewer({ plan, onPlanChange, members }: PlanViewerProps) {
         <td className="py-1.5 px-2 align-top">
           <button 
             onClick={() => handleEditDay(dayPlan)}
-            className="p-1.5 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+            className="p-1.5 rounded hover:bg-muted transition-all text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100"
             title="Edit day plan"
           >
             <Pencil className="h-4 w-4" />
@@ -260,9 +275,64 @@ export function PlanViewer({ plan, onPlanChange, members }: PlanViewerProps) {
         </div>
 
         <TabsContent value="summary" className="mt-4">
-          <div className="p-4 rounded-lg bg-muted/50 border border-border/50">
-            <p className="text-sm text-foreground whitespace-pre-wrap">{plan.summary}</p>
-          </div>
+          {(() => {
+            // Parse summary text: "- Name (Initials): Count"
+            const lines = plan.summary.split('\n').filter(line => line.trim());
+            const driveCounts = new Map<number, Array<{ name: string; initials: string }>>();
+            
+            lines.forEach(line => {
+              const match = line.match(/^-\s*(.+?)\s*\(([^)]+)\):\s*(\d+)$/);
+              if (match) {
+                const [, name, initials, countStr] = match;
+                const count = parseInt(countStr, 10);
+                if (!driveCounts.has(count)) {
+                  driveCounts.set(count, []);
+                }
+                driveCounts.get(count)!.push({ name: name.trim(), initials: initials.trim() });
+              }
+            });
+
+            // Sort by count descending, and alphabetically by name within each count
+            const sortedCounts = Array.from(driveCounts.entries())
+              .sort((a, b) => b[0] - a[0])
+              .map(([count, people]) => [
+                count,
+                people.sort((a, b) => a.name.localeCompare(b.name))
+              ] as [number, Array<{ name: string; initials: string }>]);
+
+            return (
+              <div className="rounded-lg border border-border overflow-hidden">
+                {sortedCounts.map(([count, people], idx) => (
+                  <div 
+                    key={count} 
+                    className={cn(
+                      "bg-card",
+                      idx !== sortedCounts.length - 1 && "border-b border-border"
+                    )}
+                  >
+                    <div className="bg-muted/50 px-4 py-2 border-b border-border/50">
+                      <h3 className="text-sm font-semibold text-foreground">
+                        Driving {count} {count === 1 ? 'time' : 'times'}
+                      </h3>
+                    </div>
+                    <div className="px-4 py-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                        {people.map((person) => (
+                          <div 
+                            key={person.initials}
+                            className="text-sm text-foreground"
+                          >
+                            {person.name}
+                            <span className="text-muted-foreground ml-1">({person.initials})</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </TabsContent>
 
         {['A', 'B', 'all'].map((tabValue) => (
@@ -279,7 +349,32 @@ export function PlanViewer({ plan, onPlanChange, members }: PlanViewerProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredDayPlans.map(renderDayRow)}
+                  {filteredDayPlans.map(([dayKey, dayPlan], idx) => {
+                    const needsSeparator = tabValue === 'all' &&
+                      dayPlan.dayOfWeekABCombo.dayOfWeek === 'MONDAY';
+
+                    return (
+                      <>
+                        {needsSeparator && (
+                          <tr key={`separator-${dayKey}`}>
+                            <td colSpan={4} className="py-0">
+                              <div className="relative">
+                                <div className="absolute inset-0 flex items-center px-4">
+                                  <div className="w-full border-t-2 border-primary/20" />
+                                </div>
+                                <div className="relative flex justify-center">
+                                  <span className="bg-background px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                    {dayPlan.dayOfWeekABCombo.isWeekA ? 'Week A' : 'Week B'}
+                                  </span>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                        {renderDayRow([dayKey, dayPlan])}
+                      </>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

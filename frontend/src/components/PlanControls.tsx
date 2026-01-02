@@ -135,7 +135,8 @@ export function PlanControls({ members, plan, onPlanChange, onViewPlan }: PlanCo
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'driving-plan.json';
+    const dateStr = referenceDate ? format(referenceDate, 'yyyy-MM-dd') : '';
+    a.download = dateStr ? `driving-plan-${dateStr}.json` : 'driving-plan.json';
     a.click();
     URL.revokeObjectURL(url);
     toast({ title: 'Exported', description: 'Driving plan exported to JSON.' });
@@ -164,7 +165,7 @@ export function PlanControls({ members, plan, onPlanChange, onViewPlan }: PlanCo
             <CardTitle className="text-base">Schedule Access</CardTitle>
           </div>
           <CardDescription>
-            Enter credentials to fetch teacher schedules from the backend service
+            Enter credentials to fetch teacher schedules from webuntis
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -175,7 +176,7 @@ export function PlanControls({ members, plan, onPlanChange, onViewPlan }: PlanCo
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter username"
+                placeholder="Username"
                 disabled={!!plan}
               />
             </div>
@@ -186,7 +187,7 @@ export function PlanControls({ members, plan, onPlanChange, onViewPlan }: PlanCo
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password"
+                placeholder="Password"
                 disabled={!!plan}
               />
             </div>
