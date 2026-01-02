@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 
 interface PlanControlsProps {
   members: Member[];
@@ -30,18 +31,37 @@ interface PlanControlsProps {
 export function PlanControls({ members, plan, onPlanChange, onViewPlan }: PlanControlsProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [referenceDate, setReferenceDate] = useState<Date | undefined>();
+  const [referenceDateString, setReferenceDateString] = useLocalStorage<string | null>('carpool-reference-date', null);
+  const [referenceDate, setReferenceDate] = useState<Date | undefined>(() => {
+    if (referenceDateString) {
+      try {
+        return parseISO(referenceDateString);
+      } catch {
+        return undefined;
+      }
+    }
+    return undefined;
+  });
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
+
+  // Sync referenceDate state to localStorage whenever it changes
+  useEffect(() => {
+    if (referenceDate) {
+      setReferenceDateString(format(referenceDate, 'yyyy-MM-dd'));
+    } else {
+      setReferenceDateString(null);
+    }
+  }, [referenceDate, setReferenceDateString]);
 
   const isDateValid = referenceDate && isMonday(referenceDate);
   const canGenerate = username.trim() && password.trim() && isDateValid && members.length > 0 && !plan;
 
   const formatDateForApi = (date: Date): number => {
-    const yy = date.getFullYear().toString().slice(-2);
+    const yyyy = date.getFullYear().toString();
     const mm = (date.getMonth() + 1).toString().padStart(2, '0');
     const dd = date.getDate().toString().padStart(2, '0');
-    return parseInt(`${yy}${mm}${dd}`);
+    return parseInt(`${yyyy}${mm}${dd}`);
   };
 
   const handleGenerate = async () => {
