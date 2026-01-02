@@ -1,4 +1,4 @@
-Add a phase 2.5 (between phase 2 and 3) to the algorithm_service to solve the following situation:
+Add a phase 3 to the algorithm_service to solve the following situation:
 
 Driving plan output from the debug.log (summary):
 [app - DEBUG] Drive counts:

@@ -1,0 +1,16 @@
+I renamed the existing phases, we now have:
+1. Create pools
+2. Select drivers and create parties
+3. Rebalance driving distribution
+5. Fill parties with passengers
+
+Add a new phase 4 after phase 3 in algorithm_service.py:
+
+Goal: Fair distribution of drive-counts and fewer overcrowded parties
+
+- Use all members with fewer than 4 driving days to create additional parties
+- For each member with fewer than 4 driving days:
+    - Find the days on which the member is not driving
+    - Cross-reference this with pools that are at high capacity (available seats equal to / close to required seats to accommodate remaining members)
+    - Create the additional two parties for the member on that day (schoolbound + homebound)
+    - If there are no days on which the member can "help" in this way, issue an INFO text like "Lina (Li) has only 3 drives but there are no days on which she can help reduce the pressure from packed parties"

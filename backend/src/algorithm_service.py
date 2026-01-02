@@ -97,10 +97,12 @@ class AlgorithmService:
         """
         Calculate the optimal driving plan for all members.
         
-        This algorithm works in three phases:
+        This algorithm works in five phases:
         1. Create pools (grouped by day, direction, time slot)
         2. Select drivers and create parties (enough to accommodate all members)
-        3. Fill parties with passengers (one at a time, keeping same-time members together)
+        3. Rebalance driving distribution (swap high-count drivers with low-count alternatives)
+        4. Add additional driver parties (use underutilized drivers to reduce overcrowding)
+        5. Fill parties with passengers (one at a time, keeping same-time members together)
         
         Args:
             members: List of carpool members
@@ -140,15 +142,21 @@ class AlgorithmService:
         logger.info("=" * 80)
         self._select_drivers_and_create_parties(all_pools)
         
-        # PHASE 2.5: Rebalance driving distribution
+        # PHASE 3: Rebalance driving distribution
         logger.info("\n" + "=" * 80)
-        logger.info("PHASE 2.5: REBALANCE DRIVING DISTRIBUTION")
+        logger.info("PHASE 3: REBALANCE DRIVING DISTRIBUTION")
         logger.info("=" * 80)
         self._rebalance_driving_distribution(all_pools)
         
-        # PHASE 3: Fill parties with passengers
+        # PHASE 4: Add additional driver parties to reduce overcrowding
         logger.info("\n" + "=" * 80)
-        logger.info("PHASE 3: FILL PARTIES WITH PASSENGERS")
+        logger.info("PHASE 4: ADD ADDITIONAL DRIVER PARTIES")
+        logger.info("=" * 80)
+        self._add_additional_driver_parties(all_pools)
+        
+        # PHASE 5: Fill parties with passengers
+        logger.info("\n" + "=" * 80)
+        logger.info("PHASE 5: FILL PARTIES WITH PASSENGERS")
         logger.info("=" * 80)
         self._fill_parties_with_passengers(all_pools)
         
@@ -384,7 +392,7 @@ class AlgorithmService:
     
     def _fill_parties_with_passengers(self, all_pools: List[DriverPool]) -> None:
         """
-        PHASE 3: Fill parties with passengers one at a time.
+        PHASE 5: Fill parties with passengers one at a time.
         Keep same-time members together, balance passengers among parties.
         
         Args:
@@ -452,11 +460,13 @@ class AlgorithmService:
                             logger.info(f"    - Passenger time: {time}")
                             logger.info(f"    - Party time after: {best_party.time}")
                         else:
-                            logger.warning(f"  ! Could not find party for passenger {passenger}")
+                            error_msg = f"Could not find party for passenger {passenger} on day {day_num + 1}"
+                            logger.error(error_msg)
+                            raise ValueError(error_msg)
     
     def _rebalance_driving_distribution(self, all_pools: List[DriverPool]) -> None:
         """
-        PHASE 2.5: Rebalance driving distribution by replacing high-drive-count drivers
+        PHASE 3: Rebalance driving distribution by replacing high-drive-count drivers
         with lower-drive-count alternatives where possible.
         
         Args:
@@ -596,7 +606,7 @@ class AlgorithmService:
                     
                     # All checks passed - commit the changes
                     logger.info(f"    ✓ Rebalancing successful!")
-                    logger.info(f"    Savior will drive, problematic driver will be assigned as passenger in Phase 3")
+                    logger.info(f"    Savior will drive, problematic driver will be assigned as passenger in PHASE 5")
                     
                     # Remove problematic driver's parties from both directions
                     self.all_parties[day_num]["schoolbound"] = [
@@ -629,6 +639,158 @@ class AlgorithmService:
         
         # Dump state AFTER rebalancing
         self._dump_plan_state("2-AFTER_PHASE_2.5.txt")
+    
+    def _add_additional_driver_parties(self, all_pools: List[DriverPool]) -> None:
+        """
+        PHASE 4: Add additional driver parties from underutilized members to reduce overcrowding.
+        
+        Use members with fewer than 4 driving days to create additional parties on days where
+        existing parties are at high capacity.
+        
+        Args:
+            all_pools: All driver pools
+        """
+        logger.info("Analyzing potential additional drivers to reduce overcrowding...")
+        
+        # Identify members with fewer than 4 driving days
+        underutilized_members = [
+            (initials, member) for initials, member in self.members.items()
+            if member.drive_count < 4
+        ]
+        
+        logger.info(f"Found {len(underutilized_members)} members with fewer than 4 drives")
+        
+        for initials, member in underutilized_members:
+            # Find days when this member is not driving
+            non_driving_days = [day_num for day_num in range(10) if day_num not in member.driving_days]
+            
+            if not non_driving_days:
+                logger.info(f"  {member.first_name} ({initials}) has {member.drive_count} drives but is already driving on all available days")
+                continue
+            
+            # Check each non-driving day to see if we can help
+            helped_any_day = False
+            
+            for day_num in non_driving_days:
+                # Check if member should be ignored this day
+                if member.should_ignore_on_day(day_num):
+                    continue
+                
+                # Check if member can drive this day
+                if not member.can_drive_on_day(day_num):
+                    continue
+                
+                # Check both directions for high capacity pools
+                for direction_key in ["schoolbound", "homebound"]:
+                    schoolbound = (direction_key == "schoolbound")
+                    
+                    # Find pools for this day/direction that contain this member
+                    matching_pools = [
+                        pool for pool in all_pools
+                        if (pool.day_num == day_num and 
+                            pool.schoolbound == schoolbound and
+                            initials in pool.time_slot.members)
+                    ]
+                    
+                    if not matching_pools:
+                        continue
+                    
+                    # For each matching pool, check if it's at high capacity
+                    for pool in matching_pools:
+                        # Get existing parties for this pool
+                        parties = self.all_parties[day_num][direction_key]
+                        
+                        # Filter parties that are within time tolerance of this pool
+                        relevant_parties = [
+                            p for p in parties
+                            if times_within_tolerance(p.time, pool.time_slot.time, self.tolerance)
+                        ]
+                        
+                        if not relevant_parties:
+                            continue
+                        
+                        # Calculate total capacity and required seats
+                        total_capacity = sum(
+                            self.members[p.driver].number_of_seats - 1
+                            for p in relevant_parties
+                        )
+                        required_seats = len(pool.time_slot.members) - len(relevant_parties)  # Exclude drivers
+                        
+                        # Check if we're at high capacity (capacity is close to or equal to required)
+                        # Define "high capacity" as having 0-2 spare seats
+                        spare_seats = total_capacity - required_seats
+                        
+                        if 0 <= spare_seats <= 2:
+                            # This pool is at high capacity - add this member as driver
+                            logger.info(f"  Day {day_num + 1}, {direction_key}: High capacity detected")
+                            logger.info(f"    Pool time: {pool.time_slot.time}, {len(pool.time_slot.members)} members")
+                            logger.info(f"    Current capacity: {total_capacity} seats, required: {required_seats}, spare: {spare_seats}")
+                            logger.info(f"    Adding {member.first_name} ({initials}) as additional driver")
+                            
+                            # Get member's times for both directions
+                            member_custom = member.get_custom_day(day_num)
+                            
+                            # Get schoolbound time
+                            member_schoolbound_time = None
+                            if member_custom and member_custom.custom_start:
+                                member_schoolbound_time = int(member_custom.custom_start.replace(':', ''))
+                            elif member.timetable and day_num in member.timetable:
+                                member_schoolbound_time = member.timetable[day_num].get_start_time()
+                            
+                            # Get homebound time
+                            member_homebound_time = None
+                            if member_custom and member_custom.custom_end:
+                                member_homebound_time = int(member_custom.custom_end.replace(':', ''))
+                            elif member.timetable and day_num in member.timetable:
+                                member_homebound_time = member.timetable[day_num].get_end_time()
+                            
+                            if member_schoolbound_time is None or member_homebound_time is None:
+                                logger.info(f"    Cannot add {initials}: No valid times")
+                                continue
+                            
+                            # Create new parties for both directions
+                            new_schoolbound_party = Party(
+                                day_of_week_ab_combo=None,
+                                driver=initials,
+                                time=member_schoolbound_time,
+                                passengers=[],
+                                is_designated_driver=False,
+                                drives_despite_custom_prefs=False,
+                                schoolbound=True
+                            )
+                            
+                            new_homebound_party = Party(
+                                day_of_week_ab_combo=None,
+                                driver=initials,
+                                time=member_homebound_time,
+                                passengers=[],
+                                is_designated_driver=False,
+                                drives_despite_custom_prefs=False,
+                                schoolbound=False
+                            )
+                            
+                            # Add parties
+                            self.all_parties[day_num]["schoolbound"].append(new_schoolbound_party)
+                            self.all_parties[day_num]["homebound"].append(new_homebound_party)
+                            
+                            # Update drive counts
+                            member.drive_count += 1
+                            member.driving_days.add(day_num)
+                            
+                            logger.info(f"    ✓ Added parties for {initials} (now has {member.drive_count} drives)")
+                            helped_any_day = True
+                            
+                            # Only add one additional driving day per member per phase
+                            break
+                    
+                    if helped_any_day:
+                        break
+                
+                if helped_any_day:
+                    break
+            
+            if not helped_any_day and non_driving_days:
+                logger.info(f"  {member.first_name} ({initials}) has only {member.drive_count} drives but there are no days on which they can help reduce the pressure from packed parties")
     
     def _dump_plan_state(self, filename: str) -> None:
         """
@@ -781,8 +943,8 @@ class AlgorithmService:
         # First priority: parties with the exact same time
         same_time_parties = [p for p in available_parties if abs(p.time - passenger_time) < 5]
         if same_time_parties:
-            # Among same-time parties, pick the one with most passengers already (fill up existing parties first)
-            return max(same_time_parties, key=lambda p: len(p.passengers))
+            # Among same-time parties, pick the one with fewest passengers (balance across parties)
+            return min(same_time_parties, key=lambda p: len(p.passengers))
         
         # Second priority: parties with time within tolerance
         within_tolerance_parties = [
