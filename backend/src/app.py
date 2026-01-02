@@ -176,8 +176,17 @@ def calculate_driving_plan_logic(persons_data, start_date_str, username, passwor
 def _print_to_console(driving_plan, members):
     logger.debug("Driving Plan Results:")
     logger.debug(f"Total days: {len(driving_plan.day_plans)}")
-    members_summary = ', '.join([f"{m.first_name} ({m.initials}): {m.drive_count}" for m in members])
-    logger.debug(f"Members: {members_summary}")
+    
+    # Group members by drive count
+    from collections import defaultdict
+    drive_count_groups = defaultdict(list)
+    for m in members:
+        drive_count_groups[m.drive_count].append(f"{m.first_name} ({m.initials})")
+    
+    logger.debug("Drive counts:")
+    for count in sorted(drive_count_groups.keys()):
+        members_str = ', '.join(drive_count_groups[count])
+        logger.debug(f" - {count}: {members_str}")
     logger.debug("")
     
     # Day plans sorted by day number

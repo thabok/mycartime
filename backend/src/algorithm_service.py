@@ -481,7 +481,7 @@ class AlgorithmService:
             
             # Scoring (lower is better)
             score = (
-                -future_mandatory_count * 100,  # Save them if they have mandatory drives later
+                future_mandatory_count * 100,  # Save them if they have mandatory drives later
                 member.drive_count,  # Prefer those who haven't driven much
                 -member.number_of_seats  # Prefer larger capacity
             )
