@@ -235,8 +235,28 @@ class AlgorithmService:
                 logger.info(f"All members already driving on day {day_num + 1}, no additional drivers needed")
                 continue
             
-            # Select drivers until we have enough capacity
+            # Check existing parties for this day/direction - they might have capacity for this pool
+            direction_key = "schoolbound" if pool.schoolbound else "homebound"
+            existing_parties = self.all_parties[day_num][direction_key]
+            
+            # Calculate available capacity from existing parties within time tolerance
             total_capacity = 0
+            for party in existing_parties:
+                # Check if party time is compatible with this pool's time
+                if times_within_tolerance(party.time, pool.time_slot.time, self.tolerance):
+                    driver_capacity = self.members[party.driver].number_of_seats - 1
+                    available_capacity = driver_capacity - len(party.passengers)
+                    if available_capacity > 0:
+                        total_capacity += available_capacity
+                        logger.info(f"  Existing party by {party.driver} has {available_capacity} available seats")
+            
+            if total_capacity >= len(remaining_to_cover):
+                logger.info(f"  Existing parties can accommodate all {len(remaining_to_cover)} members, no new drivers needed")
+                continue
+            
+            logger.info(f"  Need to cover {len(remaining_to_cover)} members, existing capacity: {total_capacity}")
+            
+            # Select drivers until we have enough capacity
             drivers_selected = []
             
             while len(remaining_to_cover) > total_capacity:
