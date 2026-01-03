@@ -12,9 +12,6 @@ import {
   Loader2, 
   Sparkles, 
   Upload, 
-  Download, 
-  FileText,
-  Trash2,
   Lock
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -26,9 +23,10 @@ interface PlanControlsProps {
   plan: DrivingPlan | null;
   onPlanChange: (plan: DrivingPlan | null) => void;
   onViewPlan: () => void;
+  onReferenceDateChange?: (date: Date | undefined) => void;
 }
 
-export function PlanControls({ members, plan, onPlanChange, onViewPlan }: PlanControlsProps) {
+export function PlanControls({ members, plan, onPlanChange, onViewPlan, onReferenceDateChange }: PlanControlsProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [referenceDateString, setReferenceDateString] = useLocalStorage<string | null>('carpool-reference-date', null);
@@ -52,7 +50,8 @@ export function PlanControls({ members, plan, onPlanChange, onViewPlan }: PlanCo
     } else {
       setReferenceDateString(null);
     }
-  }, [referenceDate, setReferenceDateString]);
+    onReferenceDateChange?.(referenceDate);
+  }, [referenceDate, setReferenceDateString, onReferenceDateChange]);
 
   const isDateValid = referenceDate && isMonday(referenceDate);
   const canGenerate = username.trim() && password.trim() && isDateValid && members.length > 0 && !plan;
@@ -126,33 +125,6 @@ export function PlanControls({ members, plan, onPlanChange, onViewPlan }: PlanCo
       }
     };
     input.click();
-  };
-
-  const handleExportPlan = () => {
-    if (!plan) return;
-    const data = JSON.stringify(plan, null, 2);
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    const dateStr = referenceDate ? format(referenceDate, 'yyyy-MM-dd') : '';
-    a.download = dateStr ? `driving-plan-${dateStr}.json` : 'driving-plan.json';
-    a.click();
-    URL.revokeObjectURL(url);
-    toast({ title: 'Exported', description: 'Driving plan exported to JSON.' });
-  };
-
-  const handleExportPdf = async () => {
-    if (!plan) return;
-    toast({ 
-      title: 'PDF Export', 
-      description: 'PDF export requires the backend service. Coming soon!',
-    });
-  };
-
-  const handleDiscardPlan = () => {
-    onPlanChange(null);
-    toast({ title: 'Plan discarded', description: 'You can now generate a new plan.' });
   };
 
   return (
@@ -303,22 +275,6 @@ export function PlanControls({ members, plan, onPlanChange, onViewPlan }: PlanCo
           <>
             <Button onClick={onViewPlan} className="w-full" size="lg">
               View Driving Plan
-            </Button>
-            
-            <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" onClick={handleExportPlan}>
-                <Download className="h-4 w-4 mr-2" />
-                Export JSON
-              </Button>
-              <Button variant="outline" onClick={handleExportPdf}>
-                <FileText className="h-4 w-4 mr-2" />
-                Export PDF
-              </Button>
-            </div>
-            
-            <Button variant="destructive" onClick={handleDiscardPlan} className="w-full">
-              <Trash2 className="h-4 w-4 mr-2" />
-              Discard Plan
             </Button>
           </>
         )}

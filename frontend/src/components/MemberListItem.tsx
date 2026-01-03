@@ -52,15 +52,6 @@ export function MemberListItem({ member, onEdit, onEditCustom, onDelete }: Membe
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <Button
           variant="ghost"
-          size="sm"
-          onClick={(e) => { e.stopPropagation(); onEditCustom(member); }}
-          className="h-8 text-muted-foreground hover:text-foreground text-xs gap-1"
-        >
-          <Settings className="h-3.5 w-3.5" />
-          Custom
-        </Button>
-        <Button
-          variant="ghost"
           size="icon"
           onClick={(e) => { e.stopPropagation(); onDelete(member); }}
           className="h-8 w-8 text-muted-foreground hover:text-destructive"

@@ -22,16 +22,19 @@ import {
   List, 
   Download, 
   Upload,
-  Users
+  Users,
+  CalendarDays
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface MembersPanelProps {
   members: Member[];
   onMembersChange: (members: Member[]) => void;
+  hasPlan: boolean;
+  onNavigateToPlan: () => void;
 }
 
-export function MembersPanel({ members, onMembersChange }: MembersPanelProps) {
+export function MembersPanel({ members, onMembersChange, hasPlan, onNavigateToPlan }: MembersPanelProps) {
   const [viewMode, setViewMode] = useState<MemberViewMode>('card');
   const [searchQuery, setSearchQuery] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -39,6 +42,15 @@ export function MembersPanel({ members, onMembersChange }: MembersPanelProps) {
   const [deletingMember, setDeletingMember] = useState<Member | null>(null);
   const [dialogInitialTab, setDialogInitialTab] = useState<'basic' | 'custom'>('basic');
   const { toast } = useToast();
+
+// Utility function to sort members alphabetically
+const sortMembers = (membersList: Member[]) => {
+    return [...membersList].sort((a, b) => {
+        const lastNameCompare = a.lastName.localeCompare(b.lastName);
+        if (lastNameCompare !== 0) return lastNameCompare;
+        return a.firstName.localeCompare(b.firstName);
+    });
+};
 
   const filteredMembers = useMemo(() => {
     if (!searchQuery.trim()) return members;
@@ -69,9 +81,10 @@ export function MembersPanel({ members, onMembersChange }: MembersPanelProps) {
 
   const handleSaveMember = (member: Member) => {
     if (editingMember) {
-      onMembersChange(members.map(m => 
+      const updatedMembers = members.map(m => 
         m.initials === editingMember.initials ? member : m
-      ));
+      );
+      onMembersChange(sortMembers(updatedMembers));
       toast({ title: 'Member updated', description: `${member.firstName} ${member.lastName} has been updated.` });
     } else {
       if (members.some(m => m.initials === member.initials)) {
@@ -82,7 +95,7 @@ export function MembersPanel({ members, onMembersChange }: MembersPanelProps) {
         });
         return;
       }
-      onMembersChange([...members, member]);
+      onMembersChange(sortMembers([...members, member]));
       toast({ title: 'Member added', description: `${member.firstName} ${member.lastName} has been added.` });
     }
   };
@@ -122,7 +135,7 @@ export function MembersPanel({ members, onMembersChange }: MembersPanelProps) {
         const text = await file.text();
         const imported = JSON.parse(text) as Member[];
         if (!Array.isArray(imported)) throw new Error('Invalid format');
-        onMembersChange(imported);
+        onMembersChange(sortMembers(imported));
         toast({ title: 'Imported', description: `${imported.length} members imported.` });
       } catch (err) {
         toast({ 
@@ -228,7 +241,15 @@ export function MembersPanel({ members, onMembersChange }: MembersPanelProps) {
           ))}
         </div>
       )}
-
+      {/* Navigation to Plan */}
+      {filteredMembers.length > 0 && (
+        <div className="flex justify-center pt-4 mt-4 border-t border-border">
+          <Button onClick={onNavigateToPlan} size="lg" variant="gradient">
+            <CalendarDays className="h-4 w-4 mr-2" />
+            {hasPlan ? 'Back to Driving Plan' : 'Generate or Load Driving Plan'}
+          </Button>
+        </div>
+      )}
       <MemberDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}

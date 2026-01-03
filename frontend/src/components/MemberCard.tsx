@@ -22,6 +22,7 @@ export function MemberCard({ member, onEdit, onEditCustom, onDelete }: MemberCar
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
+            {/* <div className="h-16 w-16 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-semibold text-xl shrink-0"> */}
             <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-semibold text-lg">
               {member.initials}
             </div>
@@ -32,12 +33,12 @@ export function MemberCard({ member, onEdit, onEditCustom, onDelete }: MemberCar
               <div className="flex items-center gap-2 mt-1">
                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                   <Car className="h-3.5 w-3.5" />
-                  <span>{member.numberOfSeats} seats</span>
+                  <span>{member.numberOfSeats}&nbsp;seats</span>
                 </div>
                 {member.isPartTime && (
                   <Badge variant="secondary" className="text-xs">
                     <Clock className="h-3 w-3 mr-1" />
-                    Part-time
+                    Part&nbsp;time
                   </Badge>
                 )}
               </div>
@@ -45,15 +46,6 @@ export function MemberCard({ member, onEdit, onEditCustom, onDelete }: MemberCar
           </div>
           
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => { e.stopPropagation(); onEditCustom(member); }}
-              className="h-8 text-muted-foreground hover:text-foreground text-xs gap-1"
-            >
-              <Settings className="h-3.5 w-3.5" />
-              Custom
-            </Button>
             <Button
               variant="ghost"
               size="icon"

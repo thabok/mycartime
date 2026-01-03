@@ -12,7 +12,7 @@ interface HeaderProps {
 export function Header({ viewMode, onViewModeChange, hasPlan }: HeaderProps) {
   return (
     <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-4">
+      <div className="container mx-auto px-4 py-4 max-w-5xl">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-primary/10">
@@ -45,7 +45,6 @@ export function Header({ viewMode, onViewModeChange, hasPlan }: HeaderProps) {
                 "gap-2 transition-all",
                 viewMode === 'plan' && "shadow-sm"
               )}
-              disabled={!hasPlan}
             >
               <CalendarDays className="h-4 w-4" />
               Driving Plan

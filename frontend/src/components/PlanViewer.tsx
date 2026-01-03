@@ -1,15 +1,19 @@
 import { useState, useMemo, useCallback } from 'react';
+import { format } from 'date-fns';
 import { DrivingPlan, DayPlan, Party, Member } from '@/types/carpool';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Pencil, Users, FileText } from 'lucide-react';
+import { Pencil, Users, FileText, Download, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DayPlanEditDialog } from './DayPlanEditDialog';
+import { useToast } from '@/hooks/use-toast';
 
 interface PlanViewerProps {
   plan: DrivingPlan;
   onPlanChange: (plan: DrivingPlan) => void;
   members: Member[];
+  referenceDate?: Date;
 }
 
 const DAY_NAMES: Record<string, string> = {
@@ -34,11 +38,12 @@ interface Transfer {
   hasTimeWarning: boolean;
 }
 
-export function PlanViewer({ plan, onPlanChange, members }: PlanViewerProps) {
+export function PlanViewer({ plan, onPlanChange, members, referenceDate }: PlanViewerProps) {
   const [weekFilter, setWeekFilter] = useState<'summary' | 'all' | 'A' | 'B'>('summary');
   const [personFilter, setPersonFilter] = useState('');
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingDayPlan, setEditingDayPlan] = useState<DayPlan | null>(null);
+  const { toast } = useToast();
 
   // Create lookup map: initials -> Member
   const membersByInitials = useMemo(() => {
@@ -96,6 +101,24 @@ export function PlanViewer({ plan, onPlanChange, members }: PlanViewerProps) {
   const handleEditDay = (dayPlan: DayPlan) => {
     setEditingDayPlan(dayPlan);
     setEditDialogOpen(true);
+  };
+
+  const handleExportPlan = () => {
+    const data = JSON.stringify(plan, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const dateStr = referenceDate ? format(referenceDate, 'yyyy-MM-dd') : '';
+    a.download = dateStr ? `driving-plan-${dateStr}.json` : 'driving-plan.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: 'Exported', description: 'Driving plan exported to JSON.' });
+  };
+
+  const handleDiscardPlan = () => {
+    onPlanChange(null);
+    toast({ title: 'Plan discarded', description: 'You can now generate a new plan.' });
   };
 
   const handleApplyTransfers = (dayPlan: DayPlan, transfers: Transfer[]) => {
@@ -262,16 +285,24 @@ export function PlanViewer({ plan, onPlanChange, members }: PlanViewerProps) {
             <TabsTrigger value="all" className="text-sm px-4">Complete Plan</TabsTrigger>
           </TabsList>
 
-          {weekFilter !== 'summary' && (
-            <div className="relative w-full sm:w-56">
-              <Input
-                placeholder="filter by name or initials"
-                value={personFilter}
-                onChange={(e) => setPersonFilter(e.target.value)}
-                className="h-9 text-sm pl-3 pr-3"
-              />
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            {weekFilter !== 'summary' && (
+              <div className="relative w-full sm:w-56">
+                <Input
+                  placeholder="filter by name or initials"
+                  value={personFilter}
+                  onChange={(e) => setPersonFilter(e.target.value)}
+                  className="h-9 text-sm pl-3 pr-3"
+                />
+              </div>
+            )}
+            <Button variant="outline" size="sm" onClick={handleExportPlan} className="h-9" title="Export JSON">
+              <Download className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleDiscardPlan} className="h-9" title="Discard Plan">
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         <TabsContent value="summary" className="mt-4">
