@@ -208,6 +208,10 @@ export function MemberDialog({ open, onOpenChange, member, onSave, initialTab = 
                       {!day.ignoreCompletely && (
                         <div className="space-y-1.5 text-xs">
                           <label className="flex items-center gap-1.5 cursor-pointer">
+                            <Checkbox checked={day.needsCar} onCheckedChange={(checked) => updateCustomDay(dayKey, 'needsCar', !!checked)} className="h-3.5 w-3.5" />
+                            Needs car
+                          </label>
+                          <label className="flex items-center gap-1.5 cursor-pointer">
                             <Checkbox checked={day.skipMorning} onCheckedChange={(checked) => updateCustomDay(dayKey, 'skipMorning', !!checked)} className="h-3.5 w-3.5" />
                             Skip AM
                           </label>
@@ -216,20 +220,16 @@ export function MemberDialog({ open, onOpenChange, member, onSave, initialTab = 
                             Skip PM
                           </label>
                           <label className="flex items-center gap-1.5 cursor-pointer">
-                            <Checkbox checked={day.needsCar} onCheckedChange={(checked) => updateCustomDay(dayKey, 'needsCar', !!checked)} className="h-3.5 w-3.5" />
-                            Needs car
-                          </label>
-                          <label className="flex items-center gap-1.5 cursor-pointer">
                             <Checkbox checked={day.drivingSkip} onCheckedChange={(checked) => updateCustomDay(dayKey, 'drivingSkip', !!checked)} className="h-3.5 w-3.5" />
-                            Skip driving
+                            No car
                           </label>
                           <label className="flex items-center gap-1.5 cursor-pointer">
                             <Checkbox checked={day.noWaitingAfternoon} onCheckedChange={(checked) => updateCustomDay(dayKey, 'noWaitingAfternoon', !!checked)} className="h-3.5 w-3.5" />
                             No wait PM
                           </label>
                           <div className="flex gap-1 mt-2 text-[10px] text-muted-foreground">
-                            <Input type="time" value={day.customStart} onChange={(e) => updateCustomDay(dayKey, 'customStart', e.target.value)} className="h-5 text-[10px] px-0.5 w-full" placeholder="Start" />
-                            <Input type="time" value={day.customEnd} onChange={(e) => updateCustomDay(dayKey, 'customEnd', e.target.value)} className="h-5 text-[10px] px-0.5 w-full" placeholder="End" />
+                            <Input type="time" value={day.customStart} onChange={(e) => updateCustomDay(dayKey, 'customStart', e.target.value)} className="h-5 text-[10px] px-0.5 w-full rounded" placeholder="Start" />
+                            <Input type="time" value={day.customEnd} onChange={(e) => updateCustomDay(dayKey, 'customEnd', e.target.value)} className="h-5 text-[10px] px-0.5 w-full rounded" placeholder="End" />
                           </div>
                         </div>
                       )}
@@ -287,8 +287,8 @@ export function MemberDialog({ open, onOpenChange, member, onSave, initialTab = 
                             No wait PM
                           </label>
                           <div className="flex gap-1 mt-2 text-[10px] text-muted-foreground">
-                            <Input type="time" value={day.customStart} onChange={(e) => updateCustomDay(dayKey, 'customStart', e.target.value)} className="h-5 text-[10px] px-0.5 w-full" placeholder="Start" />
-                            <Input type="time" value={day.customEnd} onChange={(e) => updateCustomDay(dayKey, 'customEnd', e.target.value)} className="h-5 text-[10px] px-0.5 w-full" placeholder="End" />
+                            <Input type="time" value={day.customStart} onChange={(e) => updateCustomDay(dayKey, 'customStart', e.target.value)} className="h-5 text-[10px] px-0.5 w-full rounded" placeholder="Start" />
+                            <Input type="time" value={day.customEnd} onChange={(e) => updateCustomDay(dayKey, 'customEnd', e.target.value)} className="h-5 text-[10px] px-0.5 w-full rounded" placeholder="End" />
                           </div>
                         </div>
                       )}

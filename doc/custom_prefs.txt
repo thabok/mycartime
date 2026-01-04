@@ -1,0 +1,40 @@
+The following frontend logic is needed for custom day prefs:
+
+- Needs Car (needsCar) -> mutually exclusive with the option "No car" (drivingSkip)
+- Skip AM (skipMorning) -> when activated, implicitly activates "Needs Car" as well (but doesn't deactivate it)
+- Skip PM (skipAfternoon) -> when activated, implicitly activates "Needs Car" as well (but doesn't deactivate it)
+- No wait PM (noWaitingAfternoon) -> mutually exclusive with "Skip PM"
+
+The following backend logic is needed for custom day prefs (algorithm_service):
+
+- Skip (ignoreCompletely)
+    - The person shall not appear in the driving plan for that particular day
+    - They shall neither be considered as a driver nor as a passenger
+    - Validation after plan has been created: person is not part of any party of that day's day plan
+
+- Needs Car (needsCar):
+    - Perform validation: mutually exclusive with "no car" (drivingSkip)
+    - The person shall be considered a mandatory driver for the day
+    - The person must not be considered as a passenger on that day
+    - Validation after plan has been created: person is one of the day's drivers
+
+- Skip AM (skipMorning):
+    - Perform validation: needsCar must also be true
+    - The person shall be considered a mandatory driver for the day 
+    - The schoolbound party shall have a flag that indicates that it's a "lonely driver" party
+    - The algorithm shall ensure that no passengers are assigned to that person's schoolbound party
+    - Validation after plan has been created: the person's schoolbound party must have 0 passengers
+
+- Skip PM (skipAfternoon):
+    - Perform validation: needsCar must also be true
+    - The person shall be considered a mandatory driver for the day 
+    - The homebound party shall have a flag that indicates that it's a "lonely driver" party
+    - The algorithm shall ensure that no passengers are assigned to that person's homebound party
+    - Validation after plan has been created: the person's homebound party must have 0 passengers
+
+- No Wait PM (noWaitingAfternoon):
+    - Perform validation: mutually exclusive with Skip PM
+    - 0 minutes tolerance for homebound parties with this person:
+        - If the person is selected as a driver for that day, the algorithm shall ensure zero tolerance (Tolerance: 0 minutes) when passengers are added to their homebound party
+        - When considering the person as a passenger, also overwrite the default tolerance to 0 minutes for homebound parties
+    - Validation after plan has been created: the person's end time (custom end or from schedule, of no custom end is defined) must exactly match the homebound party's time
