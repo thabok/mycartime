@@ -27,8 +27,8 @@ public class WebUntisAdapter {
     private static final String JSESSIONID = "JSESSIONID";
     private static final String JSON_RPC_VERSION = "2.0";
     private static final String APP_ACCESS_ID = "id1234";
-    private static final String SCHOOL_NAME = "NG%20Wilhelmshaven";
-    private static final String URL_SCHOOL_NGW = "https://cissa.webuntis.com/WebUntis/jsonrpc.do?school=" + SCHOOL_NAME;
+    private static final String SCHOOL_NAME = "";
+    private static final String URL_SCHOOL_NGW = "https://ngw-wilhelmshaven.webuntis.com/WebUntis/jsonrpc.do?school=" + SCHOOL_NAME;
 //	private static final String CACHE_FILE = "/Users/thabok/Git/mycartime/webuntis-cache.json";
     
     public static String sessionId = null;
@@ -171,8 +171,8 @@ public class WebUntisAdapter {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-        
-        return post(obj, requestId);
+        String s = post(obj, requestId);
+        return s;
     }
 
     private static String post(Object payload, String requestId) {
