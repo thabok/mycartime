@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Member, MemberViewMode } from '@/types/carpool';
+import { Member, MemberViewMode, CustomDay } from '@/types/carpool';
 import { MemberCard } from './MemberCard';
 import { MemberListItem } from './MemberListItem';
 import { MemberDialog } from './MemberDialog';
@@ -135,8 +135,36 @@ const sortMembers = (membersList: Member[]) => {
         const text = await file.text();
         const imported = JSON.parse(text) as Member[];
         if (!Array.isArray(imported)) throw new Error('Invalid format');
-        onMembersChange(sortMembers(imported));
-        toast({ title: 'Imported', description: `${imported.length} members imported.` });
+        
+        // Clean up customDays: remove entries that are equal to the default empty value
+        const cleanedMembers = imported.map(member => {
+          if (!member.customDays) return member;
+          
+          const cleanedCustomDays: Record<string, CustomDay> = {};
+          for (const [dayKey, day] of Object.entries(member.customDays)) {
+            const isDefault = 
+              !day.ignoreCompletely &&
+              !day.noWaitingAfternoon &&
+              !day.needsCar &&
+              !day.drivingSkip &&
+              !day.skipMorning &&
+              !day.skipAfternoon &&
+              !day.customStart &&
+              !day.customEnd;
+            
+            if (!isDefault) {
+              cleanedCustomDays[dayKey] = day;
+            }
+          }
+          
+          return {
+            ...member,
+            customDays: Object.keys(cleanedCustomDays).length > 0 ? cleanedCustomDays : undefined
+          };
+        });
+        
+        onMembersChange(sortMembers(cleanedMembers));
+        toast({ title: 'Imported', description: `${cleanedMembers.length} members imported.` });
       } catch (err) {
         toast({ 
           title: 'Import failed', 

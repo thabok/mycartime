@@ -1,3 +1,0 @@
-flask
-webuntis
-flask_cors

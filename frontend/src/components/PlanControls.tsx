@@ -17,6 +17,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useSessionStorage } from '@/hooks/useSessionStorage';
 
 interface PlanControlsProps {
   members: Member[];
@@ -27,8 +28,8 @@ interface PlanControlsProps {
 }
 
 export function PlanControls({ members, plan, onPlanChange, onViewPlan, onReferenceDateChange }: PlanControlsProps) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useLocalStorage<string>('carpool-username', '');
+  const [password, setPassword] = useSessionStorage<string>('carpool-password', '');
   const [referenceDateString, setReferenceDateString] = useLocalStorage<string | null>('carpool-reference-date', null);
   const [referenceDate, setReferenceDate] = useState<Date | undefined>(() => {
     if (referenceDateString) {
@@ -42,6 +43,7 @@ export function PlanControls({ members, plan, onPlanChange, onViewPlan, onRefere
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
+  const backendHostAndPort = "http://" + window.location.hostname + ":1338";
 
   // Sync referenceDate state to localStorage whenever it changes
   useEffect(() => {
@@ -76,7 +78,7 @@ export function PlanControls({ members, plan, onPlanChange, onViewPlan, onRefere
         hash,
       };
 
-      const response = await fetch('http://127.0.0.1:1338/api/v1/drivingplan', {
+      const response = await fetch(`${backendHostAndPort}/api/v1/drivingplan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -130,7 +132,7 @@ export function PlanControls({ members, plan, onPlanChange, onViewPlan, onRefere
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Authentication Card */}
-      <Card className="surface-elevated">
+      <Card>
         <CardHeader className="pb-4">
           <div className="flex items-center gap-2">
             <Lock className="h-4 w-4 text-primary" />
@@ -168,7 +170,7 @@ export function PlanControls({ members, plan, onPlanChange, onViewPlan, onRefere
       </Card>
 
       {/* Reference Date Card */}
-      <Card className="surface-elevated">
+      <Card>
         <CardHeader className="pb-4">
           <div className="flex items-center gap-2">
             <CalendarIcon className="h-4 w-4 text-primary" />

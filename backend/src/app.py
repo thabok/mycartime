@@ -18,7 +18,7 @@ logging.basicConfig(
     level=logging.DEBUG,
     format='[%(name)s - %(levelname)s] %(message)s',
     handlers=[
-        logging.FileHandler('debug.log'),
+        logging.FileHandler('backend_debug.log'),
         logging.StreamHandler()
     ]
 )

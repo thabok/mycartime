@@ -16,7 +16,7 @@ export function MemberCard({ member, onEdit, onEditCustom, onDelete }: MemberCar
   
   return (
     <Card 
-      className="group surface-elevated hover:shadow-lg transition-all duration-200 animate-fade-in cursor-pointer"
+      className="group hover:shadow-lg transition-all duration-200 animate-fade-in cursor-pointer"
       onClick={() => onEdit(member)}
     >
       <CardContent className="p-4">

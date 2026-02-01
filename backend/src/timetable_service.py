@@ -194,12 +194,6 @@ class TimetableService:
                             if custom_end:
                                 timetable.end_time = custom_end
                         
-                        # Handle skip morning/afternoon
-                        if custom_day.skip_morning:
-                            timetable.start_time = None
-                        if custom_day.skip_afternoon:
-                            timetable.end_time = None
-                
                 member_timetables[day_num] = timetable
             
             timetables[member.initials] = member_timetables

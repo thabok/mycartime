@@ -100,24 +100,80 @@ class Member:
         custom = self.get_custom_day(day_num)
         return custom.needs_car if custom else False
     
-    def can_drive_on_day(self, day_num: int) -> bool:
+    def skip_morning_on_day(self, day_num: int) -> bool:
+        """Check if member skips morning (schoolbound) on a specific day."""
+        custom = self.get_custom_day(day_num)
+        return custom.skip_morning if custom else False
+    
+    def skip_afternoon_on_day(self, day_num: int) -> bool:
+        """Check if member skips afternoon (homebound) on a specific day."""
+        custom = self.get_custom_day(day_num)
+        return custom.skip_afternoon if custom else False
+    
+    def no_waiting_afternoon_on_day(self, day_num: int) -> bool:
+        """Check if member has no waiting afternoon on a specific day."""
+        custom = self.get_custom_day(day_num)
+        return custom.no_waiting_afternoon if custom else False
+    
+    def get_tolerance_for_direction(self, day_num: int, schoolbound: bool, default_tolerance: int) -> int:
+        """
+        Get the time tolerance for a specific direction on a specific day.
+        Returns 0 if noWaitingAfternoon is set and direction is homebound, otherwise default.
+        """
+        if not schoolbound and self.no_waiting_afternoon_on_day(day_num):
+            return 0
+        return default_tolerance
+    
+    def validate_custom_day(self, day_num: int) -> List[str]:
+        """
+        Validate custom day settings and return list of validation errors.
+        
+        Returns:
+            List of error messages, empty if valid
+        """
+        custom = self.get_custom_day(day_num)
+        if not custom:
+            return []
+        
+        errors = []
+        
+        # needsCar is mutually exclusive with drivingSkip
+        if custom.needs_car and custom.driving_skip:
+            errors.append(f"Day {day_num}: needsCar and drivingSkip are mutually exclusive")
+        
+        # skipMorning requires needsCar
+        if custom.skip_morning and not custom.needs_car:
+            errors.append(f"Day {day_num}: skipMorning requires needsCar to be true")
+        
+        # skipAfternoon requires needsCar
+        if custom.skip_afternoon and not custom.needs_car:
+            errors.append(f"Day {day_num}: skipAfternoon requires needsCar to be true")
+        
+        # noWaitingAfternoon is mutually exclusive with skipAfternoon
+        if custom.no_waiting_afternoon and custom.skip_afternoon:
+            errors.append(f"Day {day_num}: noWaitingAfternoon and skipAfternoon are mutually exclusive")
+        
+        return errors
+    
+    def can_drive_on_day(self, day_num: int, desperate: bool = False) -> bool:
         """
         Check if member can drive on a specific day.
         
         Args:
             day_num: Day number (0-9)
-            timetable: Optional timetable for this day
+            desperate: Optional flag if the plan desperately needs this member to drive
             
         Returns:
-            True if member can drive (has schedule or custom times, not ignored, not needs_car, not driving_skip)
+            True if member can drive (has schedule or custom times, not ignored, not needs_car, not driving_skip or desperate)
         """
         should_ignore = self.should_ignore_on_day(day_num)
         if should_ignore:
             return False
         # Check custom day settings first
-        custom = self.get_custom_day(day_num)
-        if custom and custom.driving_skip:
-            return False
+        if not desperate:
+            custom = self.get_custom_day(day_num)
+            if custom and custom.driving_skip:
+                return False
         # No reason why this member cannot drive
         return True
 
@@ -148,6 +204,7 @@ class Party:
     is_designated_driver: bool
     drives_despite_custom_prefs: bool
     schoolbound: bool
+    is_lonely_driver: bool = False  # True if driver has skipMorning/skipAfternoon
     
     def to_dict(self) -> dict:
         """Convert to dictionary."""
@@ -158,7 +215,8 @@ class Party:
             'passengers': self.passengers,
             'isDesignatedDriver': self.is_designated_driver,
             'drivesDespiteCustomPrefs': self.drives_despite_custom_prefs,
-            'schoolbound': self.schoolbound
+            'schoolbound': self.schoolbound,
+            'isLonelyDriver': self.is_lonely_driver
         }
 
 
