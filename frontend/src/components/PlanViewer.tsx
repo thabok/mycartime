@@ -331,6 +331,24 @@ export function PlanViewer({ plan, onPlanChange, members, referenceDate }: PlanV
                 people.sort((a, b) => a.name.localeCompare(b.name))
               ] as [number, Array<{ name: string; initials: string }>]);
 
+            // Helper function to generate schedule link
+            const getScheduleUrl = (initials: string): string | null => {
+              if (!plan.memberIdMap || !plan.scheduleUrlTemplate) {
+                return null;
+              }
+              const memberId = plan.memberIdMap[initials];
+              if (!memberId) {
+                return null;
+              }
+              // Format reference date as YYYY-MM-DD, fallback to today if not available
+              const dateToUse = referenceDate || new Date();
+              const dateStr = format(dateToUse, 'yyyy-MM-dd');
+              // Replace DATE and TEACHER_ID placeholders
+              return plan.scheduleUrlTemplate
+                .replace('DATE', dateStr)
+                .replace('TEACHER_ID', memberId);
+            };
+
             return (
               <div className="rounded-lg border border-border overflow-hidden">
                 {sortedCounts.map(([count, people], idx) => (
@@ -348,15 +366,39 @@ export function PlanViewer({ plan, onPlanChange, members, referenceDate }: PlanV
                     </div>
                     <div className="px-4 py-3">
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
-                        {people.map((person) => (
-                          <div 
-                            key={person.initials}
-                            className="text-sm text-foreground"
-                          >
-                            {person.name}
-                            <span className="text-muted-foreground ml-1">({person.initials})</span>
-                          </div>
-                        ))}
+                        {people.map((person) => {
+                          const scheduleUrl = getScheduleUrl(person.initials);
+                          const content = (
+                            <>
+                              {person.name}
+                              <span className="ml-1">({person.initials})</span>
+                            </>
+                          );
+                          
+                          if (scheduleUrl) {
+                            return (
+                              <a
+                                key={person.initials}
+                                href={scheduleUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm text-muted-foreground hover:font-bold cursor-pointer transition-all"
+                                title="View schedule in WebUntis"
+                              >
+                                {content}
+                              </a>
+                            );
+                          }
+                          
+                          return (
+                            <div 
+                              key={person.initials}
+                              className="text-sm text-foreground"
+                            >
+                              {content}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>

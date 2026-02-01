@@ -188,8 +188,11 @@ class AlgorithmService:
         logger.info("\n" + "=" * 80)
         logger.info("DRIVING PLAN CALCULATION COMPLETE")
         logger.info("=" * 80)
+
+        # Build member ID map for UI links
+        member_id_map = {m.initials: m.id for m in members if m.id is not None}
         
-        return DrivingPlan(summary=summary, day_plans=day_plans)
+        return DrivingPlan(summary=summary, day_plans=day_plans, member_id_map=member_id_map)
     
     
     def _create_all_pools(self) -> List[DriverPool]:

@@ -44,6 +44,8 @@ export interface DayPlan {
 export interface DrivingPlan {
   summary: string;
   dayPlans: Record<string, DayPlan>;
+  memberIdMap?: Record<string, string>;
+  scheduleUrlTemplate?: string;
 }
 
 export type ViewMode = 'members' | 'plan';

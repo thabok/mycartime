@@ -166,6 +166,14 @@ class TimetableService:
             # Single API call for entire date range
             all_periods = self._query_timetable(member, start_date, end_date)
             
+            # Extract member's ID from the data (needed for UI: web-link to schedule)
+            member.id = next(
+                (teacher.get('id') for period in all_periods 
+                 for teacher in period.get('te', []) 
+                 if teacher.get('name') == member.initials),
+                None
+            )
+
             # Filter relevant periods
             relevant_periods = [p for p in all_periods if is_period_relevant(p, member.initials)]
             logger.debug(f"Found {len(relevant_periods)} relevant periods (of {len(all_periods)} total) for {member.initials}")

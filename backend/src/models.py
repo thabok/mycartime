@@ -243,12 +243,16 @@ class DrivingPlan:
     """Represents the complete driving plan for 2 weeks."""
     summary: str
     day_plans: Dict[int, DayPlan] = field(default_factory=dict)
+    member_id_map: Dict[str, Optional[int]] = field(default_factory=dict)
+    schedule_url_template: str = 'https://ngw-wilhelmshaven.webuntis.com/timetable/teacher?date=DATE&entityId=TEACHER_ID'
     
     def to_dict(self) -> dict:
         """Convert to dictionary."""
         return {
             'summary': self.summary,
-            'dayPlans': {str(k): v.to_dict() for k, v in self.day_plans.items()}
+            'dayPlans': {str(k): v.to_dict() for k, v in self.day_plans.items()},
+            'memberIdMap': self.member_id_map,
+            'scheduleUrlTemplate': self.schedule_url_template
         }
 
 
