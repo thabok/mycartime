@@ -7,6 +7,31 @@ from datetime import datetime, time
 
 
 @dataclass
+class TimeInfo:
+    """Holds time information with sources for transparency."""
+    timetable_time: Optional[int] = None  # Time from timetable (HHMM format)
+    custom_pref_time: Optional[int] = None  # Time from custom preference (HHMM format)
+    effective_time: int = None  # Time used for party assignment (HHMM format)
+    
+    def to_dict(self) -> dict:
+        """Convert to dictionary."""
+        return {
+            'timetableTime': self.timetable_time,
+            'customPrefTime': self.custom_pref_time,
+            'effectiveTime': self.effective_time
+        }
+    
+    @classmethod
+    def from_dict(cls, data: dict) -> 'TimeInfo':
+        """Create TimeInfo from dictionary."""
+        return cls(
+            timetable_time=data.get('timetableTime'),
+            custom_pref_time=data.get('customPrefTime'),
+            effective_time=data.get('effectiveTime')
+        )
+
+
+@dataclass
 class CustomDay:
     """Custom day configuration for a member."""
     ignore_completely: bool = False
@@ -205,10 +230,11 @@ class Party:
     drives_despite_custom_prefs: bool
     schoolbound: bool
     is_lonely_driver: bool = False  # True if driver has skipMorning/skipAfternoon
+    pool_name: Optional[str] = None  # Unique pool identifier (e.g. "pool-mon-a-schoolbound-755-tol30")
     
     def to_dict(self) -> dict:
         """Convert to dictionary."""
-        return {
+        result = {
             'dayOfWeekABCombo': self.day_of_week_ab_combo.to_dict(),
             'driver': self.driver,
             'time': self.time,
@@ -218,6 +244,9 @@ class Party:
             'schoolbound': self.schoolbound,
             'isLonelyDriver': self.is_lonely_driver
         }
+        if self.pool_name:
+            result['poolName'] = self.pool_name
+        return result
 
 
 @dataclass
@@ -225,16 +254,20 @@ class DayPlan:
     """Represents the plan for a single day."""
     day_of_week_ab_combo: DayOfWeekABCombo
     parties: List[Party] = field(default_factory=list)
-    schoolbound_times_by_initials: Dict[str, int] = field(default_factory=dict)
-    homebound_times_by_initials: Dict[str, int] = field(default_factory=dict)
+    schoolbound_times_by_initials: Dict[str, int] = field(default_factory=dict)  # DEPRECATED: use schoolbound_time_info_by_initials
+    homebound_times_by_initials: Dict[str, int] = field(default_factory=dict)  # DEPRECATED: use homebound_time_info_by_initials
+    schoolbound_time_info_by_initials: Dict[str, TimeInfo] = field(default_factory=dict)  # Time information with sources
+    homebound_time_info_by_initials: Dict[str, TimeInfo] = field(default_factory=dict)  # Time information with sources
     
     def to_dict(self) -> dict:
         """Convert to dictionary."""
         return {
             'dayOfWeekABCombo': self.day_of_week_ab_combo.to_dict(),
             'parties': [p.to_dict() for p in self.parties],
-            'schoolboundTimesByInitials': self.schoolbound_times_by_initials,
-            'homeboundTimesByInitials': self.homebound_times_by_initials
+            'schoolboundTimesByInitials': self.schoolbound_times_by_initials,  # Keep for backward compat
+            'homeboundTimesByInitials': self.homebound_times_by_initials,  # Keep for backward compat
+            'schoolboundTimeInfoByInitials': {k: v.to_dict() for k, v in self.schoolbound_time_info_by_initials.items()},
+            'homeboundTimeInfoByInitials': {k: v.to_dict() for k, v in self.homebound_time_info_by_initials.items()}
         }
 
 
@@ -261,14 +294,31 @@ class Timetable:
     """Represents a member's timetable for a day."""
     member_initials: str
     day_number: int  # 0-9 for the 10 days in the cycle
-    start_time: Optional[int] = None  # HHMM format
-    end_time: Optional[int] = None    # HHMM format
+    start_time: Optional[int] = None  # HHMM format (may be overwritten by custom prefs)
+    end_time: Optional[int] = None    # HHMM format (may be overwritten by custom prefs)
+    scheduled_start_time: Optional[int] = None  # Original timetable start time (never overwritten)
+    scheduled_end_time: Optional[int] = None    # Original timetable end time (never overwritten)
     is_present: bool = True
     
+    def __post_init__(self):
+        """Initialize scheduled times from start/end times after creation."""
+        if self.scheduled_start_time is None:
+            self.scheduled_start_time = self.start_time
+        if self.scheduled_end_time is None:
+            self.scheduled_end_time = self.end_time
+    
     def get_start_time(self) -> Optional[int]:
-        """Get the effective start time."""
+        """Get the effective start time (may include custom preferences)."""
         return self.start_time if self.is_present else None
     
     def get_end_time(self) -> Optional[int]:
-        """Get the effective end time."""
+        """Get the effective end time (may include custom preferences)."""
         return self.end_time if self.is_present else None
+    
+    def get_scheduled_start_time(self) -> Optional[int]:
+        """Get the original scheduled start time from timetable (never overwritten)."""
+        return self.scheduled_start_time if self.is_present else None
+    
+    def get_scheduled_end_time(self) -> Optional[int]:
+        """Get the original scheduled end time from timetable (never overwritten)."""
+        return self.scheduled_end_time if self.is_present else None

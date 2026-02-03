@@ -32,6 +32,13 @@ export interface Party {
   isDesignatedDriver: boolean;
   drivesDespiteCustomPrefs: boolean;
   schoolbound: boolean;
+  poolName?: string;
+}
+
+export interface TimeInfo {
+  timetableTime: number | null;
+  customPrefTime: number | null;
+  effectiveTime: number;
 }
 
 export interface DayPlan {
@@ -39,6 +46,8 @@ export interface DayPlan {
   parties: Party[];
   schoolboundTimesByInitials: Record<string, number>;
   homeboundTimesByInitials: Record<string, number>;
+  schoolboundTimeInfoByInitials?: Record<string, TimeInfo>;
+  homeboundTimeInfoByInitials?: Record<string, TimeInfo>;
 }
 
 export interface DrivingPlan {

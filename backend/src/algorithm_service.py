@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Dict, List, Optional, Set, Tuple
 
 import config
-from models import DayOfWeekABCombo, DayPlan, DrivingPlan, Member, Party
+from models import DayOfWeekABCombo, DayPlan, DrivingPlan, Member, Party, TimeInfo
 from utils import (get_day_of_week_name, get_earliest_time, get_latest_time,
                    get_week_dates, times_within_tolerance)
 
@@ -37,6 +37,7 @@ class DriverPool:
         self.day_num = day_num
         self.schoolbound = schoolbound
         self.candidates: List[str] = []  # member initials who can drive
+        self.pool_name: Optional[str] = None  # Generated pool identifier
     
     @property
     def is_mandatory(self) -> bool:
@@ -60,6 +61,29 @@ class AlgorithmService:
         """
         self.tolerance = tolerance_minutes or config.TIME_TOLERANCE_MINUTES
         self.members: Dict[str, Member] = {}
+    
+    def _generate_pool_name(self, pool: DriverPool) -> str:
+        """
+        Generate a unique name for a pool.
+        
+        Pattern: pool-{day}-{week}-{direction}-{time}-tol{tolerance}
+        Example: pool-mon-a-schoolbound-755-tol30
+        
+        Args:
+            pool: The driver pool
+            
+        Returns:
+            Unique pool name string
+        """
+        day_names = ["mon", "tue", "wed", "thu", "fri", "mon", "tue", "wed", "thu", "fri"]
+        day_name = day_names[pool.day_num]
+        
+        week = "a" if pool.day_num < 5 else "b"
+        direction = "schoolbound" if pool.schoolbound else "homebound"
+        time_str = f"{pool.time_slot.time:04d}"  # Format as 4-digit string (e.g., "0755")
+        
+        pool_name = f"pool-{day_name}-{week}-{direction}-{time_str}-tol{self.tolerance}"
+        return pool_name
     
     def _get_day_name(self, day_num: int) -> str:
         """
@@ -552,7 +576,8 @@ class AlgorithmService:
                     is_designated_driver=is_mandatory,
                     drives_despite_custom_prefs=False,
                     schoolbound=True,
-                    is_lonely_driver=is_lonely_schoolbound
+                    is_lonely_driver=is_lonely_schoolbound,
+                    pool_name=pool.pool_name if pool.schoolbound else None
                 )
                 
                 homebound_party = Party(
@@ -563,7 +588,8 @@ class AlgorithmService:
                     is_designated_driver=is_mandatory,
                     drives_despite_custom_prefs=False,
                     schoolbound=False,
-                    is_lonely_driver=is_lonely_homebound
+                    is_lonely_driver=is_lonely_homebound,
+                    pool_name=pool.pool_name if not pool.schoolbound else None
                 )
                 
                 # Add parties to global tracking
@@ -1258,6 +1284,8 @@ class AlgorithmService:
         parties = []
         schoolbound_times = {}
         homebound_times = {}
+        schoolbound_time_info = {}
+        homebound_time_info = {}
         
         # Collect all parties for this day
         for schoolbound_party in self.all_parties[day_num]["schoolbound"]:
@@ -1265,24 +1293,104 @@ class AlgorithmService:
             schoolbound_party.day_of_week_ab_combo = day_of_week_ab
             parties.append(schoolbound_party)
             
-            # Record times
+            # Record times for driver
             schoolbound_times[schoolbound_party.driver] = schoolbound_party.time
+            
+            # Build TimeInfo for driver (schoolbound direction)
+            driver_member = self.members[schoolbound_party.driver]
+            driver_custom = driver_member.get_custom_day(day_num)
+            driver_timetable = driver_member.timetable.get(day_num)
+            
+            timetable_time = None
+            custom_pref_time = None
+            
+            if driver_timetable:
+                timetable_time = driver_timetable.get_scheduled_start_time()
+            if driver_custom and driver_custom.custom_start:
+                custom_pref_time = int(driver_custom.custom_start.replace(':', ''))
+            
+            schoolbound_time_info[schoolbound_party.driver] = TimeInfo(
+                timetable_time=timetable_time,
+                custom_pref_time=custom_pref_time,
+                effective_time=schoolbound_party.time
+            )
+            
+            # Record times for passengers
             for passenger in schoolbound_party.passengers:
                 passenger_timetable = self.members[passenger].timetable.get(day_num)
                 if passenger_timetable:
-                    schoolbound_times[passenger] = passenger_timetable.get_start_time()
+                    passenger_time = passenger_timetable.get_start_time()
+                    schoolbound_times[passenger] = passenger_time
+                    
+                    # Build TimeInfo for passenger (schoolbound direction)
+                    passenger_member = self.members[passenger]
+                    passenger_custom = passenger_member.get_custom_day(day_num)
+                    
+                    pass_timetable_time = None
+                    pass_custom_pref_time = None
+                    
+                    if passenger_timetable:
+                        pass_timetable_time = passenger_timetable.get_scheduled_start_time()
+                    if passenger_custom and passenger_custom.custom_start:
+                        pass_custom_pref_time = int(passenger_custom.custom_start.replace(':', ''))
+                    
+                    schoolbound_time_info[passenger] = TimeInfo(
+                        timetable_time=pass_timetable_time,
+                        custom_pref_time=pass_custom_pref_time,
+                        effective_time=passenger_time
+                    )
         
         for homebound_party in self.all_parties[day_num]["homebound"]:
             homebound_party.passengers.sort()
             homebound_party.day_of_week_ab_combo = day_of_week_ab
             parties.append(homebound_party)
             
-            # Record times
+            # Record times for driver
             homebound_times[homebound_party.driver] = homebound_party.time
+            
+            # Build TimeInfo for driver (homebound direction)
+            driver_member = self.members[homebound_party.driver]
+            driver_custom = driver_member.get_custom_day(day_num)
+            driver_timetable = driver_member.timetable.get(day_num)
+            
+            timetable_time = None
+            custom_pref_time = None
+            
+            if driver_timetable:
+                timetable_time = driver_timetable.get_scheduled_end_time()
+            if driver_custom and driver_custom.custom_end:
+                custom_pref_time = int(driver_custom.custom_end.replace(':', ''))
+            
+            homebound_time_info[homebound_party.driver] = TimeInfo(
+                timetable_time=timetable_time,
+                custom_pref_time=custom_pref_time,
+                effective_time=homebound_party.time
+            )
+            
+            # Record times for passengers
             for passenger in homebound_party.passengers:
                 passenger_timetable = self.members[passenger].timetable.get(day_num)
                 if passenger_timetable:
-                    homebound_times[passenger] = passenger_timetable.get_end_time()
+                    passenger_time = passenger_timetable.get_end_time()
+                    homebound_times[passenger] = passenger_time
+                    
+                    # Build TimeInfo for passenger (homebound direction)
+                    passenger_member = self.members[passenger]
+                    passenger_custom = passenger_member.get_custom_day(day_num)
+                    
+                    pass_timetable_time = None
+                    pass_custom_pref_time = None
+                    
+                    if passenger_timetable:
+                        pass_timetable_time = passenger_timetable.get_scheduled_end_time()
+                    if passenger_custom and passenger_custom.custom_end:
+                        pass_custom_pref_time = int(passenger_custom.custom_end.replace(':', ''))
+                    
+                    homebound_time_info[passenger] = TimeInfo(
+                        timetable_time=pass_timetable_time,
+                        custom_pref_time=pass_custom_pref_time,
+                        effective_time=passenger_time
+                    )
         
         # VALIDATION 1: Check that no one is both driver and passenger
         logger.info(f"\nValidating {self._get_day_name(day_num)}...")
@@ -1431,7 +1539,9 @@ class AlgorithmService:
             day_of_week_ab_combo=day_of_week_ab,
             parties=parties,
             schoolbound_times_by_initials=schoolbound_times,
-            homebound_times_by_initials=homebound_times
+            homebound_times_by_initials=homebound_times,
+            schoolbound_time_info_by_initials=schoolbound_time_info,
+            homebound_time_info_by_initials=homebound_time_info
         )
     
     def _create_driver_pools(self, day_num: int, schoolbound: bool) -> List[DriverPool]:
@@ -1464,6 +1574,8 @@ class AlgorithmService:
                     pool.candidates.append(initials)
             
             if pool.candidates:  # Only add pools with potential drivers
+                # Generate pool name for transparency
+                pool.pool_name = self._generate_pool_name(pool)
                 pools.append(pool)
         
         return pools

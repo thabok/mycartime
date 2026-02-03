@@ -38,11 +38,18 @@ interface Transfer {
   hasTimeWarning: boolean;
 }
 
+interface SelectedMemberInfo {
+  initials: string;
+  dayPlan: DayPlan;
+  party: Party;
+}
+
 export function PlanViewer({ plan, onPlanChange, members, referenceDate }: PlanViewerProps) {
   const [weekFilter, setWeekFilter] = useState<'summary' | 'all' | 'A' | 'B'>('summary');
   const [personFilter, setPersonFilter] = useState('');
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingDayPlan, setEditingDayPlan] = useState<DayPlan | null>(null);
+  const [selectedMember, setSelectedMember] = useState<SelectedMemberInfo | null>(null);
   const { toast } = useToast();
 
   // Create lookup map: initials -> Member
@@ -60,6 +67,131 @@ export function PlanViewer({ plan, onPlanChange, members, referenceDate }: PlanV
     }
     return initials;
   }, [membersByInitials]);
+
+  // Helper function to generate schedule link
+  const getScheduleUrl = (initials: string): string | null => {
+    if (!plan.memberIdMap || !plan.scheduleUrlTemplate) {
+      return null;
+    }
+    const memberId = plan.memberIdMap[initials];
+    if (!memberId) {
+      return null;
+    }
+    // Format reference date as YYYY-MM-DD, fallback to today if not available
+    const dateToUse = referenceDate || new Date();
+    const dateStr = format(dateToUse, 'yyyy-MM-dd');
+    // Replace DATE and TEACHER_ID placeholders
+    return plan.scheduleUrlTemplate
+      .replace('DATE', dateStr)
+      .replace('TEACHER_ID', memberId);
+  };
+
+  const renderMemberInfoPane = () => {
+    if (!selectedMember) return null;
+
+    const member = membersByInitials.get(selectedMember.initials.toLowerCase());
+    if (!member) return null;
+
+    const dayCombo = selectedMember.dayPlan.dayOfWeekABCombo;
+    const dayLabel = `${DAY_NAMES[dayCombo.dayOfWeek]}, Week ${dayCombo.isWeekA ? 'A' : 'B'}`;
+    
+    const timeInfo = selectedMember.party.schoolbound
+      ? selectedMember.dayPlan.schoolboundTimeInfoByInitials?.[selectedMember.initials]
+      : selectedMember.dayPlan.homeboundTimeInfoByInitials?.[selectedMember.initials];
+
+    const scheduleUrl = getScheduleUrl(selectedMember.initials);
+
+    // Build party display text
+    const partyMembers = [selectedMember.party.driver, ...selectedMember.party.passengers];
+    const partyDisplay = partyMembers
+      .map(initials => formatPerson(initials))
+      .join(' · ');
+
+    return (
+      <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 space-y-3">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Member Details</p>
+            <p className="text-lg font-semibold">
+              {member.firstName} {member.lastName}
+              <span className="text-muted-foreground ml-2">({member.initials})</span>
+            </p>
+          </div>
+          <button
+            onClick={() => setSelectedMember(null)}
+            className="text-muted-foreground hover:text-foreground transition-colors"
+            title="Close"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="space-y-2 text-sm">
+          <p className="text-muted-foreground">
+            <span className="font-medium">Day:</span> {dayLabel}
+          </p>
+
+          <div className="space-y-1">
+            <p className="font-medium">Time Source Information</p>
+            <div className="pl-3 space-y-1 text-sm">
+              {timeInfo?.timetableTime !== null && (
+                <p className="text-muted-foreground">
+                  <span className="font-medium">Timetable:</span>{' '}
+                  {formatTime(timeInfo?.timetableTime || 0)}
+                  {scheduleUrl && (
+                    <>
+                      {' '}
+                      <a
+                        href={scheduleUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                        title="View schedule in WebUntis"
+                      >
+                        (View schedule)
+                      </a>
+                    </>
+                  )}
+                </p>
+              )}
+              {timeInfo?.customPrefTime !== null && (
+                <p className={cn(
+                  "font-medium",
+                  timeInfo?.customPrefTime === timeInfo?.effectiveTime
+                    ? "text-amber-600 dark:text-amber-400"
+                    : "text-muted-foreground"
+                )}>
+                  Custom Preference: {formatTime(timeInfo?.customPrefTime || 0)}
+                  {timeInfo?.customPrefTime === timeInfo?.effectiveTime && (
+                    <span className="ml-2 text-xs">(Used - overrides timetable)</span>
+                  )}
+                </p>
+              )}
+              <p className="font-medium">
+                Effective Time: {formatTime(timeInfo?.effectiveTime || 0)}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-1 pt-2">
+            <p className="font-medium">Party</p>
+            <p className="text-muted-foreground pl-3">
+              [{formatTime(selectedMember.party.time)}] {partyDisplay}
+            </p>
+          </div>
+
+          {selectedMember.party.poolName && (
+            <div className="space-y-1 pt-2">
+              <p className="font-medium">Pool</p>
+              <p className="text-muted-foreground pl-3 font-mono text-xs bg-muted/50 p-2 rounded">
+                {selectedMember.party.poolName}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   const filteredDayPlans = useMemo(() => {
     return Object.entries(plan.dayPlans)
@@ -165,7 +297,7 @@ export function PlanViewer({ plan, onPlanChange, members, referenceDate }: PlanV
     onPlanChange(updatedPlan);
   };
 
-  const renderPartyLine = (party: Party, filterQuery: string, isLast: boolean) => {
+  const renderPartyLine = (party: Party, dayPlan: DayPlan, filterQuery: string, isLast: boolean) => {
     const query = filterQuery.trim().toLowerCase();
     const driverMember = membersByInitials.get(party.driver.toLowerCase());
     const isDriverHighlighted = query && (
@@ -176,6 +308,7 @@ export function PlanViewer({ plan, onPlanChange, members, referenceDate }: PlanV
       ))
     );
     const driverPrefix = party.isDesignatedDriver ? '*' : '';
+    const isDriverSelected = selectedMember?.initials === party.driver && selectedMember?.party === party;
     
     const passengersFormatted = party.passengers.map(p => {
       const member = membersByInitials.get(p.toLowerCase());
@@ -187,10 +320,13 @@ export function PlanViewer({ plan, onPlanChange, members, referenceDate }: PlanV
         ))
       );
       const displayText = member ? `${member.firstName}\u00A0(${member.initials})` : p;
+      const isPassengerSelected = selectedMember?.initials === p && selectedMember?.party === party;
       
       return {
         text: displayText,
-        highlighted: isPassengerHighlighted
+        initials: p,
+        highlighted: isPassengerHighlighted,
+        selected: isPassengerSelected
       };
     });
 
@@ -201,18 +337,34 @@ export function PlanViewer({ plan, onPlanChange, members, referenceDate }: PlanV
       )} style={{ textIndent: '-7ch' }}>
         <span className="text-muted-foreground font-mono">[{formatTime(party.time)}]</span>
         {' '}
-        <span className={cn("font-semibold", isDriverHighlighted && "text-primary")}>
+        <button
+          onClick={() => setSelectedMember({ initials: party.driver, dayPlan, party })}
+          className={cn(
+            "font-semibold cursor-pointer transition-all",
+            isDriverHighlighted && "text-primary",
+            isDriverSelected && "text-primary font-bold underline",
+            "hover:text-primary hover:font-bold"
+          )}
+        >
           {driverPrefix}{formatPerson(party.driver)}
-        </span>
+        </button>
         {passengersFormatted.length > 0 && (
           <span className="text-muted-foreground">
             {' · '}
             {passengersFormatted.map((p, idx) => (
               <span key={idx}>
                 {idx > 0 && ' · '}
-                <span className={cn(p.highlighted && "font-semibold text-primary")}>
+                <button
+                  onClick={() => setSelectedMember({ initials: p.initials, dayPlan, party })}
+                  className={cn(
+                    "cursor-pointer transition-all",
+                    p.highlighted && "text-primary font-semibold",
+                    p.selected && "text-primary font-bold underline",
+                    "hover:text-primary hover:font-bold"
+                  )}
+                >
                   {p.text}
-                </span>
+                </button>
               </span>
             ))}
           </span>
@@ -230,8 +382,12 @@ export function PlanViewer({ plan, onPlanChange, members, referenceDate }: PlanV
       .filter(p => p.schoolbound === false)
       .sort((a, b) => a.time - b.time);
     
+    // Check if selected member belongs to this day
+    const isSelectedDayPlan = selectedMember?.dayPlan.dayOfWeekABCombo.uniqueNumber === dayPlan.dayOfWeekABCombo.uniqueNumber;
+    
     return (
-      <tr key={dayKey} className="group border-b border-border/50 hover:bg-muted/30 transition-colors">
+      <>
+        <tr key={dayKey} className="group border-b border-border/50 hover:bg-muted/30 transition-colors">
         <td className="py-1.5 px-4 align-top whitespace-nowrap font-medium">
           <div>
             {DAY_NAMES[dayOfWeekABCombo.dayOfWeek]}
@@ -243,7 +399,7 @@ export function PlanViewer({ plan, onPlanChange, members, referenceDate }: PlanV
         <td className="py-1.5 px-4 align-top">
           {schoolboundParties.length > 0 ? (
             <div>
-              {schoolboundParties.map((party, idx) => renderPartyLine(party, personFilter, idx === schoolboundParties.length - 1))}
+              {schoolboundParties.map((party, idx) => renderPartyLine(party, dayPlan, personFilter, idx === schoolboundParties.length - 1))}
             </div>
           ) : (
             <span className="text-muted-foreground text-sm">—</span>
@@ -252,7 +408,7 @@ export function PlanViewer({ plan, onPlanChange, members, referenceDate }: PlanV
         <td className="py-1.5 px-4 align-top">
           {homeboundParties.length > 0 ? (
             <div>
-              {homeboundParties.map((party, idx) => renderPartyLine(party, personFilter, idx === homeboundParties.length - 1))}
+              {homeboundParties.map((party, idx) => renderPartyLine(party, dayPlan, personFilter, idx === homeboundParties.length - 1))}
             </div>
           ) : (
             <span className="text-muted-foreground text-sm">—</span>
@@ -268,6 +424,14 @@ export function PlanViewer({ plan, onPlanChange, members, referenceDate }: PlanV
           </button>
         </td>
       </tr>
+      {isSelectedDayPlan && selectedMember && (
+        <tr key={`info-${dayKey}`}>
+          <td colSpan={4} className="bg-primary/5 border-b border-border/50 p-4">
+            {renderMemberInfoPane()}
+          </td>
+        </tr>
+      )}
+      </>
     );
   };
 

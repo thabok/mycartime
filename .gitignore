@@ -42,3 +42,4 @@ testdata/request.json
 **/*.pyc
 **/*.egg-info/
 **/legacycode/
+**/dist
