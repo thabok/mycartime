@@ -13,13 +13,6 @@ const Index = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('members');
   const [referenceDate, setReferenceDate] = useState<Date | undefined>();
 
-  // Navigate to members page when plan is discarded
-  useEffect(() => {
-    if (!plan) {
-      setViewMode('members');
-    }
-  }, [plan]);
-
   const handleViewPlan = () => {
     setViewMode('plan');
   };

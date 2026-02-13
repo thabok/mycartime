@@ -33,6 +33,7 @@ export interface Party {
   drivesDespiteCustomPrefs: boolean;
   schoolbound: boolean;
   poolName?: string;
+  creationPhase?: number;
 }
 
 export interface TimeInfo {

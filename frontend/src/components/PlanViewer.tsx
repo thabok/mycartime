@@ -30,6 +30,22 @@ const formatTime = (time: number): string => {
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
 };
 
+const formatCreationPhase = (phase: number ): string => {
+  let reason: string;
+  switch (phase) {
+    case 2:
+        reason = "Initial driver selection";
+        break;
+    case 3:
+        reason = "Rebalancing to fix over-driving members";
+        break;
+    case 4:
+        reason = "Adding additional underutilized drivers to reduce overcrowding";
+        break;
+  }
+  return `Phase ${phase}: ${reason}`;
+};
+
 interface Transfer {
   id: string;
   passenger: string;
@@ -102,10 +118,7 @@ export function PlanViewer({ plan, onPlanChange, members, referenceDate }: PlanV
     const scheduleUrl = getScheduleUrl(selectedMember.initials);
 
     // Build party display text
-    const partyMembers = [selectedMember.party.driver, ...selectedMember.party.passengers];
-    const partyDisplay = partyMembers
-      .map(initials => formatPerson(initials))
-      .join(' · ');
+    const passengerDisplay = (selectedMember.party.passengers.length > 0 ? ' · ' : '') + selectedMember.party.passengers.map(initials => formatPerson(initials)).join(' · ');
 
     return (
       <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 space-y-3">
@@ -137,7 +150,7 @@ export function PlanViewer({ plan, onPlanChange, members, referenceDate }: PlanV
               {timeInfo?.timetableTime !== null && (
                 <p className="text-muted-foreground">
                   <span className="font-medium">Timetable:</span>{' '}
-                  {formatTime(timeInfo?.timetableTime || 0)}
+                  {formatTime(timeInfo?.timetableTime || 0)}h
                   {scheduleUrl && (
                     <>
                       {' '}
@@ -161,14 +174,14 @@ export function PlanViewer({ plan, onPlanChange, members, referenceDate }: PlanV
                     ? "text-amber-600 dark:text-amber-400"
                     : "text-muted-foreground"
                 )}>
-                  Custom Preference: {formatTime(timeInfo?.customPrefTime || 0)}
+                  Custom Preference: {formatTime(timeInfo?.customPrefTime || 0)}h
                   {timeInfo?.customPrefTime === timeInfo?.effectiveTime && (
                     <span className="ml-2 text-xs">(Used - overrides timetable)</span>
                   )}
                 </p>
               )}
               <p className="font-medium">
-                Effective Time: {formatTime(timeInfo?.effectiveTime || 0)}
+                Effective Time: {formatTime(timeInfo?.effectiveTime || 0)}h
               </p>
             </div>
           </div>
@@ -176,18 +189,23 @@ export function PlanViewer({ plan, onPlanChange, members, referenceDate }: PlanV
           <div className="space-y-1 pt-2">
             <p className="font-medium">Party</p>
             <p className="text-muted-foreground pl-3">
-              [{formatTime(selectedMember.party.time)}] {partyDisplay}
+              [{formatTime(selectedMember.party.time)}] <span className="font-bold">{formatPerson(selectedMember.party.driver)}</span> {passengerDisplay}
             </p>
+            {selectedMember.party.creationPhase && (
+              <p className="text-xs text-muted-foreground pl-3">
+                Created in {formatCreationPhase(selectedMember.party.creationPhase)}
+              </p>
+            )}
           </div>
 
-          {selectedMember.party.poolName && (
+          {/* {selectedMember.party.poolName && (
             <div className="space-y-1 pt-2">
               <p className="font-medium">Pool</p>
               <p className="text-muted-foreground pl-3 font-mono text-xs bg-muted/50 p-2 rounded">
                 {selectedMember.party.poolName}
               </p>
             </div>
-          )}
+          )} */}
         </div>
       </div>
     );

@@ -188,8 +188,6 @@ class TimetableService:
                 if custom_day:
                     if custom_day.ignore_completely:
                         timetable.is_present = False
-                    elif custom_day.skip_morning and custom_day.skip_afternoon:
-                        timetable.is_present = False
                     else:
                         # Apply custom start/end times
                         if custom_day.custom_start:

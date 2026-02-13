@@ -299,8 +299,8 @@ class AlgorithmService:
                         continue
                     
                     # Check for lonely driver flags
-                    is_lonely_schoolbound = member.skip_morning_on_day(day_num)
-                    is_lonely_homebound = member.skip_afternoon_on_day(day_num)
+                    is_lonely_schoolbound = member.solo_am_on_day(day_num)
+                    is_lonely_homebound = member.solo_pm_on_day(day_num)
                     
                     # Create parties for both directions
                     schoolbound_party = Party(
@@ -311,7 +311,8 @@ class AlgorithmService:
                         is_designated_driver=True,  # needsCar makes them designated
                         drives_despite_custom_prefs=False,
                         schoolbound=True,
-                        is_lonely_driver=is_lonely_schoolbound
+                        is_lonely_driver=is_lonely_schoolbound,
+                        creation_phase=2
                     )
                     
                     homebound_party = Party(
@@ -322,7 +323,8 @@ class AlgorithmService:
                         is_designated_driver=True,  # needsCar makes them designated
                         drives_despite_custom_prefs=False,
                         schoolbound=False,
-                        is_lonely_driver=is_lonely_homebound
+                        is_lonely_driver=is_lonely_homebound,
+                        creation_phase=2
                     )
                     
                     # Add to global tracking
@@ -393,7 +395,7 @@ class AlgorithmService:
                         continue
                     
                     # Create parties for both directions
-                    is_lonely_schoolbound = member.skip_morning_on_day(day_num)
+                    is_lonely_schoolbound = member.solo_am_on_day(day_num)
                     
                     schoolbound_party = Party(
                         day_of_week_ab_combo=None,
@@ -403,7 +405,8 @@ class AlgorithmService:
                         is_designated_driver=True,  # noWaitingAfternoon makes them designated
                         drives_despite_custom_prefs=False,
                         schoolbound=True,
-                        is_lonely_driver=is_lonely_schoolbound
+                        is_lonely_driver=is_lonely_schoolbound,
+                        creation_phase=2
                     )
                     
                     homebound_party = Party(
@@ -414,7 +417,8 @@ class AlgorithmService:
                         is_designated_driver=True,  # noWaitingAfternoon makes them designated
                         drives_despite_custom_prefs=False,
                         schoolbound=False,
-                        is_lonely_driver=False  # Can take passengers homebound
+                        is_lonely_driver=False,  # Can take passengers homebound
+                        creation_phase=2
                     )
                     
                     # Add to global tracking
@@ -514,8 +518,8 @@ class AlgorithmService:
                 driver_capacity = self.members[driver].number_of_seats - 1
                 
                 # If this driver has skipMorning/skipAfternoon, they won't contribute to capacity
-                is_lonely_schoolbound = self.members[driver].skip_morning_on_day(day_num)
-                is_lonely_homebound = self.members[driver].skip_afternoon_on_day(day_num)
+                is_lonely_schoolbound = self.members[driver].solo_am_on_day(day_num)
+                is_lonely_homebound = self.members[driver].solo_pm_on_day(day_num)
                 
                 # Only count capacity for non-lonely drivers in the relevant direction
                 if pool.schoolbound and not is_lonely_schoolbound:
@@ -563,9 +567,9 @@ class AlgorithmService:
                 
                 is_mandatory = len(pool.candidates) == 1
                 
-                # Check for lonely driver flags (skipMorning/skipAfternoon)
-                is_lonely_schoolbound = self.members[driver].skip_morning_on_day(day_num)
-                is_lonely_homebound = self.members[driver].skip_afternoon_on_day(day_num)
+                # Check for lonely driver flags (soloAm/soloPm)
+                is_lonely_schoolbound = self.members[driver].solo_am_on_day(day_num)
+                is_lonely_homebound = self.members[driver].solo_pm_on_day(day_num)
                 
                 # Create TWO parties for this driver (both directions)
                 schoolbound_party = Party(
@@ -577,7 +581,8 @@ class AlgorithmService:
                     drives_despite_custom_prefs=False,
                     schoolbound=True,
                     is_lonely_driver=is_lonely_schoolbound,
-                    pool_name=pool.pool_name if pool.schoolbound else None
+                    pool_name=pool.pool_name if pool.schoolbound else None,
+                    creation_phase=2
                 )
                 
                 homebound_party = Party(
@@ -589,7 +594,8 @@ class AlgorithmService:
                     drives_despite_custom_prefs=False,
                     schoolbound=False,
                     is_lonely_driver=is_lonely_homebound,
-                    pool_name=pool.pool_name if not pool.schoolbound else None
+                    pool_name=pool.pool_name if not pool.schoolbound else None,
+                    creation_phase=2
                 )
                 
                 # Add parties to global tracking
@@ -849,8 +855,8 @@ class AlgorithmService:
                         # Add savior's capacity
                         savior_capacity = self.members[savior_initials].number_of_seats - 1
                         is_savior_lonely = (
-                            savior.skip_morning_on_day(day_num) if check_schoolbound 
-                            else savior.skip_afternoon_on_day(day_num)
+                            savior.solo_am_on_day(day_num) if check_schoolbound 
+                            else savior.solo_pm_on_day(day_num)
                         )
                         if not is_savior_lonely:
                             remaining_capacity += savior_capacity
@@ -882,7 +888,8 @@ class AlgorithmService:
                         is_designated_driver=False,
                         drives_despite_custom_prefs=False,
                         schoolbound=True,
-                        is_lonely_driver=savior.skip_morning_on_day(day_num)
+                        is_lonely_driver=savior.solo_am_on_day(day_num),
+                        creation_phase=3
                     )
                     
                     new_homebound_party = Party(
@@ -893,7 +900,8 @@ class AlgorithmService:
                         is_designated_driver=False,
                         drives_despite_custom_prefs=False,
                         schoolbound=False,
-                        is_lonely_driver=savior.skip_afternoon_on_day(day_num)
+                        is_lonely_driver=savior.solo_pm_on_day(day_num),
+                        creation_phase=3
                     )
                     
                     # All checks passed - commit the changes
@@ -951,136 +959,141 @@ class AlgorithmService:
         logger.info(f"Found {len(underutilized_members)} members with fewer than max_drives drives")
         
         for initials, member in underutilized_members:
-            # Find days when this member is not driving
-            non_driving_days = [day_num for day_num in range(10) if day_num not in member.driving_days]
-            
-            if not non_driving_days:
-                logger.info(f"  {member.first_name} ({initials}) has {member.drive_count} drives but is already driving on all available days")
-                continue
-            
-            # Check each non-driving day to see if we can help
-            helped_any_day = False
-            
-            for day_num in non_driving_days:
-                # Check if member should be ignored this day
-                if member.should_ignore_on_day(day_num):
-                    continue
+            # Keep adding parties while this member hasn't reached their max_drives limit
+            while member.drive_count < member.max_drives:
+                # Find days when this member is not driving
+                non_driving_days = [day_num for day_num in range(10) if day_num not in member.driving_days]
                 
-                # Check if member can drive this day
-                if not member.can_drive_on_day(day_num):
-                    continue
+                if not non_driving_days:
+                    logger.info(f"  {member.first_name} ({initials}) has {member.drive_count} drives but is already driving on all available days")
+                    break
                 
-                # Check both directions for high capacity pools
-                for direction_key in ["schoolbound", "homebound"]:
-                    schoolbound = (direction_key == "schoolbound")
-                    
-                    # Find pools for this day/direction that contain this member
-                    matching_pools = [
-                        pool for pool in all_pools
-                        if (pool.day_num == day_num and 
-                            pool.schoolbound == schoolbound and
-                            initials in pool.time_slot.members)
-                    ]
-                    
-                    if not matching_pools:
+                # Check each non-driving day to see if we can help
+                # Collect pool scores across ALL days and directions to find the single most constrained pool
+                all_pool_scores = []
+                
+                for day_num in non_driving_days:
+                    # Check if member can drive this day
+                    if not member.can_drive_on_day(day_num):
                         continue
                     
-                    # For each matching pool, check if it's at high capacity
-                    for pool in matching_pools:
-                        # Get existing parties for this pool
-                        parties = self.all_parties[day_num][direction_key]
+                    # Check both directions for high capacity pools
+                    for direction_key in ["schoolbound", "homebound"]:
+                        schoolbound = (direction_key == "schoolbound")
                         
-                        # Filter parties that are within time tolerance of this pool
-                        relevant_parties = [
-                            p for p in parties
-                            if times_within_tolerance(p.time, pool.time_slot.time, self.tolerance)
+                        # Find pools for this day/direction that contain this member
+                        matching_pools = [
+                            pool for pool in all_pools
+                            if (pool.day_num == day_num and 
+                                pool.schoolbound == schoolbound and
+                                initials in pool.time_slot.members)
                         ]
                         
-                        if not relevant_parties:
+                        if not matching_pools:
                             continue
                         
-                        # Calculate total capacity and required seats
-                        total_capacity = sum(
-                            self.members[p.driver].number_of_seats - 1
-                            for p in relevant_parties
-                        )
-                        required_seats = len(pool.time_slot.members) - len(relevant_parties)  # Exclude drivers
-                        
-                        # Check if we're at high capacity (capacity is close to or equal to required)
-                        # Define "high capacity" as having 0-2 spare seats
-                        spare_seats = total_capacity - required_seats
-                        
-                        if 0 <= spare_seats <= 2:
-                            # This pool is at high capacity - add this member as driver
-                            logger.info(f"  {self._get_day_name(day_num)}, {direction_key}: High capacity detected")
-                            logger.info(f"    Pool time: {pool.time_slot.time}, {len(pool.time_slot.members)} members")
-                            logger.info(f"    Current capacity: {total_capacity} seats, required: {required_seats}, spare: {spare_seats}")
-                            logger.info(f"    Adding {member.first_name} ({initials}) as additional driver")
+                        # For each matching pool, calculate free seats ratio
+                        for pool in matching_pools:
+                            # Get existing parties for this pool
+                            parties = self.all_parties[day_num][direction_key]
                             
-                            # Get member's times for both directions
-                            member_custom = member.get_custom_day(day_num)
+                            # Filter parties that are within time tolerance of this pool
+                            relevant_parties = [
+                                p for p in parties
+                                if times_within_tolerance(p.time, pool.time_slot.time, self.tolerance)
+                            ]
                             
-                            # Get schoolbound time
-                            member_schoolbound_time = None
-                            if member_custom and member_custom.custom_start:
-                                member_schoolbound_time = int(member_custom.custom_start.replace(':', ''))
-                            elif member.timetable and day_num in member.timetable:
-                                member_schoolbound_time = member.timetable[day_num].get_start_time()
-                            
-                            # Get homebound time
-                            member_homebound_time = None
-                            if member_custom and member_custom.custom_end:
-                                member_homebound_time = int(member_custom.custom_end.replace(':', ''))
-                            elif member.timetable and day_num in member.timetable:
-                                member_homebound_time = member.timetable[day_num].get_end_time()
-                            
-                            if member_schoolbound_time is None or member_homebound_time is None:
-                                logger.info(f"    Cannot add {initials}: No valid times")
+                            if not relevant_parties:
                                 continue
                             
-                            # Create new parties for both directions
-                            new_schoolbound_party = Party(
-                                day_of_week_ab_combo=None,
-                                driver=initials,
-                                time=member_schoolbound_time,
-                                passengers=[],
-                                is_designated_driver=False,
-                                drives_despite_custom_prefs=False,
-                                schoolbound=True
+                            # Calculate available and required capacity
+                            # Available Capacity: Sum of number of seats for each party
+                            available_capacity = sum(
+                                self.members[p.driver].number_of_seats
+                                for p in relevant_parties
                             )
                             
-                            new_homebound_party = Party(
-                                day_of_week_ab_combo=None,
-                                driver=initials,
-                                time=member_homebound_time,
-                                passengers=[],
-                                is_designated_driver=False,
-                                drives_despite_custom_prefs=False,
-                                schoolbound=False
-                            )
+                            # Required Capacity: Total number of people in the pool
+                            required_capacity = len(pool.time_slot.members)
                             
-                            # Add parties
-                            self.all_parties[day_num]["schoolbound"].append(new_schoolbound_party)
-                            self.all_parties[day_num]["homebound"].append(new_homebound_party)
+                            # Free Seats: Available minus Required
+                            free_seats = available_capacity - required_capacity
                             
-                            # Update drive counts
-                            member.drive_count += 1
-                            member.driving_days.add(day_num)
+                            # Free Seats Ratio: Free Seats / Available Capacity
+                            if available_capacity > 0:
+                                free_seats_ratio = free_seats / available_capacity
+                            else:
+                                free_seats_ratio = 1.0  # Skip pools with no capacity
                             
-                            logger.info(f"    ✓ Added parties for {initials} (now has {member.drive_count} drives)")
-                            helped_any_day = True
-                            
-                            # Only add one additional driving day per member per phase
-                            break
-                    
-                    if helped_any_day:
-                        break
+                            all_pool_scores.append((free_seats_ratio, free_seats, pool, available_capacity, required_capacity, day_num, direction_key))
                 
-                if helped_any_day:
+                if not all_pool_scores:
+                    logger.info(f"  {member.first_name} ({initials}) has {member.drive_count} drives but there are no days on which they can help reduce the pressure from packed parties")
                     break
-            
-            if not helped_any_day and non_driving_days:
-                logger.info(f"  {member.first_name} ({initials}) has only {member.drive_count} drives but there are no days on which they can help reduce the pressure from packed parties")
+                
+                # Find the pool with the minimal free seats ratio (most constrained) across ALL days and directions
+                all_pool_scores.sort(key=lambda x: x[0])  # Sort by free_seats_ratio only
+                lowest_ratio, lowest_free_seats, best_pool, available_capacity, required_capacity, best_day_num, best_direction_key = all_pool_scores[0]
+                
+                # This pool would benefit most from an additional driver
+                logger.info(f"  {self._get_day_name(best_day_num)}, {best_direction_key}: Pool at high capacity detected")
+                logger.info(f"    Pool time: {best_pool.time_slot.time}, {required_capacity} members")
+                logger.info(f"    Available capacity: {available_capacity} seats, free seats ratio: {lowest_ratio:.2%}, free seats: {lowest_free_seats}")
+                logger.info(f"    Adding {member.first_name} ({initials}) as additional driver to pool with minimal ratio")
+                
+                # Get member's times for both directions
+                member_custom = member.get_custom_day(best_day_num)
+                
+                # Get schoolbound time
+                member_schoolbound_time = None
+                if member_custom and member_custom.custom_start:
+                    member_schoolbound_time = int(member_custom.custom_start.replace(':', ''))
+                elif member.timetable and best_day_num in member.timetable:
+                    member_schoolbound_time = member.timetable[best_day_num].get_start_time()
+                
+                # Get homebound time
+                member_homebound_time = None
+                if member_custom and member_custom.custom_end:
+                    member_homebound_time = int(member_custom.custom_end.replace(':', ''))
+                elif member.timetable and best_day_num in member.timetable:
+                    member_homebound_time = member.timetable[best_day_num].get_end_time()
+                
+                if member_schoolbound_time is None or member_homebound_time is None:
+                    logger.info(f"    Cannot add {initials}: No valid times, stopping additional parties for this member")
+                    break
+                
+                # Create new parties for both directions
+                new_schoolbound_party = Party(
+                    day_of_week_ab_combo=None,
+                    driver=initials,
+                    time=member_schoolbound_time,
+                    passengers=[],
+                    is_designated_driver=False,
+                    drives_despite_custom_prefs=False,
+                    schoolbound=True,
+                    creation_phase=4
+                )
+                
+                new_homebound_party = Party(
+                    day_of_week_ab_combo=None,
+                    driver=initials,
+                    time=member_homebound_time,
+                    passengers=[],
+                    is_designated_driver=False,
+                    drives_despite_custom_prefs=False,
+                    schoolbound=False,
+                    creation_phase=4
+                )
+                
+                # Add parties
+                self.all_parties[best_day_num]["schoolbound"].append(new_schoolbound_party)
+                self.all_parties[best_day_num]["homebound"].append(new_homebound_party)
+                
+                # Update drive counts
+                member.drive_count += 1
+                member.driving_days.add(best_day_num)
+                
+                logger.info(f"    ✓ Added parties for {initials} (now has {member.drive_count} drives)")
     
     # Okay if unused - for debugging (can be used on demand)
     def _dump_plan_state(self, filename: str) -> None:
@@ -1466,17 +1479,17 @@ class AlgorithmService:
             # No additional check needed since they're already a driver
             
             # Skip AM: schoolbound party must have 0 passengers
-            if party.schoolbound and member.skip_morning_on_day(day_num):
+            if party.schoolbound and member.solo_am_on_day(day_num):
                 if len(party.passengers) > 0:
                     custom_validation_errors.append(
-                        f"{driver} has skipMorning but schoolbound party has {len(party.passengers)} passengers"
+                        f"{driver} has soloAm but schoolbound party has {len(party.passengers)} passengers"
                     )
             
             # Skip PM: homebound party must have 0 passengers
-            if not party.schoolbound and member.skip_afternoon_on_day(day_num):
+            if not party.schoolbound and member.solo_pm_on_day(day_num):
                 if len(party.passengers) > 0:
                     custom_validation_errors.append(
-                        f"{driver} has skipAfternoon but homebound party has {len(party.passengers)} passengers"
+                        f"{driver} has soloPm but homebound party has {len(party.passengers)} passengers"
                     )
             
             # No Wait PM: homebound party time must exactly match driver's end time

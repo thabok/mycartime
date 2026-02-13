@@ -38,8 +38,8 @@ class CustomDay:
     no_waiting_afternoon: bool = False
     needs_car: bool = False
     driving_skip: bool = False
-    skip_morning: bool = False
-    skip_afternoon: bool = False
+    solo_am: bool = False  # Member drives alone on schoolbound journey
+    solo_pm: bool = False  # Member drives alone on homebound journey
     custom_start: Optional[str] = None  # HH:MM format
     custom_end: Optional[str] = None    # HH:MM format
 
@@ -51,8 +51,8 @@ class CustomDay:
             no_waiting_afternoon=data.get('noWaitingAfternoon', False),
             needs_car=data.get('needsCar', False),
             driving_skip=data.get('drivingSkip', False),
-            skip_morning=data.get('skipMorning', False),
-            skip_afternoon=data.get('skipAfternoon', False),
+            solo_am=data.get('soloAm', False),
+            solo_pm=data.get('soloPm', False),
             custom_start=data.get('customStart') or None,
             custom_end=data.get('customEnd') or None
         )
@@ -125,15 +125,15 @@ class Member:
         custom = self.get_custom_day(day_num)
         return custom.needs_car if custom else False
     
-    def skip_morning_on_day(self, day_num: int) -> bool:
-        """Check if member skips morning (schoolbound) on a specific day."""
+    def solo_am_on_day(self, day_num: int) -> bool:
+        """Check if member drives alone on schoolbound journey on a specific day."""
         custom = self.get_custom_day(day_num)
-        return custom.skip_morning if custom else False
+        return custom.solo_am if custom else False
     
-    def skip_afternoon_on_day(self, day_num: int) -> bool:
-        """Check if member skips afternoon (homebound) on a specific day."""
+    def solo_pm_on_day(self, day_num: int) -> bool:
+        """Check if member drives alone on homebound journey on a specific day."""
         custom = self.get_custom_day(day_num)
-        return custom.skip_afternoon if custom else False
+        return custom.solo_pm if custom else False
     
     def no_waiting_afternoon_on_day(self, day_num: int) -> bool:
         """Check if member has no waiting afternoon on a specific day."""
@@ -166,17 +166,17 @@ class Member:
         if custom.needs_car and custom.driving_skip:
             errors.append(f"Day {day_num}: needsCar and drivingSkip are mutually exclusive")
         
-        # skipMorning requires needsCar
-        if custom.skip_morning and not custom.needs_car:
-            errors.append(f"Day {day_num}: skipMorning requires needsCar to be true")
+        # soloAm requires needsCar
+        if custom.solo_am and not custom.needs_car:
+            errors.append(f"Day {day_num}: soloAm requires needsCar to be true")
         
-        # skipAfternoon requires needsCar
-        if custom.skip_afternoon and not custom.needs_car:
-            errors.append(f"Day {day_num}: skipAfternoon requires needsCar to be true")
+        # soloPm requires needsCar
+        if custom.solo_pm and not custom.needs_car:
+            errors.append(f"Day {day_num}: soloPm requires needsCar to be true")
         
-        # noWaitingAfternoon is mutually exclusive with skipAfternoon
-        if custom.no_waiting_afternoon and custom.skip_afternoon:
-            errors.append(f"Day {day_num}: noWaitingAfternoon and skipAfternoon are mutually exclusive")
+        # noWaitingAfternoon is mutually exclusive with soloPm
+        if custom.no_waiting_afternoon and custom.solo_pm:
+            errors.append(f"Day {day_num}: noWaitingAfternoon and soloPm are mutually exclusive")
         
         return errors
     
@@ -231,6 +231,7 @@ class Party:
     schoolbound: bool
     is_lonely_driver: bool = False  # True if driver has skipMorning/skipAfternoon
     pool_name: Optional[str] = None  # Unique pool identifier (e.g. "pool-mon-a-schoolbound-755-tol30")
+    creation_phase: Optional[int] = None  # Phase in which this party was created (2, 3, or 4)
     
     def to_dict(self) -> dict:
         """Convert to dictionary."""
@@ -246,6 +247,8 @@ class Party:
         }
         if self.pool_name:
             result['poolName'] = self.pool_name
+        if self.creation_phase is not None:
+            result['creationPhase'] = self.creation_phase
         return result
 
 
