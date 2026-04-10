@@ -304,7 +304,7 @@ export function MemberDialog({ open, onOpenChange, member, onSave, initialTab = 
                           </label>
                           <label className="flex items-center gap-1.5 cursor-pointer">
                             <Checkbox checked={day.drivingSkip} onCheckedChange={(checked) => updateCustomDay(dayKey, 'drivingSkip', !!checked)} className="h-3.5 w-3.5" />
-                            Skip driving
+                            No car
                           </label>
                           <label className="flex items-center gap-1.5 cursor-pointer">
                             <Checkbox checked={day.noWaitingAfternoon} onCheckedChange={(checked) => updateCustomDay(dayKey, 'noWaitingAfternoon', !!checked)} className="h-3.5 w-3.5" />

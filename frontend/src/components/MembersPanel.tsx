@@ -6,6 +6,13 @@ import { MemberDialog } from './MemberDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -22,10 +29,82 @@ import {
   List, 
   Download, 
   Upload,
+  ListChecks,
   Users,
   CalendarDays
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+
+const WEEKDAY_LABELS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+
+const isExplicitCustomDay = (day: CustomDay) => {
+  return !!(
+    day.ignoreCompletely ||
+    day.noWaitingAfternoon ||
+    day.needsCar ||
+    day.drivingSkip ||
+    day.skipMorning ||
+    day.skipAfternoon ||
+    day.customStart ||
+    day.customEnd
+  );
+};
+
+const summarizeCustomDay = (day: CustomDay) => {
+  if (day.ignoreCompletely) return 'Skip';
+
+  const labels: string[] = [];
+  const hasSoloSegment = day.skipMorning || day.skipAfternoon;
+
+  if (day.needsCar && !hasSoloSegment) labels.push('Needs car');
+  if (day.drivingSkip) labels.push('No car');
+  if (day.skipMorning) labels.push('Solo AM');
+  if (day.skipAfternoon) labels.push('Solo PM');
+  if (day.noWaitingAfternoon) labels.push('No wait PM');
+  if (day.customStart) labels.push(`Start ${day.customStart}`);
+  if (day.customEnd) labels.push(`End ${day.customEnd}`);
+  return labels.join(', ');
+};
+
+const buildMemberCustomPrefLines = (member: Member) => {
+  if (!member.customDays) return [];
+
+  const byWeekday = new Map<number, { a?: string; b?: string }>();
+
+  for (const [dayKey, day] of Object.entries(member.customDays)) {
+    if (!isExplicitCustomDay(day)) continue;
+
+    const numericKey = Number(dayKey);
+    if (!Number.isInteger(numericKey) || numericKey < 0 || numericKey > 9) continue;
+
+    const weekdayIndex = numericKey % 5;
+    const week = numericKey < 5 ? 'a' : 'b';
+    const summary = summarizeCustomDay(day);
+    if (!summary) continue;
+
+    const current = byWeekday.get(weekdayIndex) ?? {};
+    current[week] = summary;
+    byWeekday.set(weekdayIndex, current);
+  }
+
+  const lines: string[] = [];
+
+  for (let weekdayIndex = 0; weekdayIndex < 5; weekdayIndex += 1) {
+    const entry = byWeekday.get(weekdayIndex);
+    if (!entry) continue;
+
+    const dayLabel = WEEKDAY_LABELS[weekdayIndex];
+    if (entry.a && entry.b && entry.a === entry.b) {
+      lines.push(`${dayLabel} (A+B): ${entry.a}`);
+      continue;
+    }
+
+    if (entry.a) lines.push(`${dayLabel} (A): ${entry.a}`);
+    if (entry.b) lines.push(`${dayLabel} (B): ${entry.b}`);
+  }
+
+  return lines;
+};
 
 interface MembersPanelProps {
   members: Member[];
@@ -38,6 +117,7 @@ export function MembersPanel({ members, onMembersChange, hasPlan, onNavigateToPl
   const [viewMode, setViewMode] = useState<MemberViewMode>('card');
   const [searchQuery, setSearchQuery] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [customPrefsOpen, setCustomPrefsOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [deletingMember, setDeletingMember] = useState<Member | null>(null);
   const [dialogInitialTab, setDialogInitialTab] = useState<'basic' | 'custom'>('basic');
@@ -61,6 +141,18 @@ const sortMembers = (membersList: Member[]) => {
       m.initials.toLowerCase().includes(q)
     );
   }, [members, searchQuery]);
+
+  const membersWithCustomPrefs = useMemo(() => {
+    return members
+      .map((member) => {
+        const lines = buildMemberCustomPrefLines(member);
+        return {
+          member,
+          lines,
+        };
+      })
+      .filter((item) => item.lines.length > 0);
+  }, [members]);
 
   const handleAddMember = () => {
     setEditingMember(null);
@@ -209,13 +301,15 @@ const sortMembers = (membersList: Member[]) => {
             </Button>
           </div>
           
-          <Button variant="outline" size="sm" onClick={handleImport}>
-            <Upload className="h-4 w-4 mr-2" />
-            Import
+          <Button variant="outline" size="icon" onClick={handleImport} aria-label="Import" title="Import">
+            <Upload className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm" onClick={handleExport} disabled={members.length === 0}>
-            <Download className="h-4 w-4 mr-2" />
-            Export
+          <Button variant="outline" size="icon" onClick={handleExport} disabled={members.length === 0} aria-label="Export" title="Export">
+            <Download className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setCustomPrefsOpen(true)}>
+            <ListChecks className="h-4 w-4 mr-2" />
+            Custom Prefs
           </Button>
           <Button onClick={handleAddMember}>
             <Plus className="h-4 w-4 mr-2" />
@@ -285,6 +379,40 @@ const sortMembers = (membersList: Member[]) => {
         onSave={handleSaveMember}
         initialTab={dialogInitialTab}
       />
+
+      <Dialog open={customPrefsOpen} onOpenChange={setCustomPrefsOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Custom Preferences Overview</DialogTitle>
+            <DialogDescription>
+              Overview of all members with explicit custom preferences.
+            </DialogDescription>
+          </DialogHeader>
+
+          {membersWithCustomPrefs.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No explicit custom preferences found.
+            </p>
+          ) : (
+            <div className="max-h-[60vh] overflow-y-auto pr-1 space-y-1.5">
+              {membersWithCustomPrefs.map(({ member, lines }) => (
+                <div key={member.initials} className="rounded-lg border border-border p-2">
+                  <div className="grid grid-cols-[minmax(140px,220px)_1fr] gap-x-12 items-start">
+                    <p className="font-medium text-sm leading-6">{member.firstName} {member.lastName}</p>
+                    <div className="space-y-0.2">
+                    {lines.map((line) => (
+                      <p key={`${member.initials}-${line}`} className="text-sm text-muted-foreground">
+                        {line}
+                      </p>
+                    ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={!!deletingMember} onOpenChange={() => setDeletingMember(null)}>
         <AlertDialogContent>
