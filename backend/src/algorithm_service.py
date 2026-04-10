@@ -1033,11 +1033,11 @@ class AlgorithmService:
                 
                 # Find the pool with the minimal free seats ratio (most constrained) across ALL days and directions
                 all_pool_scores.sort(key=lambda x: x[0])  # Sort by free_seats_ratio only
-                lowest_ratio, lowest_free_seats, best_pool, available_capacity, required_capacity, best_day_num, best_direction_key = all_pool_scores[0]
+                lowest_ratio, lowest_free_seats, tightest_pool, available_capacity, required_capacity, best_day_num, best_direction_key = all_pool_scores[0]
                 
                 # This pool would benefit most from an additional driver
                 logger.info(f"  {self._get_day_name(best_day_num)}, {best_direction_key}: Pool at high capacity detected")
-                logger.info(f"    Pool time: {best_pool.time_slot.time}, {required_capacity} members")
+                logger.info(f"    Pool time: {tightest_pool.time_slot.time}, {required_capacity} members")
                 logger.info(f"    Available capacity: {available_capacity} seats, free seats ratio: {lowest_ratio:.2%}, free seats: {lowest_free_seats}")
                 logger.info(f"    Adding {member.first_name} ({initials}) as additional driver to pool with minimal ratio")
                 

@@ -1,0 +1,2801 @@
+{
+  "summary": "- Mareike (Kc): 6\n- Laura (Fd): 5\n- Nico (Ht): 5\n- Johannes (Wl): 5\n- Julia (Bt): 4\n- Michel (Bo): 4\n- Svenja (Ch): 4\n- Jan (Cz): 4\n- Karsten (Gr): 4\n- Arne (H\u00f6): 4\n- Tim (Ki): 4\n- Benjamin (Kl): 4\n- Lina (Li): 4\n- Felix (Nl): 4\n- Jonas (Ot): 4\n- Kaatje (Sb): 4\n- Rabea (Wr): 4\n",
+  "dayPlans": {
+    "1": {
+      "dayOfWeekABCombo": {
+        "dayOfWeek": "MONDAY",
+        "isWeekA": true,
+        "uniqueNumber": 1
+      },
+      "parties": [
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": true,
+            "uniqueNumber": 1
+          },
+          "driver": "Kl",
+          "time": 940,
+          "passengers": [
+            "Sb"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": true,
+            "uniqueNumber": 1
+          },
+          "driver": "Kc",
+          "time": 755,
+          "passengers": [
+            "Cz",
+            "Ht"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": true,
+            "uniqueNumber": 1
+          },
+          "driver": "Gr",
+          "time": 1140,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": true,
+            "uniqueNumber": 1
+          },
+          "driver": "Nl",
+          "time": 940,
+          "passengers": [
+            "Li"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": true,
+            "uniqueNumber": 1
+          },
+          "driver": "Wl",
+          "time": 745,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": true,
+            "uniqueNumber": 1
+          },
+          "driver": "Bt",
+          "time": 755,
+          "passengers": [
+            "Bo"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": true,
+            "uniqueNumber": 1
+          },
+          "driver": "Fd",
+          "time": 755,
+          "passengers": [
+            "Ki"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": true,
+            "uniqueNumber": 1
+          },
+          "driver": "H\u00f6",
+          "time": 940,
+          "passengers": [
+            "Ot"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": true,
+            "uniqueNumber": 1
+          },
+          "driver": "Wr",
+          "time": 755,
+          "passengers": [
+            "Ch"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": true,
+            "uniqueNumber": 1
+          },
+          "driver": "Kl",
+          "time": 1400,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": true
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": true,
+            "uniqueNumber": 1
+          },
+          "driver": "Kc",
+          "time": 1110,
+          "passengers": [
+            "Li"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": true,
+            "uniqueNumber": 1
+          },
+          "driver": "Gr",
+          "time": 1400,
+          "passengers": [
+            "Sb"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": true,
+            "uniqueNumber": 1
+          },
+          "driver": "Nl",
+          "time": 1710,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": true,
+            "uniqueNumber": 1
+          },
+          "driver": "Wl",
+          "time": 925,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": true,
+            "uniqueNumber": 1
+          },
+          "driver": "Bt",
+          "time": 1310,
+          "passengers": [
+            "Ch"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": true,
+            "uniqueNumber": 1
+          },
+          "driver": "Fd",
+          "time": 1530,
+          "passengers": [
+            "Bo",
+            "Cz",
+            "Ht"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": true,
+            "uniqueNumber": 1
+          },
+          "driver": "H\u00f6",
+          "time": 1530,
+          "passengers": [
+            "Ki",
+            "Ot"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": true,
+            "uniqueNumber": 1
+          },
+          "driver": "Wr",
+          "time": 1310,
+          "passengers": [],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        }
+      ],
+      "schoolboundTimesByInitials": {
+        "Kl": 940,
+        "Sb": 940,
+        "Kc": 755,
+        "Cz": 755,
+        "Ht": 755,
+        "Gr": 1140,
+        "Nl": 940,
+        "Li": 940,
+        "Wl": 745,
+        "Bt": 755,
+        "Bo": 755,
+        "Fd": 755,
+        "Ki": 755,
+        "H\u00f6": 940,
+        "Ot": 940,
+        "Wr": 755,
+        "Ch": 755
+      },
+      "homeboundTimesByInitials": {
+        "Kl": 1400,
+        "Kc": 1110,
+        "Li": 1110,
+        "Gr": 1400,
+        "Sb": 1400,
+        "Nl": 1710,
+        "Wl": 925,
+        "Bt": 1310,
+        "Ch": 1310,
+        "Fd": 1530,
+        "Bo": 1530,
+        "Cz": 1530,
+        "Ht": 1530,
+        "H\u00f6": 1530,
+        "Ki": 1530,
+        "Ot": 1530,
+        "Wr": 1310
+      }
+    },
+    "2": {
+      "dayOfWeekABCombo": {
+        "dayOfWeek": "TUESDAY",
+        "isWeekA": true,
+        "uniqueNumber": 2
+      },
+      "parties": [
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 2
+          },
+          "driver": "Bt",
+          "time": 755,
+          "passengers": [
+            "H\u00f6"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 2
+          },
+          "driver": "Kc",
+          "time": 755,
+          "passengers": [
+            "Nl"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 2
+          },
+          "driver": "Gr",
+          "time": 1110,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 2
+          },
+          "driver": "Ht",
+          "time": 755,
+          "passengers": [
+            "Bo"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 2
+          },
+          "driver": "Cz",
+          "time": 755,
+          "passengers": [
+            "Wl"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 2
+          },
+          "driver": "Li",
+          "time": 925,
+          "passengers": [
+            "Ch",
+            "Fd",
+            "Kl"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 2
+          },
+          "driver": "Sb",
+          "time": 755,
+          "passengers": [
+            "Wr"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 2
+          },
+          "driver": "Ki",
+          "time": 755,
+          "passengers": [
+            "Ot"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 2
+          },
+          "driver": "Bt",
+          "time": 1140,
+          "passengers": [
+            "Ot",
+            "Wr"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 2
+          },
+          "driver": "Kc",
+          "time": 1310,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": true
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 2
+          },
+          "driver": "Gr",
+          "time": 1415,
+          "passengers": [
+            "Nl"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 2
+          },
+          "driver": "Ht",
+          "time": 1710,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 2
+          },
+          "driver": "Cz",
+          "time": 940,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 2
+          },
+          "driver": "Li",
+          "time": 1530,
+          "passengers": [
+            "Kl",
+            "Wl"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 2
+          },
+          "driver": "Sb",
+          "time": 1310,
+          "passengers": [
+            "Bo",
+            "Ch",
+            "Fd",
+            "H\u00f6"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 2
+          },
+          "driver": "Ki",
+          "time": 1320,
+          "passengers": [],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        }
+      ],
+      "schoolboundTimesByInitials": {
+        "Bt": 755,
+        "H\u00f6": 755,
+        "Kc": 755,
+        "Nl": 755,
+        "Gr": 1110,
+        "Ht": 755,
+        "Bo": 755,
+        "Cz": 755,
+        "Wl": 755,
+        "Li": 925,
+        "Ch": 940,
+        "Fd": 940,
+        "Kl": 925,
+        "Sb": 755,
+        "Wr": 755,
+        "Ki": 755,
+        "Ot": 755
+      },
+      "homeboundTimesByInitials": {
+        "Bt": 1140,
+        "Ot": 1110,
+        "Wr": 1110,
+        "Kc": 1310,
+        "Gr": 1415,
+        "Nl": 1415,
+        "Ht": 1710,
+        "Cz": 940,
+        "Li": 1530,
+        "Kl": 1530,
+        "Wl": 1530,
+        "Sb": 1310,
+        "Bo": 1310,
+        "Ch": 1310,
+        "Fd": 1310,
+        "H\u00f6": 1310,
+        "Ki": 1320
+      }
+    },
+    "3": {
+      "dayOfWeekABCombo": {
+        "dayOfWeek": "WEDNESDAY",
+        "isWeekA": true,
+        "uniqueNumber": 3
+      },
+      "parties": [
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 3
+          },
+          "driver": "Fd",
+          "time": 1110,
+          "passengers": [
+            "Kl"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 3
+          },
+          "driver": "Ch",
+          "time": 1400,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 3
+          },
+          "driver": "Ht",
+          "time": 925,
+          "passengers": [
+            "Gr"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 3
+          },
+          "driver": "Bo",
+          "time": 755,
+          "passengers": [
+            "Cz",
+            "Ki"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 3
+          },
+          "driver": "Kc",
+          "time": 755,
+          "passengers": [
+            "Li",
+            "Nl"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 3
+          },
+          "driver": "Ot",
+          "time": 755,
+          "passengers": [
+            "Bt",
+            "Wr"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 3
+          },
+          "driver": "H\u00f6",
+          "time": 940,
+          "passengers": [
+            "Sb",
+            "Wl"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 3
+          },
+          "driver": "Fd",
+          "time": 1530,
+          "passengers": [
+            "Cz",
+            "Ki",
+            "Li"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 3
+          },
+          "driver": "Ch",
+          "time": 1530,
+          "passengers": [
+            "Gr",
+            "Kl"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 3
+          },
+          "driver": "Ht",
+          "time": 1140,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 3
+          },
+          "driver": "Bo",
+          "time": 1710,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 3
+          },
+          "driver": "Kc",
+          "time": 925,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 3
+          },
+          "driver": "Ot",
+          "time": 1320,
+          "passengers": [
+            "Bt",
+            "Nl",
+            "Wr"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": true,
+            "uniqueNumber": 3
+          },
+          "driver": "H\u00f6",
+          "time": 1530,
+          "passengers": [
+            "Sb",
+            "Wl"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        }
+      ],
+      "schoolboundTimesByInitials": {
+        "Fd": 1110,
+        "Kl": 1140,
+        "Ch": 1400,
+        "Ht": 925,
+        "Gr": 925,
+        "Bo": 755,
+        "Cz": 755,
+        "Ki": 755,
+        "Kc": 755,
+        "Li": 755,
+        "Nl": 755,
+        "Ot": 755,
+        "Bt": 755,
+        "Wr": 755,
+        "H\u00f6": 940,
+        "Sb": 940,
+        "Wl": 940
+      },
+      "homeboundTimesByInitials": {
+        "Fd": 1530,
+        "Cz": 1530,
+        "Ki": 1530,
+        "Li": 1530,
+        "Ch": 1530,
+        "Gr": 1530,
+        "Kl": 1530,
+        "Ht": 1140,
+        "Bo": 1710,
+        "Kc": 925,
+        "Ot": 1320,
+        "Bt": 1310,
+        "Nl": 1320,
+        "Wr": 1310,
+        "H\u00f6": 1530,
+        "Sb": 1530,
+        "Wl": 1530
+      }
+    },
+    "4": {
+      "dayOfWeekABCombo": {
+        "dayOfWeek": "THURSDAY",
+        "isWeekA": true,
+        "uniqueNumber": 4
+      },
+      "parties": [
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": true,
+            "uniqueNumber": 4
+          },
+          "driver": "Wl",
+          "time": 940,
+          "passengers": [
+            "Cz",
+            "Wr"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": true,
+            "uniqueNumber": 4
+          },
+          "driver": "Ht",
+          "time": 755,
+          "passengers": [
+            "Bt"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": true,
+            "uniqueNumber": 4
+          },
+          "driver": "Kl",
+          "time": 1140,
+          "passengers": [
+            "Kc"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": true,
+            "uniqueNumber": 4
+          },
+          "driver": "Sb",
+          "time": 745,
+          "passengers": [
+            "Ot"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": true,
+            "uniqueNumber": 4
+          },
+          "driver": "Ch",
+          "time": 755,
+          "passengers": [
+            "Li"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": true,
+            "uniqueNumber": 4
+          },
+          "driver": "Bo",
+          "time": 755,
+          "passengers": [
+            "Gr"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": true,
+            "uniqueNumber": 4
+          },
+          "driver": "Ki",
+          "time": 755,
+          "passengers": [
+            "Fd"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": true,
+            "uniqueNumber": 4
+          },
+          "driver": "Nl",
+          "time": 940,
+          "passengers": [
+            "H\u00f6"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": true,
+            "uniqueNumber": 4
+          },
+          "driver": "Wl",
+          "time": 1400,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": true
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": true,
+            "uniqueNumber": 4
+          },
+          "driver": "Ht",
+          "time": 925,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": true,
+            "uniqueNumber": 4
+          },
+          "driver": "Kl",
+          "time": 1530,
+          "passengers": [
+            "Fd",
+            "Kc"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": true,
+            "uniqueNumber": 4
+          },
+          "driver": "Sb",
+          "time": 1400,
+          "passengers": [],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": true,
+            "uniqueNumber": 4
+          },
+          "driver": "Ch",
+          "time": 1310,
+          "passengers": [
+            "Cz",
+            "Wr"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": true,
+            "uniqueNumber": 4
+          },
+          "driver": "Bo",
+          "time": 1310,
+          "passengers": [
+            "Li"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": true,
+            "uniqueNumber": 4
+          },
+          "driver": "Ki",
+          "time": 1140,
+          "passengers": [
+            "H\u00f6",
+            "Ot"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": true,
+            "uniqueNumber": 4
+          },
+          "driver": "Nl",
+          "time": 1140,
+          "passengers": [
+            "Bt",
+            "Gr"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        }
+      ],
+      "schoolboundTimesByInitials": {
+        "Wl": 940,
+        "Cz": 940,
+        "Wr": 940,
+        "Ht": 755,
+        "Bt": 755,
+        "Kl": 1140,
+        "Kc": 1140,
+        "Sb": 745,
+        "Ot": 745,
+        "Ch": 755,
+        "Li": 755,
+        "Bo": 755,
+        "Gr": 755,
+        "Ki": 755,
+        "Fd": 755,
+        "Nl": 940,
+        "H\u00f6": 940
+      },
+      "homeboundTimesByInitials": {
+        "Wl": 1400,
+        "Ht": 925,
+        "Kl": 1530,
+        "Fd": 1530,
+        "Kc": 1530,
+        "Sb": 1400,
+        "Ch": 1310,
+        "Cz": 1310,
+        "Wr": 1310,
+        "Bo": 1310,
+        "Li": 1310,
+        "Ki": 1140,
+        "H\u00f6": 1110,
+        "Ot": 1110,
+        "Nl": 1140,
+        "Bt": 1110,
+        "Gr": 1140
+      }
+    },
+    "5": {
+      "dayOfWeekABCombo": {
+        "dayOfWeek": "FRIDAY",
+        "isWeekA": true,
+        "uniqueNumber": 5
+      },
+      "parties": [
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "FRIDAY",
+            "isWeekA": true,
+            "uniqueNumber": 5
+          },
+          "driver": "Kl",
+          "time": 755,
+          "passengers": [
+            "Bt",
+            "Cz",
+            "Nl"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "FRIDAY",
+            "isWeekA": true,
+            "uniqueNumber": 5
+          },
+          "driver": "Ki",
+          "time": 940,
+          "passengers": [
+            "Wl",
+            "Wr"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "FRIDAY",
+            "isWeekA": true,
+            "uniqueNumber": 5
+          },
+          "driver": "Fd",
+          "time": 755,
+          "passengers": [
+            "Bo",
+            "Ht",
+            "Li"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "FRIDAY",
+            "isWeekA": true,
+            "uniqueNumber": 5
+          },
+          "driver": "Ot",
+          "time": 755,
+          "passengers": [
+            "H\u00f6",
+            "Sb"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "FRIDAY",
+            "isWeekA": true,
+            "uniqueNumber": 5
+          },
+          "driver": "Ch",
+          "time": 745,
+          "passengers": [],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "FRIDAY",
+            "isWeekA": true,
+            "uniqueNumber": 5
+          },
+          "driver": "Kl",
+          "time": 1140,
+          "passengers": [
+            "Ht"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "FRIDAY",
+            "isWeekA": true,
+            "uniqueNumber": 5
+          },
+          "driver": "Ki",
+          "time": 1330,
+          "passengers": [
+            "Bt",
+            "Cz",
+            "Nl"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "FRIDAY",
+            "isWeekA": true,
+            "uniqueNumber": 5
+          },
+          "driver": "Fd",
+          "time": 940,
+          "passengers": [
+            "Bo",
+            "Li"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "FRIDAY",
+            "isWeekA": true,
+            "uniqueNumber": 5
+          },
+          "driver": "Ot",
+          "time": 1310,
+          "passengers": [
+            "Sb",
+            "Wl"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "FRIDAY",
+            "isWeekA": true,
+            "uniqueNumber": 5
+          },
+          "driver": "Ch",
+          "time": 1320,
+          "passengers": [
+            "H\u00f6",
+            "Wr"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        }
+      ],
+      "schoolboundTimesByInitials": {
+        "Kl": 755,
+        "Bt": 755,
+        "Cz": 755,
+        "Nl": 755,
+        "Ki": 940,
+        "Wl": 940,
+        "Wr": 940,
+        "Fd": 755,
+        "Bo": 755,
+        "Ht": 755,
+        "Li": 755,
+        "Ot": 755,
+        "H\u00f6": 755,
+        "Sb": 755,
+        "Ch": 745
+      },
+      "homeboundTimesByInitials": {
+        "Kl": 1140,
+        "Ht": 1110,
+        "Ki": 1330,
+        "Bt": 1330,
+        "Cz": 1310,
+        "Nl": 1310,
+        "Fd": 940,
+        "Bo": 940,
+        "Li": 925,
+        "Ot": 1310,
+        "Sb": 1310,
+        "Wl": 1310,
+        "Ch": 1320,
+        "H\u00f6": 1310,
+        "Wr": 1320
+      }
+    },
+    "6": {
+      "dayOfWeekABCombo": {
+        "dayOfWeek": "MONDAY",
+        "isWeekA": false,
+        "uniqueNumber": 6
+      },
+      "parties": [
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": false,
+            "uniqueNumber": 6
+          },
+          "driver": "Kl",
+          "time": 940,
+          "passengers": [
+            "Sb"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": false,
+            "uniqueNumber": 6
+          },
+          "driver": "Kc",
+          "time": 755,
+          "passengers": [
+            "Cz",
+            "Ki"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": false,
+            "uniqueNumber": 6
+          },
+          "driver": "Gr",
+          "time": 1140,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": false,
+            "uniqueNumber": 6
+          },
+          "driver": "Nl",
+          "time": 940,
+          "passengers": [
+            "Ot"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": false,
+            "uniqueNumber": 6
+          },
+          "driver": "Wl",
+          "time": 745,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": false,
+            "uniqueNumber": 6
+          },
+          "driver": "Bt",
+          "time": 755,
+          "passengers": [
+            "Bo",
+            "Ch",
+            "Fd",
+            "Wr"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": false,
+            "uniqueNumber": 6
+          },
+          "driver": "Li",
+          "time": 940,
+          "passengers": [
+            "Ht"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": false,
+            "uniqueNumber": 6
+          },
+          "driver": "H\u00f6",
+          "time": 940,
+          "passengers": [],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": false,
+            "uniqueNumber": 6
+          },
+          "driver": "Kl",
+          "time": 1400,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": true
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": false,
+            "uniqueNumber": 6
+          },
+          "driver": "Kc",
+          "time": 1110,
+          "passengers": [
+            "Cz"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": false,
+            "uniqueNumber": 6
+          },
+          "driver": "Gr",
+          "time": 1400,
+          "passengers": [
+            "Ki",
+            "Sb"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": false,
+            "uniqueNumber": 6
+          },
+          "driver": "Nl",
+          "time": 1710,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": false,
+            "uniqueNumber": 6
+          },
+          "driver": "Wl",
+          "time": 925,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": false,
+            "uniqueNumber": 6
+          },
+          "driver": "Bt",
+          "time": 1310,
+          "passengers": [
+            "Bo"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": false,
+            "uniqueNumber": 6
+          },
+          "driver": "Li",
+          "time": 1140,
+          "passengers": [
+            "Wr"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "MONDAY",
+            "isWeekA": false,
+            "uniqueNumber": 6
+          },
+          "driver": "H\u00f6",
+          "time": 1530,
+          "passengers": [
+            "Ch",
+            "Fd",
+            "Ht",
+            "Ot"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        }
+      ],
+      "schoolboundTimesByInitials": {
+        "Kl": 940,
+        "Sb": 940,
+        "Kc": 755,
+        "Cz": 755,
+        "Ki": 755,
+        "Gr": 1140,
+        "Nl": 940,
+        "Ot": 940,
+        "Wl": 745,
+        "Bt": 755,
+        "Bo": 755,
+        "Ch": 755,
+        "Fd": 755,
+        "Wr": 755,
+        "Li": 940,
+        "Ht": 940,
+        "H\u00f6": 940
+      },
+      "homeboundTimesByInitials": {
+        "Kl": 1400,
+        "Kc": 1110,
+        "Cz": 1110,
+        "Gr": 1400,
+        "Ki": 1400,
+        "Sb": 1400,
+        "Nl": 1710,
+        "Wl": 925,
+        "Bt": 1310,
+        "Bo": 1310,
+        "Li": 1140,
+        "Wr": 1140,
+        "H\u00f6": 1530,
+        "Ch": 1530,
+        "Fd": 1530,
+        "Ht": 1530,
+        "Ot": 1530
+      }
+    },
+    "7": {
+      "dayOfWeekABCombo": {
+        "dayOfWeek": "TUESDAY",
+        "isWeekA": false,
+        "uniqueNumber": 7
+      },
+      "parties": [
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 7
+          },
+          "driver": "Kc",
+          "time": 755,
+          "passengers": [
+            "H\u00f6",
+            "Wr"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 7
+          },
+          "driver": "Gr",
+          "time": 1110,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 7
+          },
+          "driver": "Ht",
+          "time": 755,
+          "passengers": [
+            "Ki",
+            "Nl"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 7
+          },
+          "driver": "Cz",
+          "time": 755,
+          "passengers": [
+            "Bo"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 7
+          },
+          "driver": "Li",
+          "time": 925,
+          "passengers": [
+            "Ch",
+            "Fd",
+            "Kl"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 7
+          },
+          "driver": "Ot",
+          "time": 755,
+          "passengers": [
+            "Bt"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 7
+          },
+          "driver": "Sb",
+          "time": 755,
+          "passengers": [
+            "Wl"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 7
+          },
+          "driver": "Kc",
+          "time": 1310,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": true
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 7
+          },
+          "driver": "Gr",
+          "time": 1415,
+          "passengers": [
+            "Nl"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 7
+          },
+          "driver": "Ht",
+          "time": 1710,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 7
+          },
+          "driver": "Cz",
+          "time": 940,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 7
+          },
+          "driver": "Li",
+          "time": 1530,
+          "passengers": [
+            "Kl",
+            "Wl"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 7
+          },
+          "driver": "Ot",
+          "time": 1140,
+          "passengers": [
+            "Bo",
+            "Bt",
+            "Wr"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "TUESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 7
+          },
+          "driver": "Sb",
+          "time": 1320,
+          "passengers": [
+            "Ch",
+            "Fd",
+            "H\u00f6",
+            "Ki"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        }
+      ],
+      "schoolboundTimesByInitials": {
+        "Kc": 755,
+        "H\u00f6": 755,
+        "Wr": 755,
+        "Gr": 1110,
+        "Ht": 755,
+        "Ki": 755,
+        "Nl": 755,
+        "Cz": 755,
+        "Bo": 755,
+        "Li": 925,
+        "Ch": 925,
+        "Fd": 940,
+        "Kl": 925,
+        "Ot": 755,
+        "Bt": 755,
+        "Sb": 755,
+        "Wl": 755
+      },
+      "homeboundTimesByInitials": {
+        "Kc": 1310,
+        "Gr": 1415,
+        "Nl": 1415,
+        "Ht": 1710,
+        "Cz": 940,
+        "Li": 1530,
+        "Kl": 1530,
+        "Wl": 1530,
+        "Ot": 1140,
+        "Bo": 1110,
+        "Bt": 1140,
+        "Wr": 1110,
+        "Sb": 1320,
+        "Ch": 1310,
+        "Fd": 1310,
+        "H\u00f6": 1310,
+        "Ki": 1320
+      }
+    },
+    "8": {
+      "dayOfWeekABCombo": {
+        "dayOfWeek": "WEDNESDAY",
+        "isWeekA": false,
+        "uniqueNumber": 8
+      },
+      "parties": [
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 8
+          },
+          "driver": "Wr",
+          "time": 925,
+          "passengers": [
+            "Gr"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 8
+          },
+          "driver": "Bo",
+          "time": 755,
+          "passengers": [
+            "Li"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 8
+          },
+          "driver": "Kc",
+          "time": 755,
+          "passengers": [
+            "Ki"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 8
+          },
+          "driver": "Ch",
+          "time": 1140,
+          "passengers": [
+            "Kl"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 8
+          },
+          "driver": "Ot",
+          "time": 755,
+          "passengers": [
+            "Nl"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 8
+          },
+          "driver": "Bt",
+          "time": 940,
+          "passengers": [
+            "H\u00f6",
+            "Sb",
+            "Wl"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 8
+          },
+          "driver": "Cz",
+          "time": 755,
+          "passengers": [
+            "Ht"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 8
+          },
+          "driver": "Fd",
+          "time": 1110,
+          "passengers": [],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 8
+          },
+          "driver": "Wr",
+          "time": 1140,
+          "passengers": [
+            "Ht"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 8
+          },
+          "driver": "Bo",
+          "time": 1710,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 8
+          },
+          "driver": "Kc",
+          "time": 925,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 8
+          },
+          "driver": "Ch",
+          "time": 1530,
+          "passengers": [
+            "Ki",
+            "Kl",
+            "Li"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 8
+          },
+          "driver": "Ot",
+          "time": 1320,
+          "passengers": [
+            "Nl"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 8
+          },
+          "driver": "Bt",
+          "time": 1310,
+          "passengers": [],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 8
+          },
+          "driver": "Cz",
+          "time": 1530,
+          "passengers": [
+            "Gr",
+            "H\u00f6"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "WEDNESDAY",
+            "isWeekA": false,
+            "uniqueNumber": 8
+          },
+          "driver": "Fd",
+          "time": 1530,
+          "passengers": [
+            "Sb",
+            "Wl"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        }
+      ],
+      "schoolboundTimesByInitials": {
+        "Wr": 925,
+        "Gr": 925,
+        "Bo": 755,
+        "Li": 755,
+        "Kc": 755,
+        "Ki": 755,
+        "Ch": 1140,
+        "Kl": 1140,
+        "Ot": 755,
+        "Nl": 755,
+        "Bt": 940,
+        "H\u00f6": 940,
+        "Sb": 940,
+        "Wl": 940,
+        "Cz": 755,
+        "Ht": 755,
+        "Fd": 1110
+      },
+      "homeboundTimesByInitials": {
+        "Wr": 1140,
+        "Ht": 1140,
+        "Bo": 1710,
+        "Kc": 925,
+        "Ch": 1530,
+        "Ki": 1530,
+        "Kl": 1530,
+        "Li": 1530,
+        "Ot": 1320,
+        "Nl": 1320,
+        "Bt": 1310,
+        "Cz": 1530,
+        "Gr": 1530,
+        "H\u00f6": 1530,
+        "Fd": 1530,
+        "Sb": 1530,
+        "Wl": 1530
+      }
+    },
+    "9": {
+      "dayOfWeekABCombo": {
+        "dayOfWeek": "THURSDAY",
+        "isWeekA": false,
+        "uniqueNumber": 9
+      },
+      "parties": [
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": false,
+            "uniqueNumber": 9
+          },
+          "driver": "Wl",
+          "time": 940,
+          "passengers": [
+            "Cz"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": false,
+            "uniqueNumber": 9
+          },
+          "driver": "Ht",
+          "time": 755,
+          "passengers": [
+            "Bt",
+            "Fd",
+            "Gr",
+            "Kl"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": false,
+            "uniqueNumber": 9
+          },
+          "driver": "Sb",
+          "time": 745,
+          "passengers": [
+            "Ot"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": false,
+            "uniqueNumber": 9
+          },
+          "driver": "H\u00f6",
+          "time": 940,
+          "passengers": [],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": false,
+            "uniqueNumber": 9
+          },
+          "driver": "Ki",
+          "time": 940,
+          "passengers": [],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": false,
+            "uniqueNumber": 9
+          },
+          "driver": "Nl",
+          "time": 940,
+          "passengers": [],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": false,
+            "uniqueNumber": 9
+          },
+          "driver": "Bo",
+          "time": 755,
+          "passengers": [
+            "Ch",
+            "Kc",
+            "Li"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": false,
+            "uniqueNumber": 9
+          },
+          "driver": "Wr",
+          "time": 940,
+          "passengers": [],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": false,
+            "uniqueNumber": 9
+          },
+          "driver": "Wl",
+          "time": 1400,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": true
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": false,
+            "uniqueNumber": 9
+          },
+          "driver": "Ht",
+          "time": 925,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": false,
+            "uniqueNumber": 9
+          },
+          "driver": "Sb",
+          "time": 1400,
+          "passengers": [],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": false,
+            "uniqueNumber": 9
+          },
+          "driver": "H\u00f6",
+          "time": 1530,
+          "passengers": [
+            "Li"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": false,
+            "uniqueNumber": 9
+          },
+          "driver": "Ki",
+          "time": 1140,
+          "passengers": [
+            "Bt",
+            "Gr"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": false,
+            "uniqueNumber": 9
+          },
+          "driver": "Nl",
+          "time": 1140,
+          "passengers": [
+            "Ot"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": false,
+            "uniqueNumber": 9
+          },
+          "driver": "Bo",
+          "time": 1530,
+          "passengers": [
+            "Kl"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "THURSDAY",
+            "isWeekA": false,
+            "uniqueNumber": 9
+          },
+          "driver": "Wr",
+          "time": 1310,
+          "passengers": [
+            "Ch",
+            "Cz",
+            "Fd",
+            "Kc"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        }
+      ],
+      "schoolboundTimesByInitials": {
+        "Wl": 940,
+        "Cz": 940,
+        "Ht": 755,
+        "Bt": 755,
+        "Fd": 755,
+        "Gr": 755,
+        "Kl": 755,
+        "Sb": 745,
+        "Ot": 745,
+        "H\u00f6": 940,
+        "Ki": 940,
+        "Nl": 940,
+        "Bo": 755,
+        "Ch": 755,
+        "Kc": 755,
+        "Li": 755,
+        "Wr": 940
+      },
+      "homeboundTimesByInitials": {
+        "Wl": 1400,
+        "Ht": 925,
+        "Sb": 1400,
+        "H\u00f6": 1530,
+        "Li": 1530,
+        "Ki": 1140,
+        "Bt": 1110,
+        "Gr": 1140,
+        "Nl": 1140,
+        "Ot": 1110,
+        "Bo": 1530,
+        "Kl": 1530,
+        "Wr": 1310,
+        "Ch": 1310,
+        "Cz": 1310,
+        "Fd": 1310,
+        "Kc": 1310
+      }
+    },
+    "10": {
+      "dayOfWeekABCombo": {
+        "dayOfWeek": "FRIDAY",
+        "isWeekA": false,
+        "uniqueNumber": 10
+      },
+      "parties": [
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "FRIDAY",
+            "isWeekA": false,
+            "uniqueNumber": 10
+          },
+          "driver": "Wr",
+          "time": 1140,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "FRIDAY",
+            "isWeekA": false,
+            "uniqueNumber": 10
+          },
+          "driver": "Wl",
+          "time": 940,
+          "passengers": [
+            "Ki",
+            "Kl"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "FRIDAY",
+            "isWeekA": false,
+            "uniqueNumber": 10
+          },
+          "driver": "Li",
+          "time": 745,
+          "passengers": [
+            "Ch"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "FRIDAY",
+            "isWeekA": false,
+            "uniqueNumber": 10
+          },
+          "driver": "Fd",
+          "time": 755,
+          "passengers": [
+            "Bo",
+            "Bt",
+            "Ht",
+            "H\u00f6"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "FRIDAY",
+            "isWeekA": false,
+            "uniqueNumber": 10
+          },
+          "driver": "Cz",
+          "time": 755,
+          "passengers": [
+            "Nl",
+            "Ot",
+            "Sb"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": true,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "FRIDAY",
+            "isWeekA": false,
+            "uniqueNumber": 10
+          },
+          "driver": "Wr",
+          "time": 1330,
+          "passengers": [
+            "Bt",
+            "Ch",
+            "Ot"
+          ],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "FRIDAY",
+            "isWeekA": false,
+            "uniqueNumber": 10
+          },
+          "driver": "Wl",
+          "time": 1500,
+          "passengers": [],
+          "isDesignatedDriver": true,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "FRIDAY",
+            "isWeekA": false,
+            "uniqueNumber": 10
+          },
+          "driver": "Li",
+          "time": 940,
+          "passengers": [
+            "Bo"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "FRIDAY",
+            "isWeekA": false,
+            "uniqueNumber": 10
+          },
+          "driver": "Fd",
+          "time": 1140,
+          "passengers": [
+            "Ht",
+            "Kl"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        },
+        {
+          "dayOfWeekABCombo": {
+            "dayOfWeek": "FRIDAY",
+            "isWeekA": false,
+            "uniqueNumber": 10
+          },
+          "driver": "Cz",
+          "time": 1310,
+          "passengers": [
+            "H\u00f6",
+            "Ki",
+            "Nl",
+            "Sb"
+          ],
+          "isDesignatedDriver": false,
+          "drivesDespiteCustomPrefs": false,
+          "schoolbound": false,
+          "isLonelyDriver": false
+        }
+      ],
+      "schoolboundTimesByInitials": {
+        "Wr": 1140,
+        "Wl": 940,
+        "Ki": 940,
+        "Kl": 940,
+        "Li": 745,
+        "Ch": 745,
+        "Fd": 755,
+        "Bo": 755,
+        "Bt": 755,
+        "Ht": 755,
+        "H\u00f6": 755,
+        "Cz": 755,
+        "Nl": 755,
+        "Ot": 755,
+        "Sb": 755
+      },
+      "homeboundTimesByInitials": {
+        "Wr": 1330,
+        "Bt": 1330,
+        "Ch": 1310,
+        "Ot": 1310,
+        "Wl": 1500,
+        "Li": 940,
+        "Bo": 940,
+        "Fd": 1140,
+        "Ht": 1110,
+        "Kl": 1140,
+        "Cz": 1310,
+        "H\u00f6": 1310,
+        "Ki": 1310,
+        "Nl": 1310,
+        "Sb": 1310
+      }
+    }
+  }
+}
