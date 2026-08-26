@@ -79,7 +79,7 @@ public class WebUntisAdapter {
                 msg = (String) timetableWrapper.error.get("message");
             } catch (Exception e1) {
             }
-            throw new Exception(msg);
+            throw new Exception("Querying timetable for teacher " + teacherInitials + " failed: " + msg);
 //            java.lang.Exception: no such element elementId:Ul, elementType:2
         }
         return new TreeMap<>(comingAndGoing);

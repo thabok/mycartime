@@ -171,7 +171,7 @@ class MainPage extends Component {
                                 if (selectedDate && selectedDate.getDay() === 1) {
                                     this.updateState("ABWeekStartDate", selectedDate)
                                 } else {
-                                    toast.show({message: "Please select a Monday.", intent: "danger", icon: "error"})
+                                    toast.show({message: "Please select a Monday.", intent: "danger", icon: "error", timeout: 10000})
                                 }
                             }}
                             fill={true}
@@ -792,7 +792,7 @@ class MainPage extends Component {
             let person = this.getPersonByInitials(this.state.newMember_initials)
             if (person !== null) {
                 let msg = "You cannot add another member with the same initials as " + person.firstName + " " + person.lastName + "(" + person.initials + ")"
-                toast.show({message: msg, intent: "danger", icon: "error"})
+                toast.show({message: msg, intent: "danger", icon: "error", timeout: 10000})
                 return
             }
         }
@@ -820,7 +820,7 @@ class MainPage extends Component {
         let person = this.getPersonByInitials(this.state.newMember_initials)
         if (person !== null) {
             let msg = "You cannot add another member with the same initials as " + person.firstName + " " + person.lastName + "(" + person.initials + ")"
-            toast.show({message: msg, intent: "danger", icon: "error"})
+            toast.show({message: msg, intent: "danger", icon: "error", timeout: 10000})
             return
         } else {
             // add new member
@@ -978,7 +978,7 @@ class MainPage extends Component {
                     try {
                         response.json().then(pkg => {
                             const msg = "Calculation of Driving Plan failed: " + pkg.message
-                            toast.show({message: msg, intent: "danger", icon: "error"})
+                            toast.show({message: msg, intent: "danger", icon: "error", timeout: 10000})
                         })
                     } catch (exception) {
                         console.log("caught")
@@ -988,12 +988,12 @@ class MainPage extends Component {
             .catch(error => {
                 // connection failed (no connection or exception on server)
                 const msg = "Calculation of Driving Plan failed: " + error
-                toast.show({message: msg, intent: "danger", icon: "error"})
+                toast.show({message: msg, intent: "danger", icon: "error", timeout: 10000})
             })
         } catch (err) {
             console.log(err)
             const msg = "Calculation of Driving Plan failed: " + err
-            toast.show({message: msg, intent: "danger", icon: "error"})
+            toast.show({message: msg, intent: "danger", icon: "error", timeout: 10000})
         }
     }
 
@@ -1025,7 +1025,7 @@ class MainPage extends Component {
                     response.json().then(pkg => {
                         const msg = "Connection failed: " + pkg.message
                         if (!quiet) {
-                            toast.show({message: msg, intent: "danger", icon: "error"})
+                            toast.show({message: msg, intent: "danger", icon: "error", timeout: 10000})
                         }
                         this.setState({ connectionErrorMessage: msg})
                     })
@@ -1035,7 +1035,7 @@ class MainPage extends Component {
                 // connection failed (no connection or exception on server)
                 const msg = "An error failed: " + error
                 if (!quiet) {
-                    toast.show({message: msg, intent: "danger", icon: "error"})
+                    toast.show({message: msg, intent: "danger", icon: "error", timeout: 10000})
                 }
                 this.setState({ connectionErrorMessage: msg })
             })

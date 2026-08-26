@@ -1,6 +1,7 @@
 package com.thabok.webservice;
 
 import static spark.Spark.before;
+import static spark.Spark.exception;
 import static spark.Spark.get;
 import static spark.Spark.options;
 import static spark.Spark.port;
@@ -52,6 +53,17 @@ public class WebService {
 		post("/cancel", (req, res) -> cancel(req, res), JsonUtil.json());
 		get("/progress", (req, res) -> getProgress(req, res), JsonUtil.json());
 		post("/logout", (req, res) -> logout(req, res), JsonUtil.json());
+		exception(Exception.class, (e, req, res) -> {
+			System.err.println("Unhandled exception while processing " + req.requestMethod() + " " + req.url() + ": " + e);
+			e.printStackTrace();
+			WebPkg pkg = new WebPkg();
+			pkg.topic = "error";
+			pkg.value = false;
+			pkg.message = e.getMessage() != null ? e.getMessage() : e.toString();
+			res.status(500);
+			res.type("application/json");
+			res.body(JsonUtil.toJson(pkg));
+		});
 	}
 
 	private Object getProgress(Request req, Response res) {
