@@ -133,8 +133,9 @@ public class WebUntisAdapter {
         Map<String, Object> params = new HashMap<>();
         
         String responseString = execute("logout", params);
-        
+
         sessionId = null;
+        requestResultCache.clear();
         
         // store cache in file
 //        if (CACHE_FILE != null) {
@@ -176,10 +177,13 @@ public class WebUntisAdapter {
     }
 
     private static String post(Object payload, String requestId) {
+    	boolean cacheable = !"authenticate".equals(requestId) && !"logout".equals(requestId);
     	// try cache
-    	String cachedResult = requestResultCache.get(requestId);
-    	if (cachedResult != null) {
-    		return cachedResult;
+    	if (cacheable) {
+    		String cachedResult = requestResultCache.get(requestId);
+    		if (cachedResult != null) {
+    			return cachedResult;
+    		}
     	}
     	// real request
         String responseString = null;
@@ -203,7 +207,9 @@ public class WebUntisAdapter {
             e.printStackTrace();
         }
         // cache result
-        requestResultCache.put(requestId, responseString);
+        if (cacheable) {
+        	requestResultCache.put(requestId, responseString);
+        }
         
 //        if (requestId != null && requestId.contains("Kl")) {
 //        	System.err.println();
