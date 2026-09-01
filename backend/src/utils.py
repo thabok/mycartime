@@ -111,10 +111,13 @@ def is_period_relevant(period: dict, initials: str) -> bool:
     
     # Check if this is an on-call substitution (subject ID 255)
     ON_CALL_SUBSTITUTION_ID = 255
+    # Check if this is a secondment period, i.e. "Abordnung" (subject ID 245) -
+    # the teacher is at another school, so this period is not relevant here
+    SECONDMENT_SUBJECT_ID = 245
     for subject in period.get('su', []):
-        if subject.get('id') == ON_CALL_SUBSTITUTION_ID:
+        if subject.get('id') in [ON_CALL_SUBSTITUTION_ID, SECONDMENT_SUBJECT_ID]:
             return False
-    
+
     # Check teachers
     different_orgid = False
     matching_name = False

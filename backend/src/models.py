@@ -51,8 +51,8 @@ class CustomDay:
             no_waiting_afternoon=data.get('noWaitingAfternoon', False),
             needs_car=data.get('needsCar', False),
             driving_skip=data.get('drivingSkip', False),
-            solo_am=data.get('soloAm', False),
-            solo_pm=data.get('soloPm', False),
+            solo_am=data.get('skipMorning', False),
+            solo_pm=data.get('skipAfternoon', False),
             custom_start=data.get('customStart') or None,
             custom_end=data.get('customEnd') or None
         )
@@ -166,17 +166,17 @@ class Member:
         if custom.needs_car and custom.driving_skip:
             errors.append(f"Day {day_num}: needsCar and drivingSkip are mutually exclusive")
         
-        # soloAm requires needsCar
+        # skipMorning requires needsCar
         if custom.solo_am and not custom.needs_car:
-            errors.append(f"Day {day_num}: soloAm requires needsCar to be true")
-        
-        # soloPm requires needsCar
+            errors.append(f"Day {day_num}: skipMorning requires needsCar to be true")
+
+        # skipAfternoon requires needsCar
         if custom.solo_pm and not custom.needs_car:
-            errors.append(f"Day {day_num}: soloPm requires needsCar to be true")
-        
-        # noWaitingAfternoon is mutually exclusive with soloPm
+            errors.append(f"Day {day_num}: skipAfternoon requires needsCar to be true")
+
+        # noWaitingAfternoon is mutually exclusive with skipAfternoon
         if custom.no_waiting_afternoon and custom.solo_pm:
-            errors.append(f"Day {day_num}: noWaitingAfternoon and soloPm are mutually exclusive")
+            errors.append(f"Day {day_num}: noWaitingAfternoon and skipAfternoon are mutually exclusive")
         
         return errors
     
