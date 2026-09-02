@@ -41,6 +41,50 @@ def health_check():
     return jsonify(True), 200
 
 
+@app.route('/api/v1/suggestedreferencedate', methods=['POST'])
+def suggested_reference_date():
+    """
+    Suggest a default reference date for the UI: the next date (today
+    included) that falls in an A week, per the school's own week numbering.
+
+    Expected JSON payload:
+    {
+        "username": "...",
+        "hash": "..."  // Base64 encoded password
+    }
+
+    Returns:
+        JSON response with the suggested date, or an error if WebUntis
+        couldn't be reached (the frontend should fail silently and let the
+        user pick a date manually).
+    """
+    try:
+        data = request.get_json()
+
+        if not data:
+            return jsonify({'error': 'No JSON data provided'}), 400
+
+        for field in ['username', 'hash']:
+            if field not in data:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+
+        username = data['username']
+        password = base64.b64decode(data['hash']).decode('utf-8')
+
+        with TimetableService() as timetable_service:
+            connected = timetable_service.connect(username, password)
+            if not connected:
+                return jsonify({'error': 'Could not connect to WebUntis'}), 502
+
+            suggested_date = timetable_service.get_suggested_reference_date()
+
+        return jsonify({'referenceDate': suggested_date.strftime('%Y%m%d')}), 200
+
+    except Exception as e:
+        logger.error(f"Error suggesting reference date: {str(e)}", exc_info=True)
+        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
+
+
 @app.route('/api/v1/drivingplan', methods=['POST'])
 def calculate_drivingplan():
     """
@@ -134,11 +178,7 @@ def calculate_driving_plan_logic(persons_data, start_date_str, username, passwor
         if isinstance(date_value, int):
             date_value = str(date_value)
         start_date = parse_date_yymmdd(date_value)
-        
-        # Ensure it's a Monday
-        if start_date.weekday() != 0:
-            raise ValueError('Reference date must be a Monday')
-            
+
     except ValueError as e:
         raise
     except Exception as e:
@@ -166,7 +206,7 @@ def calculate_driving_plan_logic(persons_data, start_date_str, username, passwor
     
     # Calculate driving plan
     algorithm = AlgorithmService()
-    driving_plan = algorithm.calculate_driving_plan(members, start_date)
+    driving_plan = algorithm.calculate_driving_plan(members)
     
     # Print to console for debugging
     _print_to_console(driving_plan, members)

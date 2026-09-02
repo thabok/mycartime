@@ -2,14 +2,14 @@
 Timetable service for querying schedules from WebUntis.
 """
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List
 
 import config
 import diskcache
 import webuntis
 from models import Member, Timetable
-from utils import get_week_dates, parse_time_to_hhmm, is_period_relevant
+from utils import get_term_slot_dates, is_week_a_by_schoolyear, parse_time_to_hhmm, is_period_relevant
 
 logger = logging.getLogger(__name__)
 
@@ -71,6 +71,57 @@ class TimetableService:
             finally:
                 self.session = None
     
+    def _get_schoolyear(self, for_date: datetime):
+        """
+        Get the WebUntis schoolyear that contains the given date.
+
+        Args:
+            for_date: Date to find the containing schoolyear for
+
+        Returns:
+            SchoolyearObject containing for_date. If for_date falls in a gap
+            between schoolyears (e.g. the summer holidays), the next
+            upcoming schoolyear is used; if for_date is after every known
+            schoolyear, the last one is used. Either fallback is logged.
+        """
+        if not self.session:
+            raise RuntimeError("Not connected to WebUntis. Call connect() first.")
+
+        schoolyears = sorted(self.session.schoolyears(), key=lambda sy: sy.start)
+        for schoolyear in schoolyears:
+            if schoolyear.start <= for_date <= schoolyear.end:
+                return schoolyear
+
+        upcoming = next((sy for sy in schoolyears if sy.start > for_date), None)
+        if upcoming:
+            logger.warning(f"{for_date.date()} falls between schoolyears, using the upcoming one ({upcoming.name})")
+            return upcoming
+
+        logger.warning(f"No schoolyear found containing or after {for_date.date()}, falling back to the last known one")
+        return schoolyears[-1]
+
+    def get_suggested_reference_date(self, from_date: datetime = None) -> datetime:
+        """
+        Suggest a default reference date for the UI: the next date (today
+        included) that falls in an A week, based on the school's own week
+        numbering (first ISO week of the schoolyear is an A week).
+
+        Args:
+            from_date: Date to search forward from (defaults to now)
+
+        Returns:
+            The suggested date
+        """
+        from_date = from_date or datetime.now()
+        schoolyear = self._get_schoolyear(from_date)
+
+        candidate = from_date
+        for _ in range(14):
+            if is_week_a_by_schoolyear(candidate, schoolyear.start):
+                return candidate
+            candidate += timedelta(days=1)
+        return candidate
+
     def clear_cache(self):
         """Clear all cached timetable data."""
         if self.cache:
@@ -143,33 +194,42 @@ class TimetableService:
         start_date: datetime
     ) -> Dict[str, Dict[int, Timetable]]:
         """
-        Get timetables for all members for the 2-week cycle.
-        Makes ONE API call per member for entire date range.
-        
+        Get timetables for all members by scanning the whole current term.
+
+        Instead of reading two concrete weeks (which requires the user to find
+        a week with no irregularities), this queries from start_date to the end
+        of the containing schoolyear, then for each of the 10 (weekday, A/B)
+        slots merges every matching date's periods across the whole range to
+        find the regular schedule. Makes ONE API call per member.
+
         Args:
             members: List of carpool members
-            start_date: Starting Monday of the cycle
-            
+            start_date: Date marking the start of the current schedule; the
+                week containing this date is treated as week A
+
         Returns:
             Dictionary mapping member initials to their daily timetables
             Format: {initials: {day_num: Timetable}}
         """
         if not self.session:
             raise RuntimeError("Not connected to WebUntis. Call connect() first.")
-        
-        dates = get_week_dates(start_date)
-        end_date = dates[-1]  # Last date in the 2-week cycle
+
+        schoolyear = self._get_schoolyear(start_date)
+        term_end = schoolyear.end
+        # WebUntis rejects ranges that start before the containing schoolyear
+        # (e.g. start_date falling in the summer holidays before term start).
+        query_start = max(start_date, schoolyear.start)
         timetables = {}
-        
-        # Query once per member for the entire date range (reduces API calls)
+
+        # Query once per member for the entire term (reduces API calls)
         for member in members:
-            # Single API call for entire date range
-            all_periods = self._query_timetable(member, start_date, end_date)
-            
+            # Single API call for the whole term
+            all_periods = self._query_timetable(member, query_start, term_end)
+
             # Extract member's ID from the data (needed for UI: web-link to schedule)
             member.id = next(
-                (teacher.get('id') for period in all_periods 
-                 for teacher in period.get('te', []) 
+                (teacher.get('id') for period in all_periods
+                 for teacher in period.get('te', [])
                  if teacher.get('name') == member.initials),
                 None
             )
@@ -177,12 +237,14 @@ class TimetableService:
             # Filter relevant periods
             relevant_periods = [p for p in all_periods if is_period_relevant(p, member.initials)]
             logger.debug(f"Found {len(relevant_periods)} relevant periods (of {len(all_periods)} total) for {member.initials}")
-            
-            # Process each day
+
+            # Process each of the 10 (weekday, A/B) slots
             member_timetables = {}
-            for day_num, date in enumerate(dates):
-                timetable = self._extract_timetable_for_day(member, date, day_num, relevant_periods)
-                
+            for day_num in range(10):
+                slot_dates = {int(d.strftime('%Y%m%d')) for d in get_term_slot_dates(start_date, term_end, day_num)}
+                slot_periods = [p for p in relevant_periods if p.get('date') in slot_dates]
+                timetable = self._extract_timetable_for_day(member, day_num, slot_periods)
+
                 # Apply custom day settings
                 custom_day = member.get_custom_day(day_num)
                 if custom_day:
@@ -210,29 +272,26 @@ class TimetableService:
         return timetables
     
     def _extract_timetable_for_day(
-        self, 
-        member: Member, 
-        date: datetime, 
+        self,
+        member: Member,
         day_num: int,
-        relevant_periods: List[dict]
+        day_periods: List[dict]
     ) -> Timetable:
         """
-        Extract timetable for a specific day from pre-fetched periods.
-        
+        Build a Timetable for a (weekday, A/B) slot from its pre-filtered,
+        possibly multi-week periods (already filtered by date and relevance
+        by the caller).
+
         Args:
             member: Member object
-            date: Date to query
             day_num: Day number (0-9)
-            relevant_periods: Already filtered relevant periods for this member
-            
+            day_periods: Periods belonging to this slot, merged across every
+                matching date in the scanned term
+
         Returns:
             Timetable object
         """
         try:
-            # Filter periods for this specific date
-            date_int = int(date.strftime('%Y%m%d'))
-            day_periods = [p for p in relevant_periods if p.get('date') == date_int]
-            
             if not day_periods:
                 # No lessons on this day
                 return Timetable(
@@ -256,7 +315,7 @@ class TimetableService:
             )
             
         except Exception as e:
-            logger.error(f"Error extracting timetable for {member.initials} on {date}: {str(e)}")
+            logger.error(f"Error extracting timetable for {member.initials} (day {day_num}): {str(e)}")
             # Return an absent timetable
             return Timetable(
                 member_initials=member.initials,

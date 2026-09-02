@@ -3,13 +3,12 @@ Core algorithm service for calculating optimal driving plans.
 """
 import logging
 from collections import defaultdict
-from datetime import datetime
 from typing import Dict, List, Optional, Set, Tuple
 
 import config
 from models import DayOfWeekABCombo, DayPlan, DrivingPlan, Member, Party, TimeInfo
-from utils import (get_day_of_week_name, get_earliest_time, get_latest_time,
-                   get_week_dates, times_within_tolerance)
+from utils import (WEEKDAY_NAMES, get_earliest_time, get_latest_time,
+                   times_within_tolerance)
 
 logger = logging.getLogger(__name__)
 
@@ -102,24 +101,21 @@ class AlgorithmService:
     
     def calculate_driving_plan(
         self,
-        members: List[Member],
-        start_date: datetime
+        members: List[Member]
     ) -> DrivingPlan:
         """
         Calculate the optimal driving plan for all members.
-        
+
         This algorithm works in five phases:
         1. Create pools (grouped by day, direction, time slot)
         2. Select drivers and create parties (enough to accommodate all members)
         3. Rebalance driving distribution (swap high-count drivers with low-count alternatives)
         4. Add additional driver parties (use underutilized drivers to reduce overcrowding)
         5. Fill parties with passengers (one at a time, keeping same-time members together)
-        
+
         Args:
             members: List of carpool members
-            timetables: Timetables for all members
-            start_date: Starting Monday of the cycle
-            
+
         Returns:
             Complete driving plan
         """
@@ -190,13 +186,12 @@ class AlgorithmService:
         logger.info("\n" + "=" * 80)
         logger.info("BUILDING FINAL DAY PLANS")
         logger.info("=" * 80)
-        dates = get_week_dates(start_date)
         day_plans = {}
-        
-        for day_num, date in enumerate(dates):
+
+        for day_num in range(10):
             is_week_a = day_num < 5
-            day_of_week = get_day_of_week_name(date)
-            
+            day_of_week = WEEKDAY_NAMES[day_num % 5]
+
             day_of_week_ab = DayOfWeekABCombo(
                 day_of_week=day_of_week,
                 is_week_a=is_week_a,

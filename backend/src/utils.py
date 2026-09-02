@@ -2,7 +2,9 @@
 Utility functions for the Carpool Time backend service.
 """
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import List, Optional
+
+WEEKDAY_NAMES = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']
 
 
 def parse_time_to_hhmm(time_str: str) -> Optional[int]:
@@ -196,35 +198,58 @@ def parse_date_yymmdd(date_str: str) -> datetime:
     return datetime.strptime(date_str, "%Y%m%d")
 
 
-def get_week_dates(start_date: datetime) -> list:
+def get_term_slot_dates(start_date: datetime, term_end: datetime, day_number: int) -> List[datetime]:
     """
-    Get list of dates for 2-week cycle starting from Monday.
-    
+    Get every real calendar date between start_date and term_end that belongs to a
+    given (weekday, A/B-week) slot of the 10-slot cycle. The week containing
+    start_date is always treated as week A, regardless of which weekday start_date
+    itself falls on; dates before start_date are excluded (they belong to a
+    schedule that's no longer current).
+
     Args:
-        start_date: Starting Monday date
-        
+        start_date: Date marking the start of the current schedule (any weekday)
+        term_end: Last date to consider (e.g. end of the containing schoolyear)
+        day_number: 0-9, where day_number % 5 is the weekday (0=Monday) and
+            day_number < 5 means week A, day_number >= 5 means week B
+
     Returns:
-        List of 10 dates (5 days x 2 weeks)
+        List of matching dates, in chronological order
     """
+    weekday_index = day_number % 5
+    target_is_week_a = day_number < 5
+
+    start_monday = start_date - timedelta(days=start_date.weekday())
+    anchor = start_monday + timedelta(days=weekday_index)
+    if not target_is_week_a:
+        anchor += timedelta(days=7)
+    while anchor < start_date:
+        anchor += timedelta(days=14)
+
     dates = []
-    # Week A: Monday to Friday
-    for i in range(5):
-        dates.append(start_date + timedelta(days=i))
-    # Week B: Monday to Friday (next week)
-    for i in range(7, 12):
-        dates.append(start_date + timedelta(days=i))
+    d = anchor
+    while d <= term_end:
+        dates.append(d)
+        d += timedelta(days=14)
     return dates
 
 
-def get_day_of_week_name(date: datetime) -> str:
+def is_week_a_by_schoolyear(date: datetime, schoolyear_start: datetime) -> bool:
     """
-    Get day of week name.
-    
+    Determine whether a date falls in an "A week" purely from the school's own
+    week numbering: the first ISO calendar week of the schoolyear is always an
+    A week, and A/B alternates with ISO week-number parity from there.
+
+    This is only meant for suggesting a sensible default reference date in the
+    UI -- actual timetable aggregation anchors A/B to whatever date the user
+    ends up selecting (see get_term_slot_dates), not to this schoolyear-based
+    numbering.
+
     Args:
-        date: datetime object
-        
+        date: Date to classify
+        schoolyear_start: Start date of the schoolyear (from WebUntis)
+
     Returns:
-        Day name (MONDAY, TUESDAY, etc.)
+        True if the date's ISO week has the same parity as the schoolyear's
+        first ISO week
     """
-    days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']
-    return days[date.weekday()]
+    return date.isocalendar()[1] % 2 == schoolyear_start.isocalendar()[1] % 2
