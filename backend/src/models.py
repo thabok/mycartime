@@ -139,7 +139,23 @@ class Member:
         """Check if member has no waiting afternoon on a specific day."""
         custom = self.get_custom_day(day_num)
         return custom.no_waiting_afternoon if custom else False
-    
+
+    def get_effective_end_time(self, day_num: int) -> Optional[int]:
+        """Get the member's homebound (end) time for a day: custom_end if set, else timetable end time."""
+        custom = self.get_custom_day(day_num)
+        if custom and custom.custom_end:
+            return int(custom.custom_end.replace(':', ''))
+        member_timetable = self.timetable.get(day_num)
+        return member_timetable.get_end_time() if member_timetable else None
+
+    def get_effective_start_time(self, day_num: int) -> Optional[int]:
+        """Get the member's schoolbound (start) time for a day: custom_start if set, else timetable start time."""
+        custom = self.get_custom_day(day_num)
+        if custom and custom.custom_start:
+            return int(custom.custom_start.replace(':', ''))
+        member_timetable = self.timetable.get(day_num)
+        return member_timetable.get_start_time() if member_timetable else None
+
     def get_tolerance_for_direction(self, day_num: int, schoolbound: bool, default_tolerance: int) -> int:
         """
         Get the time tolerance for a specific direction on a specific day.
