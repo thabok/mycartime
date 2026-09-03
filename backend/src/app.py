@@ -37,6 +37,7 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 GITHUB_FEEDBACK_REPO = 'thabok/mycartime'
 GITHUB_FEEDBACK_LABELS = {'bug', 'question', 'enhancement'}
+GITHUB_FEEDBACK_ASSIGNEE = 'thabok'
 
 
 @app.route('/api/v1/check', methods=['GET'])
@@ -312,6 +313,7 @@ def create_feedback_issue():
                 'title': title,
                 'body': description,
                 'labels': ['user feedback', label],
+                'assignees': [GITHUB_FEEDBACK_ASSIGNEE],
             },
             timeout=10,
         )
