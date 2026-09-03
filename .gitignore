@@ -47,3 +47,7 @@ testdata/request.json
 **/dist
 
 **/.venv
+
+# prevent committing sensitive JSON files containing driving plans and carpool members
+driving-plan*.json
+carpool-members*.json

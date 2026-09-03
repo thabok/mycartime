@@ -27,7 +27,7 @@ The goal is to create a driving plan across a 2-week “week-A; week-B” cycle 
 3. Over the 2-week cycle the plan shall optimise for the following factors 
     1. Limit maximum number of drives across the 2-week-cycle
         * A full time person shall drive 4 times (ideally twice per week).
-        * A part time person (e.g. teacher in training) shall drive 2 times (ideally once per week). 
+        * A part time person (e.g. teacher in training) shall drive 3 times. 
         * These numbers shall only be exceeded if 
             * [SINGLE BAD SCHEDULE] a person’s schedule doesn’t allow a better plan (e.g. if someone’s schedule has more than 4 days on which they must drive because nobody else shares their arrival or departure times) or
             * [GLOBAL BAD SCHEDULE] if the complete plan doesn’t work out otherwise
@@ -58,6 +58,33 @@ The algorithm first creates Parties for all pools with size 1, assigning those m
 
 For pools of size greater than 1, the algorithm must find an intelligent way to select drivers that balances the load across all members while adhering to the defined constraints and optimization goals. This involves evaluating the impact of each potential driver selection on the overall plan and making choices that lead to the most efficient and fair distribution of driving duties.
 
+### Implementation: Algorithm Phases
+The backend (`backend/src/algorithm_service.py`) implements the algorithm in five phases:
+
+1. **Create pools** – Build a pool per day/direction/time-slot (times grouped within `TIME_TOLERANCE_MINUTES`).
+2. **Select drivers and create parties** – Process pools smallest-first. For each pool, pick driver(s) (preferring members with fewer drives so far, respecting custom preferences) and create both the pool-direction party and the opposite-direction party for that driver, sized to fit the whole pool without assigning passengers yet. Members with `needsCar` or `noWaitingAfternoon` are handled first as they are effectively forced drivers.
+3. **Rebalance driving distribution** – For members whose drive count ends up above the max who are not mandatory ("designated") drivers, look for a "savior": another member in the same pool who is below the max and could take over that party. If found, the savior becomes the driver and the original problematic driver is downgraded to a passenger, keeping totals consistent.
+4. **Add additional driver parties** – For members still below their max drive count, look for days where they could create an extra party to relieve an overcrowded pool, reducing the number of passengers packed into existing parties without pushing anyone over their max.
+5. **Fill parties with passengers** – Assign remaining passengers to the parties created in the earlier phases, one at a time, preferring to keep members with matching times together and otherwise balancing passenger counts across parties.
+
+Before returning, the plan is validated: no member is both driver and passenger on the same day, every active member appears somewhere in each relevant day plan, and the custom-preference invariants below hold.
+
+### Custom Day Preferences
+Custom day settings override a member's schedule for a specific day. The available flags and their rules:
+
+**Frontend UI rules** (mutual exclusivity / implied state when a checkbox is toggled):
+- **Needs Car** (`needsCar`) is mutually exclusive with **No Car** (`drivingSkip`).
+- **Skip AM** (`skipMorning`) implicitly activates `needsCar` when enabled (but doesn't deactivate it if unchecked later).
+- **Skip PM** (`skipAfternoon`) implicitly activates `needsCar` when enabled (same as above).
+- **No Wait PM** (`noWaitingAfternoon`) is mutually exclusive with `skipAfternoon`.
+
+**Backend algorithm rules** (`backend/src/algorithm_service.py`, `models.py`):
+- **Skip** (`ignoreCompletely`): the person is excluded entirely from that day's plan — neither driver nor passenger.
+- **Needs Car** (`needsCar`): mutually exclusive with `drivingSkip`; the person becomes a mandatory driver for the day and must not appear as a passenger.
+- **Skip AM** (`skipMorning`): requires `needsCar`; the person is a mandatory driver whose schoolbound party is flagged as a "lonely driver" party and must have 0 passengers.
+- **Skip PM** (`skipAfternoon`): requires `needsCar`; same as above but for the homebound party.
+- **No Wait PM** (`noWaitingAfternoon`): mutually exclusive with `skipAfternoon`; forces 0-minute tolerance for the person's homebound party (whether they're the driver or a passenger), so the party time must exactly match the person's end time.
+
 ## User Interface
 
 The app is a carpool planner for teachers that creates suitable carpool parties based on their schedules. To create a new plan, the user needs to provide username and password, which are used by a backend service to query the schedules (the basis for the plan). Working on an existing plan or loading a plan from a JSON file does not require authentication.
@@ -75,7 +102,7 @@ Member configuration:
     - Is Part Time (boolean)
     - Number of seats
     - Custom preferences
-Schema: `schema/members.json`
+Schema: `schemas/members.json`
 
 When the user has entered username and password, a reference date has been picked (and it's a Monday) and there is at least one member and no plan is currently, a button to generate a driving plan shall become active. It shall POST to 127.0.0.1:1338/api/v1/drivingplan with the a payload as defined in driving_plan_request.json.
 
@@ -85,7 +112,7 @@ Driving plan editor:
 - Edit dialog for a day plan to move passengers from one party to another
 
 For an existing plan, the app shall provide an option to save the plan to a JSON file and to a PDF (using a backend service) and to discard the plan (enabling the creation of a new plan). 
-Driving plan schema: `schema/driving_plan.json`
+Driving plan schema: `schemas/driving_plan.json`
 
 The plan and the member configuration shall be saved to local storage automatically so that the user can continue working on it later without losing data.
 
@@ -94,6 +121,7 @@ The plan and the member configuration shall be saved to local storage automatica
 ### Backend - REST API Endpoints
 The backend exposes a REST API with the following endpoints:
 * `GET /api/v1/check`: Checks the connection to the backend
+* `POST /api/v1/suggestedreferencedate`: Given WebUntis credentials, suggests a default reference date (the next date, today included, that falls in an A week per the school's week numbering). Used to pre-fill the reference date picker; the frontend should fail silently and let the user pick manually if this fails.
 * `POST /api/v1/drivingplan`: Calculates a driving plan based on the provided member data
 
 The `drivingplan` endpoint expects a JSON payload defined by the schema in `schemas/driving_plan_request.json` and returns a response defined by the schema in `schemas/driving_plan.json`.
