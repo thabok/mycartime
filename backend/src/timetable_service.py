@@ -261,6 +261,11 @@ class TimetableService:
                             custom_end = parse_time_to_hhmm(custom_day.custom_end)
                             if custom_end:
                                 timetable.end_time = custom_end
+                        # Set "is_present" flag if custom day prefs indicate presence
+                        # This is important is members participate despite their webuntis
+                        # schedule indicating absence
+                        if timetable.start_time and timetable.end_time:
+                            timetable.is_present = True
                         
                 member_timetables[day_num] = timetable
             

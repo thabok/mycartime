@@ -13,6 +13,7 @@ CACHE_TTL_SECONDS = None # 3600  # 1 hour - timetables rarely change during the 
 TIME_TOLERANCE_MINUTES = 30  # Maximum time deviation to group members together
 MAX_DRIVES_FULLTIME = 4  # Maximum drives for full-time members in 2-week cycle
 MAX_DRIVES_PARTTIME = 3  # Maximum drives for part-time members in 2-week cycle
+EXACT_MATCH_TOLERANCE_MINUTES = 5  # Max deviation still treated as an "exact" time match (e.g. grouping passengers with an identical schedule)
 
 # Server Configuration
 PORT = 1338

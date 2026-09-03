@@ -248,7 +248,12 @@ class Party:
     is_lonely_driver: bool = False  # True if driver has skipMorning/skipAfternoon
     pool_name: Optional[str] = None  # Unique pool identifier (e.g. "pool-mon-a-schoolbound-755-tol30")
     creation_phase: Optional[int] = None  # Phase in which this party was created (2, 3, or 4)
-    
+    original_driver_time: Optional[int] = None  # Driver's own time when the party was created, before Phase 5 passenger-driven drift
+
+    def __post_init__(self):
+        if self.original_driver_time is None:
+            self.original_driver_time = self.time
+
     def to_dict(self) -> dict:
         """Convert to dictionary."""
         result = {

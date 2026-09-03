@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Set, Tuple
 import config
 from models import DayOfWeekABCombo, DayPlan, DrivingPlan, Member, Party, TimeInfo
 from utils import (WEEKDAY_NAMES, get_earliest_time, get_latest_time,
-                   times_within_tolerance)
+                   time_difference_minutes, times_within_tolerance)
 
 logger = logging.getLogger(__name__)
 
@@ -964,27 +964,35 @@ class AlgorithmService:
                     
                     logger.info(f"  Checking {self._get_day_name(day_num)}, {direction_key} party (time {problematic_party.time})...")
                     
-                    # Find pool containing the problematic driver
+                    # Find pool containing the problematic driver for this direction, and also
+                    # the pool for the OTHER direction on the same day - a savior only reachable
+                    # via the other direction's pool must still be considered, since they'll
+                    # take over driving duty (and thus a party) in both directions.
                     matching_pool = None
+                    other_matching_pool = None
                     for pool in all_pools:
-                        if (pool.day_num == day_num and 
-                            pool.schoolbound == schoolbound and
-                            problematic_initials in pool.time_slot.members):
+                        if pool.day_num != day_num or problematic_initials not in pool.time_slot.members:
+                            continue
+                        if pool.schoolbound == schoolbound:
                             matching_pool = pool
-                            break
-                    
+                        else:
+                            other_matching_pool = pool
+
                     if not matching_pool:
                         logger.info(f"    No matching pool found")
                         continue
-                    
-                    # Find potential saviors in the same pool with drive_count < max_drives
-                    potential_saviors = [
-                        member_init for member_init in matching_pool.time_slot.members
+
+                    # Find potential saviors in either direction's pool with drive_count < max_drives
+                    savior_search_pools = [matching_pool] + ([other_matching_pool] if other_matching_pool else [])
+                    potential_saviors = list({
+                        member_init
+                        for search_pool in savior_search_pools
+                        for member_init in search_pool.time_slot.members
                         if (member_init != problematic_initials and
-                            member_init in matching_pool.candidates and
+                            member_init in search_pool.candidates and
                             self.members[member_init].drive_count < self.members[member_init].max_drives and
                             day_num not in self.members[member_init].driving_days)
-                    ]
+                    })
                     
                     if not potential_saviors:
                         logger.info(f"    No saviors available (all have drive_count >= max_drives or already driving)")
@@ -1141,10 +1149,13 @@ class AlgorithmService:
                     savior.driving_days.add(day_num)
                     
                     logger.info(f"    Updated counts: {problematic_initials}={problematic_member.drive_count}, {savior_initials}={savior.drive_count}")
-                    
-                    # Only rebalance one day per problematic driver to avoid over-correction
-                    break
-                
+
+                    # Note: the removal above already dropped both direction's parties for this
+                    # day, so continuing to the other direction_key is a harmless no-op (no
+                    # problematic_party will be found there). We deliberately don't stop after
+                    # one swap - keep going so a driver who's over quota by more than one day
+                    # gets fully rebalanced, not just relieved by a single day.
+
                 if problematic_member.drive_count <= problematic_member.max_drives:
                     logger.info(f"  {problematic_initials} now has acceptable drive count ({problematic_member.drive_count})")
                     break
@@ -1219,9 +1230,12 @@ class AlgorithmService:
                                 continue
                             
                             # Calculate available and required capacity
-                            # Available Capacity: Sum of number of seats for each party
+                            # Available Capacity: Sum of number of seats for each party.
+                            # A lonely driver (skipMorning/skipAfternoon) can't take passengers,
+                            # so their party only ever accounts for themselves - counting their
+                            # full seat count here would understate how congested the pool is.
                             available_capacity = sum(
-                                self.members[p.driver].number_of_seats
+                                (1 if p.is_lonely_driver else self.members[p.driver].number_of_seats)
                                 for p in relevant_parties
                             )
                             
@@ -1489,16 +1503,33 @@ class AlgorithmService:
             if not available_parties:
                 return None
 
+            # Symmetric case: if the CANDIDATE passenger has no-waiting-afternoon, don't let
+            # them join a party whose departure has already drifted (from earlier passengers)
+            # past their own exact time - that's checked against the party's real current
+            # time, not original_driver_time, since it's their actual wait we're preventing.
+            if passenger_member.no_waiting_afternoon_on_day(day_num):
+                available_parties = [p for p in available_parties if p.time <= passenger_time]
+                if not available_parties:
+                    return None
+
+        # Tolerance is always measured against the driver's original time, not the party's
+        # current (possibly already-shifted) time - otherwise cumulative drift from earlier
+        # passengers could push a later passenger out of tolerance even though Phase 2
+        # guaranteed capacity based on the driver's original time.
+
         # First priority: parties with the exact same time
-        same_time_parties = [p for p in available_parties if abs(p.time - passenger_time) < 5]
+        same_time_parties = [
+            p for p in available_parties
+            if abs(p.original_driver_time - passenger_time) < config.EXACT_MATCH_TOLERANCE_MINUTES
+        ]
         if same_time_parties:
             # Among same-time parties, pick the one with fewest passengers (balance across parties)
             return min(same_time_parties, key=lambda p: len(p.passengers))
-        
+
         # Second priority: parties with time within tolerance
         within_tolerance_parties = [
-            p for p in available_parties 
-            if times_within_tolerance(p.time, passenger_time, tolerance)
+            p for p in available_parties
+            if times_within_tolerance(p.original_driver_time, passenger_time, tolerance)
         ]
         if within_tolerance_parties:
             # Pick the one with fewest passengers (balance across parties)
@@ -1865,16 +1896,20 @@ class AlgorithmService:
             
             if time is None:
                 continue
-            
-            # Find or create a time slot within tolerance
-            found_slot = False
+
+            # Find the nearest existing time slot within tolerance (best match, not first match)
+            nearest_slot = None
+            nearest_diff = None
             for existing_time, slot in time_groups.items():
                 if times_within_tolerance(time, existing_time, self.tolerance):
-                    slot.add_member(initials)
-                    found_slot = True
-                    break
-            
-            if not found_slot:
+                    diff = time_difference_minutes(time, existing_time)
+                    if nearest_diff is None or diff < nearest_diff:
+                        nearest_diff = diff
+                        nearest_slot = slot
+
+            if nearest_slot is not None:
+                nearest_slot.add_member(initials)
+            else:
                 slot = TimeSlot(time, schoolbound)
                 slot.add_member(initials)
                 time_groups[time] = slot
