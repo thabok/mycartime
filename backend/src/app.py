@@ -3,10 +3,13 @@ Flask application for Carpool Time backend service.
 """
 import base64
 import logging
+import os
 from collections import defaultdict
 
 import config
+import requests
 from algorithm_service import AlgorithmService
+from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from models import Member
@@ -24,9 +27,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Loads the repo-root .env (searched for by walking up from this file), which
+# holds GITHUB_ISSUE_CREATION used by the feedback endpoint below.
+load_dotenv()
+
 # Initialize Flask app
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
+
+GITHUB_FEEDBACK_REPO = 'thabok/mycartime'
+GITHUB_FEEDBACK_LABELS = {'bug', 'question', 'enhancement'}
 
 
 @app.route('/api/v1/check', methods=['GET'])
@@ -254,6 +264,69 @@ def _print_to_console(driving_plan, members):
                 logger.debug(f"    {time_str} | Driver: {party.driver}{'*' if party.is_designated_driver else ''}{passengers_part}")
         
         logger.debug("")
+
+
+@app.route('/api/v1/feedback', methods=['POST'])
+def create_feedback_issue():
+    """
+    Create a GitHub issue from user-submitted feedback.
+
+    Expected JSON payload:
+    {
+        "title": "...",
+        "description": "...",
+        "label": "bug" | "question" | "enhancement"
+    }
+
+    Returns:
+        JSON response with the created issue's URL
+    """
+    try:
+        data = request.get_json()
+
+        if not data:
+            return jsonify({'error': 'No JSON data provided'}), 400
+
+        title = (data.get('title') or '').strip()
+        description = (data.get('description') or '').strip()
+        label = data.get('label')
+
+        if not title:
+            return jsonify({'error': 'Title is required'}), 400
+        if label not in GITHUB_FEEDBACK_LABELS:
+            return jsonify({'error': 'Invalid label'}), 400
+
+        github_token = os.environ.get('GITHUB_ISSUE_CREATION')
+        if not github_token:
+            logger.error("GITHUB_ISSUE_CREATION is not configured; cannot create feedback issue")
+            return jsonify({'error': 'Feedback submission is not configured on the server'}), 500
+
+        response = requests.post(
+            f'https://api.github.com/repos/{GITHUB_FEEDBACK_REPO}/issues',
+            headers={
+                'Authorization': f'Bearer {github_token}',
+                'Accept': 'application/vnd.github+json',
+                'X-GitHub-Api-Version': '2022-11-28',
+            },
+            json={
+                'title': title,
+                'body': description,
+                'labels': ['user feedback', label],
+            },
+            timeout=10,
+        )
+
+        if response.status_code != 201:
+            logger.error(f"GitHub issue creation failed ({response.status_code}): {response.text}")
+            return jsonify({'error': 'Failed to create GitHub issue'}), 502
+
+        issue = response.json()
+        logger.info(f"Created feedback issue: {issue.get('html_url')}")
+        return jsonify({'issueUrl': issue.get('html_url')}), 201
+
+    except Exception as e:
+        logger.error(f"Error creating feedback issue: {str(e)}", exc_info=True)
+        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
 
 
 @app.errorhandler(404)

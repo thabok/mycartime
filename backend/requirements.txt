@@ -3,6 +3,7 @@ flask-cors>=4.0.0
 python-dateutil>=2.8.2
 requests>=2.31.0
 diskcache>=5.6.0
+python-dotenv>=1.0.0
 
 # webuntis is installed from the local fork in ../webuntis (see run.sh),
 # not from PyPI, so it is intentionally not listed here.
