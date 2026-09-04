@@ -7,6 +7,7 @@
 #
 # Usage: ./run.sh
 set -e
+cd "$(dirname "$0")" || exit 1
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$ROOT_DIR/backend"
@@ -20,10 +21,10 @@ if [ -z "$(ls -A "$FRONTEND_DIR" 2>/dev/null)" ]; then
 fi
 
 echo "Setting up backend virtual environment..."
-if [ ! -d "$BACKEND_DIR/venv" ]; then
-    python3 -m venv "$BACKEND_DIR/venv"
+if [ ! -d "$ROOT_DIR/.venv" ]; then
+    python3 -m venv "$ROOT_DIR/.venv"
 fi
-source "$BACKEND_DIR/venv/bin/activate"
+source "$ROOT_DIR/.venv/bin/activate"
 pip install -q -r "$BACKEND_DIR/requirements.txt"
 pip install -q -e "$WEBUNTIS_DIR"
 deactivate
@@ -47,7 +48,7 @@ trap cleanup EXIT INT TERM
 
 echo "Starting backend on http://localhost:1338 ..."
 (
-    source "$BACKEND_DIR/venv/bin/activate"
+    source "$ROOT_DIR/.venv/bin/activate"
     cd "$BACKEND_DIR/src"
     python app.py 2>&1 | sed -u 's/^/[backend]  /'
 ) &
@@ -59,5 +60,8 @@ echo "Starting frontend (Vite dev server, hot reload) ..."
     npm run dev 2>&1 | sed -u 's/^/[frontend] /'
 ) &
 PIDS+=($!)
+
+sleep 1
+open -a Safari "http://localhost:8080"
 
 wait
