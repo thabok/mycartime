@@ -13,11 +13,46 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$ROOT_DIR/backend"
 FRONTEND_DIR="$ROOT_DIR/frontend"
 WEBUNTIS_DIR="$ROOT_DIR/webuntis"
+PID_FILE="$ROOT_DIR/.run.pids"
 
 # Make sure the frontend submodule is checked out (e.g. on a fresh clone).
 if [ -z "$(ls -A "$FRONTEND_DIR" 2>/dev/null)" ]; then
     echo "Frontend submodule not initialized, fetching it..."
     git -C "$ROOT_DIR" submodule update --init --recursive
+fi
+
+# Backend and frontend each spawn further children (npm -> vite, python's
+# multiprocessing workers) that aren't captured by $!, so a plain `kill $pid`
+# on exit doesn't reliably stop everything (e.g. if the terminal is closed
+# instead of Ctrl+C'd, the trap below never runs at all). To recover from
+# that, every PID we background gets recorded in $PID_FILE; the next run
+# reads it back and kills each one's full process tree before starting.
+pid_tree() {
+    local pid="$1"
+    echo "$pid"
+    local child
+    for child in $(pgrep -P "$pid" 2>/dev/null); do
+        pid_tree "$child"
+    done
+}
+
+kill_pid_tree() {
+    local pid="$1"
+    local tree
+    tree="$(pid_tree "$pid" 2>/dev/null)"
+    if [ -n "$tree" ]; then
+        kill $tree 2>/dev/null || true
+        sleep 1
+        kill -9 $tree 2>/dev/null || true
+    fi
+}
+
+if [ -f "$PID_FILE" ]; then
+    echo "Stopping leftover processes from a previous run..."
+    while read -r pid; do
+        [ -n "$pid" ] && kill_pid_tree "$pid"
+    done < "$PID_FILE"
+    rm -f "$PID_FILE"
 fi
 
 echo "Setting up backend virtual environment..."
@@ -34,14 +69,17 @@ if [ ! -d "$FRONTEND_DIR/node_modules" ]; then
     (cd "$FRONTEND_DIR" && npm install)
 fi
 
-# Track child PIDs so both processes are stopped together on exit/Ctrl+C.
+# Track child PIDs (in memory and in $PID_FILE) so both processes are
+# stopped together on exit/Ctrl+C.
 PIDS=()
 cleanup() {
+    trap - EXIT INT TERM
     echo ""
     echo "Shutting down..."
     for pid in "${PIDS[@]}"; do
-        kill "$pid" 2>/dev/null || true
+        kill_pid_tree "$pid"
     done
+    rm -f "$PID_FILE"
     wait 2>/dev/null || true
 }
 trap cleanup EXIT INT TERM
@@ -53,6 +91,7 @@ echo "Starting backend on http://localhost:1338 ..."
     python app.py 2>&1 | sed -u 's/^/[backend]  /'
 ) &
 PIDS+=($!)
+echo "$!" >> "$PID_FILE"
 
 echo "Starting frontend (Vite dev server, hot reload) ..."
 (
@@ -60,6 +99,7 @@ echo "Starting frontend (Vite dev server, hot reload) ..."
     npm run dev 2>&1 | sed -u 's/^/[frontend] /'
 ) &
 PIDS+=($!)
+echo "$!" >> "$PID_FILE"
 
 sleep 1
 open -a Safari "http://localhost:8080"

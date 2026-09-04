@@ -33,6 +33,7 @@ bin
 node_modules
 .DS_Store
 members.json
+.run.pids
 build
 .vscode
 testdata/request.json
