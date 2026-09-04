@@ -18,3 +18,8 @@ EXACT_MATCH_TOLERANCE_MINUTES = 5  # Max deviation still treated as an "exact" t
 # Server Configuration
 PORT = 1338
 DEBUG = True
+
+# AI Assistant Configuration
+ASSISTANT_MODEL = "claude-sonnet-5"
+ASSISTANT_MAX_TOKENS = 2000
+ASSISTANT_CLI_TIMEOUT_SECONDS = 60

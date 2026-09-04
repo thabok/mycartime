@@ -2,15 +2,17 @@
 Flask application for Carpool Time backend service.
 """
 import base64
+import json
 import logging
 import os
 from collections import defaultdict
 
+import assistant_service
 import config
 import requests
 from algorithm_service import AlgorithmService
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request
+from flask import Flask, Response, jsonify, request
 from flask_cors import CORS
 from models import Member
 from timetable_service import TimetableService
@@ -300,7 +302,7 @@ def create_feedback_issue():
         github_token = os.environ.get('GITHUB_ISSUE_CREATION')
         if not github_token:
             logger.error("GITHUB_ISSUE_CREATION is not configured; cannot create feedback issue")
-            return jsonify({'error': 'Feedback submission is not configured on the server'}), 500
+            return jsonify({'error': 'GITHUB_ISSUE_CREATION is not configured'}), 500
 
         response = requests.post(
             f'https://api.github.com/repos/{GITHUB_FEEDBACK_REPO}/issues',
@@ -331,6 +333,50 @@ def create_feedback_issue():
         return jsonify({'error': f'Internal server error: {str(e)}'}), 500
 
 
+@app.route('/api/v1/assistant/chat', methods=['POST'])
+def assistant_chat():
+    """
+    Chat with the AI assistant about the current members/driving plan, and
+    optionally receive proposed actions (member/plan edits) for the
+    frontend to apply.
+
+    Expected JSON payload:
+    {
+        "messages": [{"role": "user" | "assistant", "content": "..."}, ...],
+        "context": {
+            "members": [...],
+            "plan": {...} | null,
+            "uiContext": {...}
+        }
+    }
+
+    Streams the response as newline-delimited JSON, one object per line:
+    {"type": "delta", "text": "..."} for incremental reply text, followed
+    by exactly one {"type": "final", "reply": "...", "actions": [...]}, or
+    {"type": "error", "message": "..."} if something went wrong.
+    """
+    data = request.get_json()
+
+    if not data:
+        return jsonify({'error': 'No JSON data provided'}), 400
+
+    messages = data.get('messages')
+    if not isinstance(messages, list) or not messages:
+        return jsonify({'error': 'Missing required field: messages'}), 400
+
+    context = data.get('context') or {}
+
+    def generate():
+        try:
+            for event in assistant_service.ask_stream(messages, context):
+                yield json.dumps(event) + '\n'
+        except Exception as e:
+            logger.error(f"Error in assistant chat: {str(e)}", exc_info=True)
+            yield json.dumps({'type': 'error', 'message': str(e)}) + '\n'
+
+    return Response(generate(), mimetype='application/x-ndjson')
+
+
 @app.errorhandler(404)
 def not_found(error):
     """Handle 404 errors."""
@@ -346,4 +392,4 @@ def internal_error(error):
 
 if __name__ == '__main__':
     logger.info(f"Starting Carpool Time backend service on port {config.PORT}")
-    app.run(debug=config.DEBUG, port=config.PORT, host='0.0.0.0')
+    app.run(debug=config.DEBUG, port=config.PORT, host='0.0.0.0', threaded=True)
