@@ -226,6 +226,9 @@ class _PartialReplyTracker:
 
 
 def _call_sdk_stream(system_prompt: str, messages: list[dict]):
+    """Yield normalized {'kind': ..., ...} events. `kind` is one of:
+    'text' (reply content), 'thinking' (extended-thinking content, if the
+    model produces any), 'tool_start' (the model invoked a tool)."""
     import anthropic
 
     client = anthropic.Anthropic()
@@ -235,10 +238,23 @@ def _call_sdk_stream(system_prompt: str, messages: list[dict]):
         system=system_prompt,
         messages=[{'role': m['role'], 'content': m['content']} for m in messages],
     ) as stream:
-        yield from stream.text_stream
+        for event in stream:
+            logger.debug(f"[assistant] sdk event: {event!r}")
+            if event.type == 'content_block_start':
+                block = event.content_block
+                if block.type == 'tool_use':
+                    yield {'kind': 'tool_start', 'name': block.name}
+            elif event.type == 'content_block_delta':
+                delta = event.delta
+                if delta.type == 'text_delta' and delta.text:
+                    yield {'kind': 'text', 'text': delta.text}
+                elif delta.type == 'thinking_delta' and delta.thinking:
+                    yield {'kind': 'thinking', 'text': delta.thinking}
 
 
 def _call_cli_stream(system_prompt: str, messages: list[dict]):
+    """Same normalized event shape as `_call_sdk_stream` (see its docstring),
+    decoded from the claude CLI's `stream-json` output."""
     transcript = '\n\n'.join(f"{m['role']}: {m['content']}" for m in messages)
     prompt = f"{system_prompt}\n\n---\n\nConversation so far:\n\n{transcript}\n\nRespond now as the assistant, following the JSON envelope contract above."
 
@@ -248,7 +264,7 @@ def _call_cli_stream(system_prompt: str, messages: list[dict]):
     # requires in print mode) is what gets us token-level text deltas
     # instead of one message dumped at the end.
     process = subprocess.Popen(
-        ['claude', '-p', '--output-format', 'stream-json', '--include-partial-messages', '--verbose', '--', prompt],
+        ['claude', '-p', '--model', 'claude-sonnet-4-6', '--effort', 'medium', '--output-format', 'stream-json', '--include-partial-messages', '--verbose', '--', prompt],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
@@ -268,6 +284,7 @@ def _call_cli_stream(system_prompt: str, messages: list[dict]):
             line = line.strip()
             if not line:
                 continue
+            logger.debug(f"[assistant] cli event: {line}")
             try:
                 event = json.loads(line)
             except json.JSONDecodeError:
@@ -275,11 +292,20 @@ def _call_cli_stream(system_prompt: str, messages: list[dict]):
             if event.get('type') != 'stream_event':
                 continue
             inner = event.get('event', {})
-            if inner.get('type') != 'content_block_delta':
+            inner_type = inner.get('type')
+            if inner_type == 'content_block_start':
+                block = inner.get('content_block', {})
+                if block.get('type') == 'tool_use':
+                    yield {'kind': 'tool_start', 'name': block.get('name')}
+                continue
+            if inner_type != 'content_block_delta':
                 continue
             delta = inner.get('delta', {})
-            if delta.get('type') == 'text_delta' and delta.get('text'):
-                yield delta['text']
+            delta_type = delta.get('type')
+            if delta_type == 'text_delta' and delta.get('text'):
+                yield {'kind': 'text', 'text': delta['text']}
+            elif delta_type == 'thinking_delta' and delta.get('thinking'):
+                yield {'kind': 'thinking', 'text': delta['thinking']}
         process.wait()
     finally:
         timer.cancel()
@@ -293,23 +319,24 @@ def _call_cli_stream(system_prompt: str, messages: list[dict]):
     process.stderr.close()
 
 
-def _stream_chunks(system_prompt: str, messages: list[dict]):
-    """Yield raw text chunks from whichever backend answers: the Anthropic
-    SDK if an API key is configured, falling back to the claude CLI if the
-    SDK errors out before producing any output (same fallback behavior as
-    the old non-streaming implementation)."""
+def _stream_events(system_prompt: str, messages: list[dict]):
+    """Yield normalized events (see `_call_sdk_stream`'s docstring) from
+    whichever backend answers: the Anthropic SDK if an API key is
+    configured, falling back to the claude CLI if the SDK errors out before
+    producing any output (same fallback behavior as the old non-streaming
+    implementation)."""
     api_key = os.environ.get('ANTHROPIC_API_KEY')
     if api_key:
-        sdk_chunks = _call_sdk_stream(system_prompt, messages)
+        sdk_events = _call_sdk_stream(system_prompt, messages)
         try:
-            first_chunk = next(sdk_chunks)
+            first_event = next(sdk_events)
         except StopIteration:
             return
         except Exception as e:
             logger.warning(f"Anthropic SDK stream failed ({e}); falling back to claude CLI")
         else:
-            yield first_chunk
-            yield from sdk_chunks
+            yield first_event
+            yield from sdk_events
             return
 
     yield from _call_cli_stream(system_prompt, messages)
@@ -417,21 +444,30 @@ def _validate_actions(actions: list[dict], plan: dict, members: list[dict] | Non
 
 def ask_stream(messages: list[dict], context: dict):
     """Send the conversation + app context to Claude and yield incremental
-    {"type": "delta", "text": str} events as the `reply` text streams in,
+    {"type": "delta", "text": str} events as the `reply` text streams in
+    (plus {"type": "thinking_delta", ...} / {"type": "tool_call", ...}
+    events surfacing what the model is doing in between, if anything),
     followed by exactly one {"type": "final", "reply": str, "actions":
     list[dict]} event once the full response has been parsed and validated."""
     system_prompt = build_system_prompt(context)
 
     raw_chunks = []
     partial_reply_tracker = _PartialReplyTracker()
-    for chunk in _stream_chunks(system_prompt, messages):
-        raw_chunks.append(chunk)
-        new_text = partial_reply_tracker.feed(chunk)
-        if new_text:
-            yield {'type': 'delta', 'text': new_text}
+    for event in _stream_events(system_prompt, messages):
+        kind = event['kind']
+        if kind == 'text':
+            raw_chunks.append(event['text'])
+            new_text = partial_reply_tracker.feed(event['text'])
+            if new_text:
+                yield {'type': 'delta', 'text': new_text}
+        elif kind == 'thinking':
+            yield {'type': 'thinking_delta', 'text': event['text']}
+        elif kind == 'tool_start':
+            yield {'type': 'tool_call', 'name': event['name']}
 
     envelope = _parse_envelope(''.join(raw_chunks))
     envelope['actions'] = _validate_actions(envelope['actions'], context.get('plan'), context.get('members'))
+    logger.info(f"[assistant] <<< response | reply={envelope['reply']!r} actions={envelope['actions']!r}")
     yield {'type': 'final', 'reply': envelope['reply'], 'actions': envelope['actions']}
 
 

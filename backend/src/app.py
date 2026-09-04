@@ -351,7 +351,9 @@ def assistant_chat():
     }
 
     Streams the response as newline-delimited JSON, one object per line:
-    {"type": "delta", "text": "..."} for incremental reply text, followed
+    {"type": "delta", "text": "..."} for incremental reply text,
+    {"type": "thinking_delta", "text": "..."} / {"type": "tool_call",
+    "name": "..."} for intermediate model activity (safe to ignore), followed
     by exactly one {"type": "final", "reply": "...", "actions": [...]}, or
     {"type": "error", "message": "..."} if something went wrong.
     """
