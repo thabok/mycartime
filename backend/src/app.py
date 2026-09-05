@@ -333,6 +333,22 @@ def create_feedback_issue():
         return jsonify({'error': f'Internal server error: {str(e)}'}), 500
 
 
+@app.route('/api/v1/assistant/spinner-verbs', methods=['GET'])
+def assistant_spinner_verbs():
+    """
+    Returns the list of whimsical status messages shown in the UI while the
+    assistant is thinking (backed by assistant/harry-potter-spinning-verbs.txt).
+    """
+    try:
+        path = os.path.join(os.path.dirname(__file__), 'assistant', 'harry-potter-spinning-verbs.txt')
+        with open(path, 'r', encoding='utf-8') as f:
+            verbs = [line.strip() for line in f if line.strip()]
+        return jsonify(verbs), 200
+    except Exception as e:
+        logger.error(f"Error reading spinner verbs: {str(e)}", exc_info=True)
+        return jsonify([]), 200
+
+
 @app.route('/api/v1/assistant/chat', methods=['POST'])
 def assistant_chat():
     """
