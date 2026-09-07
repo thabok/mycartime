@@ -41,6 +41,7 @@ testdata/request.json
 *.DS_Store
 
 **/cache_dir/
+**/captures/
 **/__pycache__/
 **/*.pyc
 **/*.egg-info/

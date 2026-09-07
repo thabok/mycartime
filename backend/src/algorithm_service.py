@@ -435,8 +435,19 @@ class AlgorithmService:
             
             logger.info(f"\n--- Pool {pool_idx + 1}/{len(all_pools)}: {self._get_day_name(day_num)}, {direction}, {len(pool.time_slot.members)} members ---")
             
-            # Determine how many drivers we need for this pool
-            remaining_to_cover = [m for m in pool.time_slot.members if m not in drivers_by_day[day_num]]
+            # Determine how many drivers we need for this pool.
+            # pool.time_slot.members is a set, so its iteration order depends on Python's
+            # per-process string-hash seed. When capacity is scarce, the order this list is
+            # built in decides who gets a scarce open seat vs. who ends up uncovered and
+            # becomes a new driver (see the no-wait-driver branch below) - so it must be a
+            # deterministic order, not raw set iteration. Members already driving more get
+            # priority for the scarce seat (protecting them from an extra drive); whoever's
+            # left over to become the new driver is picked from those with the fewest drives
+            # so far, consistent with _select_best_driver's own fairness preference.
+            remaining_to_cover = sorted(
+                (m for m in pool.time_slot.members if m not in drivers_by_day[day_num]),
+                key=lambda m: (-self.members[m].drive_count, m)
+            )
 
             if not remaining_to_cover:
                 logger.info(f"All members already driving on {self._get_day_name(day_num)}, no additional drivers needed")
@@ -481,14 +492,20 @@ class AlgorithmService:
 
                 while len(remaining_to_cover) > total_capacity:
                     # PRIORITY 1: Check if anyone in remaining_to_cover needs a car (must drive)
-                    mandatory_driver = None
-                    for member_initials in remaining_to_cover:
-                        if (member_initials in pool.candidates and
-                            member_initials not in drivers_by_day[day_num] and
-                            self.members[member_initials].needs_car_on_day(day_num)):
-                            mandatory_driver = member_initials
-                            logger.info(f"  ! {mandatory_driver} needs car on {self._get_day_name(day_num)}, must be selected as driver")
-                            break
+                    qualifying_mandatory = [
+                        m for m in remaining_to_cover
+                        if (m in pool.candidates and
+                            m not in drivers_by_day[day_num] and
+                            self.members[m].needs_car_on_day(day_num))
+                    ]
+                    if len(qualifying_mandatory) > 1:
+                        logger.info(
+                            f"    TIE at mandatory-driver search: {sorted(qualifying_mandatory)} all qualify "
+                            f"simultaneously; hash-order of remaining_to_cover picked {qualifying_mandatory[0]} first"
+                        )
+                    mandatory_driver = qualifying_mandatory[0] if qualifying_mandatory else None
+                    if mandatory_driver:
+                        logger.info(f"  ! {mandatory_driver} needs car on {self._get_day_name(day_num)}, must be selected as driver")
 
                     if mandatory_driver:
                         driver = mandatory_driver
@@ -674,14 +691,20 @@ class AlgorithmService:
 
             while uncovered_members:
                 # PRIORITY 1: Check if anyone still uncovered needs a car (must drive)
-                mandatory_driver = None
-                for member_initials in uncovered_members:
-                    if (member_initials in pool.candidates and
-                        member_initials not in drivers_by_day[day_num] and
-                        self.members[member_initials].needs_car_on_day(day_num)):
-                        mandatory_driver = member_initials
-                        logger.info(f"  ! {mandatory_driver} needs car on {self._get_day_name(day_num)}, must be selected as driver")
-                        break
+                qualifying_mandatory = [
+                    m for m in uncovered_members
+                    if (m in pool.candidates and
+                        m not in drivers_by_day[day_num] and
+                        self.members[m].needs_car_on_day(day_num))
+                ]
+                if len(qualifying_mandatory) > 1:
+                    logger.info(
+                        f"    TIE at mandatory-driver search: {sorted(qualifying_mandatory)} all qualify "
+                        f"simultaneously; hash-order of uncovered_members picked {qualifying_mandatory[0]} first"
+                    )
+                mandatory_driver = qualifying_mandatory[0] if qualifying_mandatory else None
+                if mandatory_driver:
+                    logger.info(f"  ! {mandatory_driver} needs car on {self._get_day_name(day_num)}, must be selected as driver")
 
                 if mandatory_driver:
                     driver = mandatory_driver
@@ -861,7 +884,10 @@ class AlgorithmService:
                 for pool in pools_for_direction:
                     all_members_needing_rides.update(pool.time_slot.members)
                 
-                passengers_to_assign = [m for m in all_members_needing_rides if m not in drivers]
+                # all_members_needing_rides is a set, so iterating it directly would make the
+                # order passengers get assigned in (and thus which party fills up first when
+                # several tie) depend on the process's hash seed. Sort for a deterministic order.
+                passengers_to_assign = sorted(m for m in all_members_needing_rides if m not in drivers)
                 
                 # Group passengers by their actual time (to keep same-time members together)
                 passengers_by_time = defaultdict(list)
@@ -997,11 +1023,19 @@ class AlgorithmService:
                     if not potential_saviors:
                         logger.info(f"    No saviors available (all have drive_count >= max_drives or already driving)")
                         continue
-                    
+
                     # Select the best savior (lowest drive count, highest capacity)
+                    savior_score = lambda s: (self.members[s].drive_count, -self.members[s].number_of_seats)
+                    best_score = min(savior_score(s) for s in potential_saviors)
+                    tied_saviors = sorted(s for s in potential_saviors if savior_score(s) == best_score)
+                    if len(tied_saviors) > 1:
+                        logger.info(
+                            f"    TIE at savior selection: candidates {tied_saviors} all score {best_score} "
+                            f"(drive_count, -seats); hash-order would pick an arbitrary one"
+                        )
                     savior_initials = min(
                         potential_saviors,
-                        key=lambda s: (self.members[s].drive_count, -self.members[s].number_of_seats)
+                        key=lambda s: (self.members[s].drive_count, -self.members[s].number_of_seats, s)
                     )
                     savior = self.members[savior_initials]
                     
@@ -1411,7 +1445,7 @@ class AlgorithmService:
                     continue
                 if len(pool.candidates) == 1 and pool.candidates[0] == candidate:
                     future_mandatory_count += 1
-            
+
             # Scoring (lower is better)
             score = (
                 future_mandatory_count * 100,  # Save them if they have mandatory drives later
@@ -1524,7 +1558,15 @@ class AlgorithmService:
         ]
         if same_time_parties:
             # Among same-time parties, pick the one with fewest passengers (balance across parties)
-            return min(same_time_parties, key=lambda p: len(p.passengers))
+            min_passengers = min(len(p.passengers) for p in same_time_parties)
+            tied = [p for p in same_time_parties if len(p.passengers) == min_passengers]
+            if len(tied) > 1:
+                logger.info(
+                    f"    TIE at passenger assignment (same-time): parties driven by "
+                    f"{sorted(p.driver for p in tied)} all have {min_passengers} passengers; "
+                    f"list order picked {tied[0].driver}"
+                )
+            return min(same_time_parties, key=lambda p: (len(p.passengers), p.driver))
 
         # Second priority: parties with time within tolerance
         within_tolerance_parties = [
@@ -1533,7 +1575,15 @@ class AlgorithmService:
         ]
         if within_tolerance_parties:
             # Pick the one with fewest passengers (balance across parties)
-            return min(within_tolerance_parties, key=lambda p: len(p.passengers))
+            min_passengers = min(len(p.passengers) for p in within_tolerance_parties)
+            tied = [p for p in within_tolerance_parties if len(p.passengers) == min_passengers]
+            if len(tied) > 1:
+                logger.info(
+                    f"    TIE at passenger assignment (within-tolerance): parties driven by "
+                    f"{sorted(p.driver for p in tied)} all have {min_passengers} passengers; "
+                    f"list order picked {tied[0].driver}"
+                )
+            return min(within_tolerance_parties, key=lambda p: (len(p.passengers), p.driver))
         
         # If we reach here, Phase 2 failed to create enough capacity
         # This should never happen if Phase 2 works correctly

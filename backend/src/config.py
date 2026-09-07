@@ -32,6 +32,12 @@ DEBUG = True
 FRONTEND_PORT = 8080
 
 # AI Assistant Configuration
-ASSISTANT_MODEL = "claude-sonnet-5"
+ASSISTANT_MODEL = "claude-sonnet-4-6"
 ASSISTANT_MAX_TOKENS = 2000
 ASSISTANT_CLI_TIMEOUT_SECONDS = 60
+
+# When True, every /api/v1/drivingplan request dumps its members + resolved
+# WebUntis timetables (no credentials) to CAPTURE_DIR, for offline replay of
+# real-world inputs against the algorithm (see backend/src/experiments/).
+CAPTURE_PLAN_INPUTS = True
+CAPTURE_DIR = "./captures"

@@ -8,6 +8,7 @@ import logging
 import os
 import zipfile
 from collections import defaultdict
+from datetime import datetime
 
 import assistant_service
 import config
@@ -296,7 +297,10 @@ def calculate_driving_plan_logic(persons_data, start_date_str, username, passwor
         except Exception as e:
             logger.error(f"Error getting timetables: {str(e)}")
             raise e
-    
+
+    if config.CAPTURE_PLAN_INPUTS:
+        _capture_plan_input(members, start_date_str)
+
     # Calculate driving plan
     algorithm = AlgorithmService()
     driving_plan = algorithm.calculate_driving_plan(members)
@@ -305,6 +309,55 @@ def calculate_driving_plan_logic(persons_data, start_date_str, username, passwor
     _print_to_console(driving_plan, members)
     
     return driving_plan
+
+
+def _capture_plan_input(members, start_date_str):
+    """
+    Dump the members (incl. custom prefs) and their resolved WebUntis
+    timetables to config.CAPTURE_DIR, so real-world plan-generation inputs
+    can be replayed offline against the algorithm without needing WebUntis
+    credentials again. Deliberately excludes username/password/hash.
+    """
+    try:
+        capture_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), config.CAPTURE_DIR)
+        os.makedirs(capture_dir, exist_ok=True)
+
+        timetables = {}
+        for member in members:
+            timetables[member.initials] = {
+                str(day_num): {
+                    'startTime': t.start_time,
+                    'endTime': t.end_time,
+                    'scheduledStartTime': t.scheduled_start_time,
+                    'scheduledEndTime': t.scheduled_end_time,
+                    'isPresent': t.is_present,
+                }
+                for day_num, t in member.timetable.items()
+            }
+
+        capture = {
+            'capturedAt': datetime.now().isoformat(),
+            'scheduleReferenceStartDate': start_date_str,
+            'persons': [
+                {
+                    'firstName': m.first_name,
+                    'lastName': m.last_name,
+                    'initials': m.initials,
+                    'numberOfSeats': m.number_of_seats,
+                    'isPartTime': m.is_part_time,
+                    'customDays': {str(k): v.to_dict() for k, v in m.custom_days.items()},
+                }
+                for m in members
+            ],
+            'timetables': timetables,
+        }
+
+        filename = f"drivingplan-{datetime.now().strftime('%Y%m%d-%H%M%S-%f')}.json"
+        with open(os.path.join(capture_dir, filename), 'w') as f:
+            json.dump(capture, f, indent=2)
+        logger.info(f"Captured plan input to {filename}")
+    except Exception as e:
+        logger.warning(f"Failed to capture plan input: {str(e)}")
 
 
 def _print_to_console(driving_plan, members):
