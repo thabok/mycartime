@@ -13,7 +13,7 @@ data and viewing/editing plans.
 ## Repo structure and submodule caveat
 
 - `frontend/` and `webuntis/` are both **git submodules** pointing at
-  separate repositories (`https://github.com/thabok/carpoolparty.git` and
+  separate repositories (`https://github.com/thabok/mycartime-frontend.git` and
   `https://github.com/thabok/python-webuntis` respectively), not plain
   subdirectories.
   - `git status` in the superproject will show each as a single entity

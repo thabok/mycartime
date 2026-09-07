@@ -8,7 +8,7 @@ based on their WebUntis timetables and per-member preferences/constraints.
 ```
 .
 ├── backend/     Flask REST API + scheduling algorithm (Python)
-├── frontend/    React/Vite UI (git submodule → carpoolparty)
+├── frontend/    React/Vite UI (git submodule → mycartime-frontend)
 ├── webuntis/    Forked WebUntis API client (git submodule → python-webuntis)
 ├── schemas/     JSON schemas for the driving-plan API contracts
 ├── testdata/    Sample members/requests/plans used in tests and locally
@@ -17,7 +17,7 @@ based on their WebUntis timetables and per-member preferences/constraints.
 ```
 
 - **frontend/** is a git submodule pointing at
-  [thabok/carpoolparty](https://github.com/thabok/carpoolparty). It is a
+  [thabok/mycartime-frontend](https://github.com/thabok/mycartime-frontend). It is a
   separate repository with its own history; commits made inside `frontend/`
   must be committed and pushed from within that directory, and the
   superproject then records the new commit hash via `git add frontend`.
