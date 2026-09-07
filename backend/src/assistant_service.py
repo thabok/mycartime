@@ -21,10 +21,13 @@ _MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 _SKILL_DIR = os.path.join(_MODULE_DIR, 'assistant', 'skill')
 _REPO_ROOT = os.path.abspath(os.path.join(_MODULE_DIR, '..', '..'))
 _INTERNAL_DOC_PATH = os.path.join(_REPO_ROOT, 'doc', 'internal_doc.md')
-_DEBUG_LOG_PATH = os.path.join(_MODULE_DIR, 'backend_debug.log')
+# Written by the "algorithm_service" logger only (see app.py's logging setup);
+# holds the plan-generation rationale (driver selection, pool balancing, etc.)
+# without the rest of the backend's log noise.
+_PLAN_LOG_PATH = os.path.join(_MODULE_DIR, 'plan_creation.log')
 
-_DEBUG_LOG_TAIL_LINES = 500
-_DEBUG_LOG_TAIL_MAX_CHARS = 20000
+_PLAN_LOG_TAIL_LINES = 500
+_PLAN_LOG_TAIL_MAX_CHARS = 20000
 
 _JSON_ENVELOPE_RE = re.compile(r'```(?:json)?\s*(\{.*\})\s*```', re.DOTALL)
 
@@ -49,13 +52,13 @@ def _algorithm_notes() -> str:
     return doc[start:end if end != -1 else None].strip()
 
 
-def _debug_log_tail() -> str:
-    content = _read_file(_DEBUG_LOG_PATH)
+def _plan_log_tail() -> str:
+    content = _read_file(_PLAN_LOG_PATH)
     if not content:
         return ''
-    lines = content.splitlines()[-_DEBUG_LOG_TAIL_LINES:]
+    lines = content.splitlines()[-_PLAN_LOG_TAIL_LINES:]
     tail = '\n'.join(lines)
-    return tail[-_DEBUG_LOG_TAIL_MAX_CHARS:]
+    return tail[-_PLAN_LOG_TAIL_MAX_CHARS:]
 
 
 def build_system_prompt(context: dict) -> str:
@@ -65,7 +68,7 @@ def build_system_prompt(context: dict) -> str:
     glossary_en = _read_file(os.path.join(_SKILL_DIR, 'glossary_en.md'))
     glossary_de = _read_file(os.path.join(_SKILL_DIR, 'glossary_de.md'))
     algorithm_notes = _algorithm_notes()
-    debug_log = _debug_log_tail()
+    plan_log = _plan_log_tail()
 
     app_context = {
         'members': context.get('members', []),
@@ -81,8 +84,8 @@ def build_system_prompt(context: dict) -> str:
     if algorithm_notes:
         parts.append('## Algorithm reference\n\n' + algorithm_notes)
     parts.append('## Current app state (JSON)\n\n```json\n' + json.dumps(app_context) + '\n```')
-    if debug_log:
-        parts.append('## Recent backend log (tail)\n\n```\n' + debug_log + '\n```')
+    if plan_log:
+        parts.append('## Plan creation rationale (recent log tail)\n\n```\n' + plan_log + '\n```')
 
     return '\n\n'.join(parts)
 
@@ -239,7 +242,6 @@ def _call_sdk_stream(system_prompt: str, messages: list[dict]):
         messages=[{'role': m['role'], 'content': m['content']} for m in messages],
     ) as stream:
         for event in stream:
-            logger.debug(f"[assistant] sdk event: {event!r}")
             if event.type == 'content_block_start':
                 block = event.content_block
                 if block.type == 'tool_use':
@@ -284,7 +286,6 @@ def _call_cli_stream(system_prompt: str, messages: list[dict]):
             line = line.strip()
             if not line:
                 continue
-            logger.debug(f"[assistant] cli event: {line}")
             try:
                 event = json.loads(line)
             except json.JSONDecodeError:
@@ -449,6 +450,9 @@ def ask_stream(messages: list[dict], context: dict):
     events surfacing what the model is doing in between, if anything),
     followed by exactly one {"type": "final", "reply": str, "actions":
     list[dict]} event once the full response has been parsed and validated."""
+    user_request = next((m['content'] for m in reversed(messages) if m.get('role') == 'user'), None)
+    logger.info(f"[assistant] >>> request | {user_request!r}")
+
     system_prompt = build_system_prompt(context)
 
     raw_chunks = []

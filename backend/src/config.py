@@ -19,6 +19,11 @@ EXACT_MATCH_TOLERANCE_MINUTES = 5  # Max deviation still treated as an "exact" t
 PORT = 1338
 DEBUG = True
 
+# The Vite dev server port for the frontend (see frontend/vite.config.ts).
+# Used by the PNG export endpoint to drive a headless browser against the
+# live frontend app.
+FRONTEND_PORT = 8080
+
 # AI Assistant Configuration
 ASSISTANT_MODEL = "claude-sonnet-5"
 ASSISTANT_MAX_TOKENS = 2000

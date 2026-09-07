@@ -2,13 +2,16 @@
 Flask application for Carpool Time backend service.
 """
 import base64
+import io
 import json
 import logging
 import os
+import zipfile
 from collections import defaultdict
 
 import assistant_service
 import config
+import export_service
 import requests
 from algorithm_service import AlgorithmService
 from dotenv import load_dotenv
@@ -28,6 +31,21 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+# The plan-generation algorithm logs its reasoning (driver selection, pool
+# balancing, etc.) at length via the "algorithm_service" logger. That
+# rationale is also fed to the AI assistant (see assistant_service.PLAN_LOG_PATH)
+# so it can explain why the plan looks the way it does, so it's split into its
+# own file rather than mixed in with the rest of the app's logging noise.
+_plan_log_handler = logging.FileHandler(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'plan_creation.log')
+)
+_plan_log_handler.setFormatter(logging.Formatter('[%(name)s - %(levelname)s] %(message)s'))
+_algorithm_logger = logging.getLogger('algorithm_service')
+_algorithm_logger.propagate = False
+_algorithm_logger.setLevel(logging.DEBUG)
+_algorithm_logger.addHandler(_plan_log_handler)
+_algorithm_logger.addHandler(logging.StreamHandler())
 
 # Loads the repo-root .env (searched for by walking up from this file), which
 # holds GITHUB_ISSUE_CREATION used by the feedback endpoint below.
@@ -393,6 +411,66 @@ def assistant_chat():
             yield json.dumps({'type': 'error', 'message': str(e)}) + '\n'
 
     return Response(generate(), mimetype='application/x-ndjson')
+
+
+@app.route('/api/v1/export/png', methods=['POST'])
+def export_png():
+    """
+    Render the current plan's Week A and Week B tables (as shown by the
+    frontend's isolated /export view) in a headless browser and return them
+    as PNG screenshots.
+
+    Expected JSON payload:
+    {
+        "members": [...],
+        "plan": {...},
+        "referenceDate": "2026-09-09" | null,
+        "showDesignatedDriver": bool,
+        "showSoloDriver": bool,
+        "darkMode": bool
+    }
+
+    Returns:
+        A single ZIP file (image/png entries "driving-plan-week-a.png" and
+        "driving-plan-week-b.png"). Both images are bundled into one download
+        rather than returned separately, because browsers throttle/drop
+        automatically-triggered downloads that fire back-to-back without a
+        fresh user gesture in between - a single download avoids that
+        entirely.
+    """
+    try:
+        data = request.get_json()
+
+        if not data:
+            return jsonify({'error': 'No JSON data provided'}), 400
+
+        for field in ['members', 'plan']:
+            if field not in data:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+
+        frontend_host = request.host.split(':')[0]
+        frontend_origin = f'http://{frontend_host}:{config.FRONTEND_PORT}'
+
+        images = export_service.render_week_screenshots(
+            members=data['members'],
+            plan=data['plan'],
+            reference_date=data.get('referenceDate'),
+            show_designated_driver=bool(data.get('showDesignatedDriver')),
+            show_solo_driver=bool(data.get('showSoloDriver')),
+            dark_mode=bool(data.get('darkMode')),
+            frontend_origin=frontend_origin,
+        )
+
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
+            zf.writestr('driving-plan-week-a.png', images['weekA'])
+            zf.writestr('driving-plan-week-b.png', images['weekB'])
+
+        return Response(buffer.getvalue(), mimetype='application/zip')
+
+    except Exception as e:
+        logger.error(f"Error exporting plan as PNG: {str(e)}", exc_info=True)
+        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
 
 
 @app.errorhandler(404)
