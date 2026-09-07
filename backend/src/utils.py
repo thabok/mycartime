@@ -2,7 +2,7 @@
 Utility functions for the Carpool Time backend service.
 """
 from datetime import datetime, timedelta
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 WEEKDAY_NAMES = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']
 
@@ -95,35 +95,42 @@ def times_within_tolerance(time1: int, time2: int, tolerance_minutes: int) -> bo
     return time_difference_minutes(time1, time2) <= tolerance_minutes
 
 
-def is_period_relevant(period: dict, initials: str) -> bool:
+def get_period_exclusion_reason(period: dict, initials: str) -> Optional[str]:
     """
-    Check if a period is relevant for the given teacher.
-    Filters out irregular periods and on-call substitutions.
-    
+    Check whether a period should be excluded for the given teacher, and why.
+
+    Note: WebUntis code=='cancelled' periods are deliberately NOT excluded
+    here. A single cancelled occurrence doesn't mean the recurring slot isn't
+    part of the regular schedule - we care about the series/general
+    timetable (built from a whole term of occurrences), not what happened on
+    one individual date.
+
     Args:
         period: Period data from WebUntis
         initials: Teacher initials
-        
+
     Returns:
-        True if the period is relevant for this teacher
+        None if the period is relevant, otherwise a short reason string
     """
     # Filter out irregular periods
     if period.get('code', '') == 'irregular':
-        return False
-    
+        return 'irregular period'
+
     # Check if this is an on-call substitution (subject ID 255)
     ON_CALL_SUBSTITUTION_ID = 255
     # Check if this is a secondment period, i.e. "Abordnung" (subject ID 245) -
     # the teacher is at another school, so this period is not relevant here
     SECONDMENT_SUBJECT_ID = 245
     for subject in period.get('su', []):
-        if subject.get('id') in [ON_CALL_SUBSTITUTION_ID, SECONDMENT_SUBJECT_ID]:
-            return False
+        if subject.get('id') == ON_CALL_SUBSTITUTION_ID:
+            return 'on-call substitution'
+        if subject.get('id') == SECONDMENT_SUBJECT_ID:
+            return 'secondment (teacher at another school)'
 
     # Check teachers
     different_orgid = False
     matching_name = False
-    
+
     for teacher in period.get('te', []):
         if 'orgname' in teacher:
             if teacher['orgname'] == initials:
@@ -134,10 +141,142 @@ def is_period_relevant(period: dict, initials: str) -> bool:
                 different_orgid = True
         elif 'name' in teacher and teacher['name'] == initials:
             matching_name = True
-    
+
     # Period is irrelevant if there's a different org ID without a matching name
-    is_irrelevant = different_orgid and not matching_name
-    return not is_irrelevant
+    if different_orgid and not matching_name:
+        return 'handled by a different teacher'
+    return None
+
+
+def is_period_relevant(period: dict, initials: str) -> bool:
+    """
+    Check if a period is relevant for the given teacher.
+    Filters out irregular periods and on-call substitutions.
+
+    Args:
+        period: Period data from WebUntis
+        initials: Teacher initials
+
+    Returns:
+        True if the period is relevant for this teacher
+    """
+    return get_period_exclusion_reason(period, initials) is None
+
+
+# A variant that was excluded on fewer than this fraction of the slot's real
+# occurrences is treated as noise (e.g. a one-off substitution) rather than
+# part of the regular schedule's story, and is dropped from the "excluded"
+# breakdown.
+EXCLUDED_VARIANT_FREQUENCY_THRESHOLD = 1 / 3
+
+
+def _resolve_element_name(elements: list, names_by_id: Optional[Dict[int, str]]) -> Optional[str]:
+    """
+    Get the display name of the first element in a WebUntis period's element
+    list (e.g. 'su', 'ro', 'kl'), preferring a name/longname already embedded
+    on the element, falling back to an id lookup in a batch-fetched map.
+    """
+    if not elements:
+        return None
+    name = elements[0].get('longname') or elements[0].get('name')
+    if not name and names_by_id:
+        name = names_by_id.get(elements[0].get('id'))
+    return name
+
+
+# Raw WebUntis fields that might carry a human-readable name for a period
+# that has no subject (e.g. break supervision, office hours - see 'lstype').
+# All of them are surfaced whenever a period has no subject so a caller can
+# see which one actually holds the useful text for a given school; none of
+# these need id lookups, they're plain text already on the raw period.
+_NAME_CANDIDATE_FIELDS = ['activityType', 'lstext', 'info', 'substText', 'lstype', 'sg']
+
+
+def summarize_period_variants(
+    periods: List[dict],
+    initials: str,
+    total_dates: int,
+    subject_names: Optional[Dict[int, str]] = None,
+    room_names: Optional[Dict[int, str]] = None,
+    klasse_names: Optional[Dict[int, str]] = None,
+) -> tuple:
+    """
+    Group a (weekday, A/B) slot's periods into distinct variants - by start
+    time, end time, subject, class and exclusion reason - each annotated
+    with how many of the slot's real calendar dates it appeared on.
+
+    A single lesson taught across multiple rooms (e.g. a combined group
+    split between two labs) shows up as one WebUntis period row per room,
+    all sharing the same date/time/subject/class - room is therefore not
+    part of the grouping key, just collected (comma-joined) per variant, so
+    that case renders as one merged item instead of one per room.
+
+    Args:
+        periods: Periods belonging to a single slot (already date-filtered)
+        initials: Teacher initials, used to determine relevance/reason
+        total_dates: Total number of real calendar dates in this slot across
+            the queried range (the frequency denominator)
+        subject_names, room_names, klasse_names: Optional id -> display name
+            maps, used as a fallback when a period's 'su'/'ro'/'kl' entry
+            doesn't already carry a name/longname (WebUntis's raw timetable
+            response only includes element IDs, so these are normally
+            required to show the actual item/room/class names)
+
+    Returns:
+        (relevant_variants, excluded_variants) - relevant variants are
+        always included (they directly explain the computed start/end
+        time); excluded variants are only included if they occurred on at
+        least EXCLUDED_VARIANT_FREQUENCY_THRESHOLD of the slot's dates,
+        otherwise they're occasional noise, not part of the regular story.
+    """
+    groups = {}
+    for period in periods:
+        reason = get_period_exclusion_reason(period, initials)
+        subject = _resolve_element_name(period.get('su', []), subject_names)
+        room = _resolve_element_name(period.get('ro', []), room_names)
+        klasse = _resolve_element_name(period.get('kl', []), klasse_names)
+        teachers = period.get('te', [])
+        teacher = (teachers[0].get('name') or teachers[0].get('orgname')) if teachers else None
+
+        key = (period.get('startTime'), period.get('endTime'), subject, klasse, reason)
+        if key not in groups:
+            groups[key] = {
+                'startTime': period.get('startTime'),
+                'endTime': period.get('endTime'),
+                'subject': subject,
+                'klasse': klasse,
+                'teacher': teacher,
+                'rooms': set(),
+                'dates': set(),
+                'reason': reason,
+                # Not every school/period type populates these the same way,
+                # so grab them once per variant rather than guessing which
+                # one is "the" name - see _NAME_CANDIDATE_FIELDS.
+                'nameCandidates': (
+                    {field: period.get(field) or None for field in _NAME_CANDIDATE_FIELDS}
+                    if not subject else None
+                ),
+            }
+        if room:
+            groups[key]['rooms'].add(room)
+        groups[key]['dates'].add(period.get('date'))
+
+    relevant_variants = []
+    excluded_variants = []
+    for variant in groups.values():
+        reason = variant.pop('reason')
+        dates = variant.pop('dates')
+        rooms = variant.pop('rooms')
+        variant['room'] = ', '.join(sorted(rooms)) if rooms else None
+        variant['occurrences'] = len(dates)
+        variant['frequency'] = (variant['occurrences'] / total_dates) if total_dates else 0.0
+        if reason is None:
+            relevant_variants.append(variant)
+        elif variant['frequency'] >= EXCLUDED_VARIANT_FREQUENCY_THRESHOLD:
+            variant['reason'] = reason
+            excluded_variants.append(variant)
+
+    return relevant_variants, excluded_variants
 
 
 def get_earliest_time(times: list) -> Optional[int]:

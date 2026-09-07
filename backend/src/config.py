@@ -9,6 +9,13 @@ WEBUNTIS_USERAGENT = "github-carpoolparty-python"
 CACHE_DIR = "./cache_dir"
 CACHE_TTL_SECONDS = None # 3600  # 1 hour - timetables rarely change during the day
 
+# Room id -> name overrides for rooms that WebUntis's getRooms() doesn't
+# return (e.g. duty-only locations used for break supervision), so periods
+# referencing them still get a display name instead of "Unknown room".
+ROOM_NAME_FALLBACKS = {
+    131: "Bus",
+}
+
 # Algorithm Configuration
 TIME_TOLERANCE_MINUTES = 30  # Maximum time deviation to group members together
 MAX_DRIVES_FULLTIME = 4  # Maximum drives for full-time members in 2-week cycle

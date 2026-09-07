@@ -116,6 +116,68 @@ def suggested_reference_date():
         return jsonify({'error': f'Internal server error: {str(e)}'}), 500
 
 
+@app.route('/api/v1/membertimetable', methods=['POST'])
+def member_timetable_detail():
+    """
+    Get a detailed, per-(weekday, A/B) breakdown of a single member's
+    WebUntis schedule, including which periods were excluded and why, and
+    any custom preference override - so the UI can explain why a member
+    starts/leaves at a given time.
+
+    Expected JSON payload:
+    {
+        "person": {...},  // Member object
+        "scheduleReferenceStartDate": "20251223",  // YYYYMMDD format
+        "username": "...",
+        "hash": "..."  // Base64 encoded password
+    }
+
+    Returns:
+        JSON response with the member's timetable detail
+    """
+    try:
+        data = request.get_json()
+
+        if not data:
+            return jsonify({'error': 'No JSON data provided'}), 400
+
+        required_fields = ['person', 'scheduleReferenceStartDate', 'username', 'hash']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+
+        try:
+            member = Member.from_dict(data['person'])
+        except Exception as e:
+            logger.error(f"Error parsing member: {str(e)}")
+            return jsonify({'error': f'Invalid member data: {str(e)}'}), 400
+
+        try:
+            date_value = data['scheduleReferenceStartDate']
+            if isinstance(date_value, int):
+                date_value = str(date_value)
+            start_date = parse_date_yymmdd(date_value)
+        except Exception as e:
+            logger.error(f"Error parsing date: {str(e)}")
+            return jsonify({'error': 'Invalid date format. Expected YYYYMMDD'}), 400
+
+        username = data['username']
+        password = base64.b64decode(data['hash']).decode('utf-8')
+
+        with TimetableService() as timetable_service:
+            connected = timetable_service.connect(username, password)
+            if not connected:
+                return jsonify({'error': 'Could not connect to WebUntis'}), 502
+
+            detail = timetable_service.get_member_timetable_detail(member, start_date)
+
+        return jsonify(detail), 200
+
+    except Exception as e:
+        logger.error(f"Error getting member timetable detail: {str(e)}", exc_info=True)
+        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
+
+
 @app.route('/api/v1/drivingplan', methods=['POST'])
 def calculate_drivingplan():
     """

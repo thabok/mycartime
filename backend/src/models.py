@@ -57,6 +57,27 @@ class CustomDay:
             custom_end=data.get('customEnd') or None
         )
 
+    def to_dict(self) -> dict:
+        """Convert to dictionary."""
+        return {
+            'ignoreCompletely': self.ignore_completely,
+            'noWaitingAfternoon': self.no_waiting_afternoon,
+            'needsCar': self.needs_car,
+            'drivingSkip': self.driving_skip,
+            'skipMorning': self.solo_am,
+            'skipAfternoon': self.solo_pm,
+            'customStart': self.custom_start,
+            'customEnd': self.custom_end
+        }
+
+    def is_empty(self) -> bool:
+        """Whether this CustomDay carries no actual preferences."""
+        return not any([
+            self.ignore_completely, self.no_waiting_afternoon, self.needs_car,
+            self.driving_skip, self.solo_am, self.solo_pm,
+            self.custom_start, self.custom_end
+        ])
+
 
 @dataclass
 class Member:
