@@ -38,6 +38,62 @@ ASSISTANT_CLI_TIMEOUT_SECONDS = 60
 
 # When True, every /api/v1/drivingplan request dumps its members + resolved
 # WebUntis timetables (no credentials) to CAPTURE_DIR, for offline replay of
-# real-world inputs against the algorithm (see backend/src/experiments/).
+# real-world inputs against the solver (see backend/src/experiments/).
 CAPTURE_PLAN_INPUTS = True
 CAPTURE_DIR = "./captures"
+
+# ---------------------------------------------------------------------------
+# Plan engine (solver_service.py, an OR-Tools CP-SAT model)
+# ---------------------------------------------------------------------------
+# See doc/ALGORITHM_EVOLUTION.md for why this replaced the earlier five-phase
+# greedy heuristic.
+
+# Stop a solve after this many seconds without an improving solution, and
+# serve the best one found so far. In practice CP-SAT finds the optimum (or
+# something extremely close to it) within a few seconds on a real member set,
+# then spends minutes proving no better solution exists - this cuts that long
+# proof phase short once progress has clearly stalled, rather than making
+# every request wait for a proof nobody asked for. Set to None to disable and
+# rely solely on SOLVER_MAX_TIME_SECONDS / SOLVER_BLOCKING_MAX_TIME_SECONDS.
+SOLVER_STOP_AFTER_NO_IMPROVEMENT_SECONDS = 5.0
+
+# Wall-clock safety net for a single CP-SAT solve, on top of the no-improvement
+# stall timeout above - this limit only exists so a pathological input can't
+# hang a request forever even while still finding new improving solutions.
+# Hitting it - like pressing Stop - yields the best solution found so far,
+# which is good but not provably optimal, and (unlike an OPTIMAL result) not
+# guaranteed to be reproducible.
+SOLVER_MAX_TIME_SECONDS = 900.0
+
+# Budget for the plain, non-streaming /api/v1/drivingplan endpoint. That caller
+# can neither watch progress nor press Stop, so it gets a short budget rather
+# than the full SOLVER_MAX_TIME_SECONDS: a good-but-unproven plan in seconds
+# beats a provably optimal one after a request timeout. Clients that want the
+# optimum should use /api/v1/drivingplan/stream.
+SOLVER_BLOCKING_MAX_TIME_SECONDS = 20.0
+
+# How often the solve thread checks whether the user pressed Stop. Small enough
+# that Stop feels instant, large enough not to cost measurable solve time.
+SOLVER_STOP_POLL_SECONDS = 0.2
+
+# Fixed seed + single-threaded search is what makes CP-SAT's output
+# reproducible run to run (see backend/test/test_determinism_solver.py).
+SOLVER_RANDOM_SEED = 0
+
+# Weights for the CP-SAT objective. The gaps between them are large enough
+# that the terms behave lexicographically for realistic inputs (a single unit
+# of a higher-priority term outweighs the worst possible total of all lower
+# ones), which mirrors the composite ordering analyze_plans.py already uses to
+# rank plans. The whole weighted sum has to stay inside CP-SAT's int64
+# objective, which is what caps how many tiers there can be - solver_service
+# logs a warning if an unusually large member set could break the ordering.
+# Tune here rather than in solver_service.py.
+SOLVER_OBJECTIVE_WEIGHTS = {
+    'overflow': 10_000_000_000_000_000,   # exceeding a member's max_drives
+    'drives_despite_prefs': 10_000_000_000_000,  # driving on a drivingSkip day
+    'over_6': 100_000_000_000,            # members driving more than 6x
+    'over_5': 1_000_000_000,              # members driving more than 5x
+    'over_4': 10_000_000,                 # members driving more than 4x
+    'total_drives': 10_000,               # sum of per-member driving days
+    'driver_legs': 1,                     # fewer, fuller cars
+}

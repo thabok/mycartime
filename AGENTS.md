@@ -35,7 +35,7 @@ data and viewing/editing plans.
     `*.egg-info/` (setuptools artifacts from local `pip install -e`) —
     don't commit those if they reappear.
 - Backend code under `backend/src/` uses **flat imports** (`import config`,
-  `from algorithm_service import ...`), so it must be run with
+  `from solver_service import ...`), so it must be run with
   `backend/src` as the working directory / on `sys.path`, e.g. `cd
   backend/src && python app.py`. Running it as `python -m src.app` from
   `backend/` will fail with `ModuleNotFoundError: No module named 'config'`.
@@ -51,6 +51,26 @@ data and viewing/editing plans.
   running already.
 - There is no frontend test suite currently configured beyond
   `npm run lint`.
+
+## The CP-SAT solver is slow to *prove* optimality
+
+`backend/src/solver_service.py` (see `doc/ALGORITHM_EVOLUTION.md`) usually
+*finds* the best plan for a realistic member set within a few seconds, but
+proving no better plan exists can take around 3 minutes per plan. Running
+plan generation in a batch (e.g. `backend/src/experiments/run_batch.py`, or
+any script/loop that calls `SolverService`/`replay_capture.py` repeatedly)
+will take a very long time unless you explicitly bound it - pass
+`--max-seconds` (or `stop_after_no_improvement_seconds`, default 5s in
+`config.SOLVER_STOP_AFTER_NO_IMPROVEMENT_SECONDS`) rather than letting each
+run search to completion. In practice ~10 seconds per plan is enough to find
+the actual optimum in almost all cases.
+
+Because of this, avoid running or writing tests that exercise the solver
+(anything that calls `SolverService.calculate_driving_plan` or replays a
+capture) unless it's actually necessary for the task at hand - prefer
+targeted unit tests over solver-driven ones, and when a solver-driven test is
+genuinely needed, always cap its budget explicitly rather than relying on
+defaults meant for interactive use.
 
 ## WebUntis dependency
 

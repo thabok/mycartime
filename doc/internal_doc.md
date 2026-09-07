@@ -50,24 +50,24 @@ The goal is to create a driving plan across a 2-week “week-A; week-B” cycle 
             * Party time convenience has a higher priority than the goal to try and keep parties below the maximum capacity of a car
 
 ### Driver Candidate Pools
-To create an optimal driving plan, the algorithm uses the concept of **Driver Candidate Pools** for the required time slots of each day. A pool contains all members who are eligible to drive on that specific slot, considering factors such as:
+The original conceptual design for the algorithm groups members eligible to drive a given time slot into **Driver Candidate Pools**, considering:
 * Their availability based on their timetable and custom settings
 * Their remaining driving capacity within the 2-week cycle
 
-The algorithm first creates Parties for all pools with size 1, assigning those members as drivers for the respective time slots across all days. It then iteratively considers larger pools, selecting drivers based on their remaining capacity and the overall optimization goals. The pools of size 1 are known as **Mandatory Drivers**. 
+A pool of size 1 has only one eligible member for that slot — a **Mandatory Driver** — who must drive it regardless of any other optimization goal.
 
-For pools of size greater than 1, the algorithm must find an intelligent way to select drivers that balances the load across all members while adhering to the defined constraints and optimization goals. This involves evaluating the impact of each potential driver selection on the overall plan and making choices that lead to the most efficient and fair distribution of driving duties.
+This grouping concept is still useful for reasoning about the problem (and `solver_service.py` reuses it internally just to keep the CP-SAT model small — see `algorithm-with-solver.md`), but it no longer describes an *algorithmic step*: the current implementation doesn't select drivers pool-by-pool at all. Instead it hands the CP-SAT solver hard constraints that force mandatory drivers exactly the way a size-1 pool would (see [ALGORITHM_EVOLUTION.md](ALGORITHM_EVOLUTION.md)), and lets the solver decide every other driver/passenger assignment jointly, across the whole 2-week cycle at once, rather than pool-by-pool in isolation.
 
-### Implementation: Algorithm Phases
-The backend (`backend/src/algorithm_service.py`) implements the algorithm in five phases:
+### Implementation: CP-SAT solver
+The backend (`backend/src/solver_service.py`) models the whole 2-week cycle as a single OR-Tools CP-SAT constraint program rather than a hand-written phase-by-phase heuristic — see [ALGORITHM_EVOLUTION.md](ALGORITHM_EVOLUTION.md) for why, and `algorithm-with-solver.md` for the full modeling writeup. In short:
 
-1. **Create pools** – Build a pool per day/direction/time-slot (times grouped within `TIME_TOLERANCE_MINUTES`).
-2. **Select drivers and create parties** – Process pools smallest-first. For each pool, pick driver(s) (preferring members with fewer drives so far, respecting custom preferences) and create both the pool-direction party and the opposite-direction party for that driver, sized to fit the whole pool without assigning passengers yet. Members with `needsCar` or `noWaitingAfternoon` are handled first as they are effectively forced drivers.
-3. **Rebalance driving distribution** – For members whose drive count ends up above the max who are not mandatory ("designated") drivers, look for a "savior": another member in the same pool who is below the max and could take over that party. If found, the savior becomes the driver and the original problematic driver is downgraded to a passenger, keeping totals consistent.
-4. **Add additional driver parties** – For members still below their max drive count, look for days where they could create an extra party to relieve an overcrowded pool, reducing the number of passengers packed into existing parties without pushing anyone over their max.
-5. **Fill parties with passengers** – Assign remaining passengers to the parties created in the earlier phases, one at a time, preferring to keep members with matching times together and otherwise balancing passenger counts across parties.
+- **Decision variables**: for every (member, day, direction) where the member is present, whether they drive that leg (`is_driver`), and for every plausible (passenger, driver, day, direction) combination, whether the passenger rides with that driver (`rides_with`).
+- **Hard constraints** mirror the rules below directly: exactly one role (driver or passenger of exactly one driver) per present member per leg; seat capacity; time tolerance (`TIME_TOLERANCE_MINUTES`, or a member's per-day override); `needsCar` forces `is_driver`; `skipMorning`/`skipAfternoon` cap that leg's capacity at 0; `noWaitingAfternoon` forbids any homebound pairing that would make the exact-time member wait.
+- **Objective** (soft, in priority order): never exceed a member's `max_drives` unless truly unavoidable; minimize the number of people driving more than 6, then 5, then 4 times; minimize total drives across all members; prefer fewer, fuller cars.
 
-Before returning, the plan is validated: no member is both driver and passenger on the same day, every active member appears somewhere in each relevant day plan, and the custom-preference invariants below hold.
+The solver finds the true optimum (or something indistinguishable from it) within a few seconds for a realistic member set, then would keep searching for minutes just to *prove* no better solution exists — `config.SOLVER_STOP_AFTER_NO_IMPROVEMENT_SECONDS` cuts that proof phase short once progress has stalled (see [ALGORITHM_EVOLUTION.md](ALGORITHM_EVOLUTION.md)).
+
+Before returning, the plan is validated (`backend/src/plan_builder.py`): no member is both driver and passenger on the same day, every active member appears somewhere in each relevant day plan, and the custom-preference invariants below hold.
 
 ### Custom Day Preferences
 Custom day settings override a member's schedule for a specific day. The available flags and their rules:
@@ -78,7 +78,7 @@ Custom day settings override a member's schedule for a specific day. The availab
 - **Skip PM** (`skipAfternoon`) implicitly activates `needsCar` when enabled (same as above).
 - **No Wait PM** (`noWaitingAfternoon`) is mutually exclusive with `skipAfternoon`.
 
-**Backend algorithm rules** (`backend/src/algorithm_service.py`, `models.py`):
+**Backend solver rules** (`backend/src/solver_service.py`, `models.py`):
 - **Skip** (`ignoreCompletely`): the person is excluded entirely from that day's plan — neither driver nor passenger.
 - **Needs Car** (`needsCar`): mutually exclusive with `drivingSkip`; the person becomes a mandatory driver for the day and must not appear as a passenger.
 - **Skip AM** (`skipMorning`): requires `needsCar`; the person is a mandatory driver whose schoolbound party is flagged as a "lonely driver" party and must have 0 passengers.

@@ -67,8 +67,10 @@ skips the already-installed dependencies).
 
 - Entry point: `backend/src/app.py` (run as a plain script from `backend/src/`,
   since its modules use flat imports).
-- Config (WebUntis server, algorithm tuning, port): `backend/src/config.py`.
-- Algorithm: `backend/src/algorithm_service.py`.
+- Config (WebUntis server, solver tuning, port): `backend/src/config.py`.
+- Plan engine: `backend/src/solver_service.py` (an OR-Tools CP-SAT model —
+  see `doc/ALGORITHM_EVOLUTION.md` for how this replaced an earlier greedy
+  heuristic).
 - WebUntis connector: `backend/src/timetable_service.py`.
 
 ### API

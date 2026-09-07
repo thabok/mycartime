@@ -27,5 +27,6 @@ The service will start on port 1338.
 - `models/` - Data models (Member, Party, DayPlan, etc.)
 - `services/` - Business logic services
   - `timetable_service.py` - Timetable provider connector
-  - `algorithm_service.py` - Core driving plan algorithm
+  - `solver_service.py` - CP-SAT driving plan engine (see `doc/ALGORITHM_EVOLUTION.md`)
+  - `plan_builder.py` - Turns decided parties into a validated DrivingPlan
 - `utils/` - Utility functions

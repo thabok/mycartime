@@ -39,6 +39,7 @@ build
 testdata/request.json
 *.png
 *.DS_Store
+**/.pytest_cache/
 
 **/cache_dir/
 **/captures/

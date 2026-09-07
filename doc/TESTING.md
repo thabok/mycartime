@@ -2,13 +2,20 @@
 
 All test scripts live in `backend/test/` and expect real request data at `testdata/request.json` (repo root, git-ignored — contains real member data, not committed). The file must have the shape described in `schemas/driving_plan_request.json`.
 
-## 1. Direct algorithm test (no server needed)
+## 1. Solver determinism test (no server needed)
 
-Calls `calculate_driving_plan_logic` directly, prints the resulting plan and saves it to `driving_plan_<date>.json` at the repo root.
+Replays a real capture from `backend/src/captures/` through `SolverService`
+under several different `PYTHONHASHSEED` values and asserts identical output
+— see `doc/ALGORITHM_EVOLUTION.md` for why this matters.
 
 ```bash
-python backend/test/test_algorithm_realdata.py
+python backend/test/test_determinism_solver.py
 ```
+
+This uses a short, explicit solve budget per replay (see
+`SOLVE_BUDGET_SECONDS` in the test) — it does not wait for the solver to
+prove optimality, which can take minutes. See `AGENTS.md` for guidance on
+keeping solver-driven test/experiment runs bounded.
 
 ## 2. Integration test (requires a running server)
 

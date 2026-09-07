@@ -1,9 +1,13 @@
 """
-Run the algorithm many times against a single captured input, each trial in
-its own subprocess (fresh PYTHONHASHSEED, matching a real backend restart),
-to reproduce the "same input, sometimes worse plan" variance.
+Run the CP-SAT solver many times against a single captured input, each trial
+in its own subprocess (fresh PYTHONHASHSEED, matching a real backend restart),
+to check for run-to-run variance in model *building* (CP-SAT itself doesn't
+depend on PYTHONHASHSEED - see backend/test/test_determinism_solver.py).
 
-Usage: python run_batch.py <capture.json> <output_dir> [num_trials]
+Usage: python run_batch.py <capture.json> <output_dir> [num_trials] [replay args...]
+
+Any trailing arguments are passed straight through to replay_capture.py, e.g.
+  python run_batch.py capture.json out 50 --max-seconds 10
 """
 import subprocess
 import sys
@@ -15,12 +19,14 @@ REPLAY_SCRIPT = Path(__file__).parent / 'replay_capture.py'
 
 def main():
     if len(sys.argv) < 3:
-        print("Usage: python run_batch.py <capture.json> <output_dir> [num_trials]")
+        print("Usage: python run_batch.py <capture.json> <output_dir> [num_trials] "
+              "[replay args...]")
         sys.exit(1)
 
     capture_path = Path(sys.argv[1]).resolve()
     output_dir = Path(sys.argv[2]).resolve()
     num_trials = int(sys.argv[3]) if len(sys.argv) > 3 else 50
+    replay_args = sys.argv[4:]
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -29,7 +35,7 @@ def main():
         output_path = output_dir / f"plan-{i:03d}.json"
         start = time.time()
         result = subprocess.run(
-            [sys.executable, str(REPLAY_SCRIPT), str(capture_path), str(output_path)],
+            [sys.executable, str(REPLAY_SCRIPT), str(capture_path), str(output_path), *replay_args],
             capture_output=True,
             text=True,
         )

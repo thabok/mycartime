@@ -6,6 +6,9 @@ import io
 import json
 import logging
 import os
+import queue
+import threading
+import uuid
 import zipfile
 from collections import defaultdict
 from datetime import datetime
@@ -14,7 +17,6 @@ import assistant_service
 import config
 import export_service
 import requests
-from algorithm_service import AlgorithmService
 from dotenv import load_dotenv
 from flask import Flask, Response, jsonify, request
 from flask_cors import CORS
@@ -33,8 +35,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# The plan-generation algorithm logs its reasoning (driver selection, pool
-# balancing, etc.) at length via the "algorithm_service" logger. That
+# The plan-generation engine logs its reasoning (model size, solve status,
+# objective value, etc.) at length via the "solver_service" logger. That
 # rationale is also fed to the AI assistant (see assistant_service.PLAN_LOG_PATH)
 # so it can explain why the plan looks the way it does, so it's split into its
 # own file rather than mixed in with the rest of the app's logging noise.
@@ -42,11 +44,11 @@ _plan_log_handler = logging.FileHandler(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), 'plan_creation.log')
 )
 _plan_log_handler.setFormatter(logging.Formatter('[%(name)s - %(levelname)s] %(message)s'))
-_algorithm_logger = logging.getLogger('algorithm_service')
-_algorithm_logger.propagate = False
-_algorithm_logger.setLevel(logging.DEBUG)
-_algorithm_logger.addHandler(_plan_log_handler)
-_algorithm_logger.addHandler(logging.StreamHandler())
+_solver_logger = logging.getLogger('solver_service')
+_solver_logger.propagate = False
+_solver_logger.setLevel(logging.DEBUG)
+_solver_logger.addHandler(_plan_log_handler)
+_solver_logger.addHandler(logging.StreamHandler())
 
 # Loads the repo-root .env (searched for by walking up from this file), which
 # holds GITHUB_ISSUE_CREATION used by the feedback endpoint below.
@@ -59,6 +61,19 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 GITHUB_FEEDBACK_REPO = 'thabok/mycartime'
 GITHUB_FEEDBACK_LABELS = {'bug', 'question', 'enhancement'}
 GITHUB_FEEDBACK_ASSIGNEE = 'thabok'
+
+# Plan generation with the CP-SAT engine can run for minutes, so it is exposed as
+# a cancellable streaming job: /api/v1/drivingplan/stream emits progress and
+# /api/v1/drivingplan/stop asks a running job for its current best solution.
+# Maps job id -> the stop event the solver watches. Entries are removed when the
+# stream ends, so a stop request for a finished job is simply a 404.
+_plan_jobs = {}
+_plan_jobs_lock = threading.Lock()
+
+# How long the stream waits for a plan event before emitting a heartbeat, so the
+# connection (and the UI's "still working" state) stays alive during the long
+# stretch where CP-SAT is proving optimality without finding better solutions.
+PLAN_STREAM_HEARTBEAT_SECONDS = 2.0
 
 
 @app.route('/api/v1/check', methods=['GET'])
@@ -182,7 +197,12 @@ def member_timetable_detail():
 @app.route('/api/v1/drivingplan', methods=['POST'])
 def calculate_drivingplan():
     """
-    Calculate driving plan endpoint.
+    Calculate driving plan endpoint (blocking, no progress reporting).
+
+    Prefer /api/v1/drivingplan/stream: the CP-SAT engine needs minutes to prove
+    a plan optimal, so this endpoint deliberately cuts the search short (see
+    config.SOLVER_BLOCKING_MAX_TIME_SECONDS) and returns a good-but-unproven
+    plan instead of holding the request open.
     
     Expected JSON payload:
     {
@@ -234,7 +254,158 @@ def calculate_drivingplan():
         logger.error(f"Error calculating driving plan: {str(e)}", exc_info=True)
         return jsonify({'error': f'Internal server error: {str(e)}'}), 500
 
-def calculate_driving_plan_logic(persons_data, start_date_str, username, password):
+@app.route('/api/v1/drivingplan/stream', methods=['POST'])
+def calculate_drivingplan_stream():
+    """
+    Same as /api/v1/drivingplan, but streams progress while it works and can be
+    stopped early. Finding a *provably optimal* plan takes minutes, so the UI
+    needs to show what the solver has achieved so far and let the user settle
+    for it.
+
+    Expects the same JSON payload as /api/v1/drivingplan.
+
+    Streams newline-delimited JSON, one object per line:
+    {"type": "job", "jobId": "..."}                      exactly once, first
+    {"type": "status", "phase": "...", "message": "..."}  phase changes
+    {"type": "progress", "metrics": {...}}                each improving solution
+    {"type": "solved", "stats": {...}}                    how the solve ended
+    {"type": "heartbeat"}                                 keeps the stream alive
+    {"type": "final", "plan": {...}}                      exactly once, last
+    {"type": "error", "message": "..."}                   instead of "final"
+
+    Pass the jobId to /api/v1/drivingplan/stop to cut the search short and get
+    the best plan found so far.
+    """
+    data = request.get_json()
+
+    if not data:
+        return jsonify({'error': 'No JSON data provided'}), 400
+
+    for field in ['persons', 'scheduleReferenceStartDate', 'username', 'hash']:
+        if field not in data:
+            return jsonify({'error': f'Missing required field: {field}'}), 400
+
+    try:
+        password = base64.b64decode(data['hash']).decode('utf-8')
+    except Exception:
+        return jsonify({'error': 'Invalid hash: expected base64-encoded password'}), 400
+
+    persons_data = data['persons']
+    start_date_str = data['scheduleReferenceStartDate']
+    username = data['username']
+
+    job_id = uuid.uuid4().hex
+    stop_event = threading.Event()
+    with _plan_jobs_lock:
+        _plan_jobs[job_id] = stop_event
+
+    events = queue.Queue()
+    DONE = object()
+
+    def worker():
+        try:
+            driving_plan = calculate_driving_plan_logic(
+                persons_data=persons_data,
+                start_date_str=start_date_str,
+                username=username,
+                password=password,
+                progress=events.put,
+                stop_event=stop_event,
+            )
+            events.put({'type': 'final', 'plan': driving_plan.to_dict()})
+        except ValueError as e:
+            logger.error(f"Validation error: {str(e)}")
+            events.put({'type': 'error', 'message': str(e)})
+        except Exception as e:
+            logger.error(f"Error calculating driving plan: {str(e)}", exc_info=True)
+            events.put({'type': 'error', 'message': f'Internal server error: {str(e)}'})
+        finally:
+            events.put(DONE)
+
+    def generate():
+        yield json.dumps({'type': 'job', 'jobId': job_id}) + '\n'
+        thread = threading.Thread(target=worker, daemon=True, name=f'plan-{job_id[:8]}')
+        thread.start()
+        try:
+            while True:
+                try:
+                    event = events.get(timeout=PLAN_STREAM_HEARTBEAT_SECONDS)
+                except queue.Empty:
+                    yield json.dumps({'type': 'heartbeat'}) + '\n'
+                    continue
+                if event is DONE:
+                    break
+                yield json.dumps(event) + '\n'
+        finally:
+            # Whether we finished or the client disconnected mid-stream, the job is
+            # no longer stoppable, so drop it rather than leaking the registry entry.
+            with _plan_jobs_lock:
+                _plan_jobs.pop(job_id, None)
+
+    return Response(generate(), mimetype='application/x-ndjson')
+
+
+@app.route('/api/v1/drivingplan/stop', methods=['POST'])
+def stop_drivingplan():
+    """
+    Ask a running /api/v1/drivingplan/stream job to stop searching and return the
+    best plan it has found so far. The plan still arrives on the original stream
+    as a normal "final" event.
+
+    Expected JSON payload: {"jobId": "..."}
+    """
+    data = request.get_json(silent=True) or {}
+    job_id = data.get('jobId')
+    if not job_id:
+        return jsonify({'error': 'Missing required field: jobId'}), 400
+
+    with _plan_jobs_lock:
+        stop_event = _plan_jobs.get(job_id)
+
+    if stop_event is None:
+        return jsonify({'error': 'Unknown or already finished job'}), 404
+
+    stop_event.set()
+    logger.info(f"Stop requested for plan job {job_id}")
+    return jsonify({'stopped': True}), 200
+
+
+def _run_plan_engine(members, progress=None, stop_event=None):
+    """Run the CP-SAT solver engine (solver_service.py) over `members`."""
+    from solver_service import SolverInfeasibleError, SolverService
+
+    solver = SolverService(
+        progress_callback=(lambda metrics: progress({'type': 'progress', 'metrics': metrics}))
+        if progress else None,
+        stop_event=stop_event,
+        # Without a progress sink the caller can't watch or interrupt the solve, so
+        # cap it well short of the streaming endpoint's budget.
+        max_time_in_seconds=None if progress else config.SOLVER_BLOCKING_MAX_TIME_SECONDS,
+    )
+    try:
+        plan = solver.calculate_driving_plan(members)
+    except SolverInfeasibleError as e:
+        raise ValueError(f"No feasible driving plan found: {e}") from e
+
+    if progress:
+        progress({'type': 'solved', 'stats': _solve_stats_payload(solver.last_solve_stats)})
+    return plan
+
+
+def _solve_stats_payload(stats):
+    """JSON-safe view of SolverService.last_solve_stats for the progress stream."""
+    return {
+        'status': stats.get('status'),
+        'wallTimeSeconds': stats.get('wallTime'),
+        'solutionCount': stats.get('solutionCount'),
+        'stoppedByUser': stats.get('stopped'),
+        'provenOptimal': stats.get('status') == 'OPTIMAL',
+        'metrics': stats.get('metrics'),
+    }
+
+
+def calculate_driving_plan_logic(persons_data, start_date_str, username, password,
+                                 progress=None, stop_event=None):
     """
     Core business logic for calculating driving plan.
     Separated from HTTP layer to allow direct invocation.
@@ -244,6 +415,11 @@ def calculate_driving_plan_logic(persons_data, start_date_str, username, passwor
         start_date_str: Date string in YYYYMMDD format
         username: WebUntis username
         password: WebUntis password (decoded)
+        progress: Optional callable taking a JSON-serializable event dict, used
+            by the streaming endpoint to report phases and intermediate solver
+            solutions. None for the plain (blocking) endpoint.
+        stop_event: Optional threading.Event; when set, the solver returns the
+            best plan it has found so far instead of continuing to optimize.
     
     Returns:
         DrivingPlan object
@@ -280,7 +456,11 @@ def calculate_driving_plan_logic(persons_data, start_date_str, username, passwor
         raise ValueError('Invalid date format. Expected YYYYMMDD')
     
     logger.info(f"Calculating driving plan for {len(members)} members starting {start_date.strftime('%Y-%m-%d')}")
-    
+
+    if progress:
+        progress({'type': 'status', 'phase': 'timetables',
+                  'message': 'Fetching timetables from WebUntis'})
+
     # Connect to timetable provider and get schedules
     with TimetableService() as timetable_service:
         # Try to connect to WebUntis
@@ -301,9 +481,12 @@ def calculate_driving_plan_logic(persons_data, start_date_str, username, passwor
     if config.CAPTURE_PLAN_INPUTS:
         _capture_plan_input(members, start_date_str)
 
+    if progress:
+        progress({'type': 'status', 'phase': 'solving',
+                  'message': 'Searching for the best driving plan'})
+
     # Calculate driving plan
-    algorithm = AlgorithmService()
-    driving_plan = algorithm.calculate_driving_plan(members)
+    driving_plan = _run_plan_engine(members, progress=progress, stop_event=stop_event)
     
     # Print to console for debugging
     _print_to_console(driving_plan, members)

@@ -133,12 +133,14 @@ Request/response shapes are formally defined in `schemas/driving_plan_request.js
 
 ## Algorithm Details
 
-See [internal_doc.md](internal_doc.md#algorithm) for the full algorithm spec, including the 5-phase implementation and custom day preference rules.
+See [internal_doc.md](internal_doc.md#algorithm) for the full functional spec (constraints, custom day preference rules) and [ALGORITHM_EVOLUTION.md](ALGORITHM_EVOLUTION.md) for how the plan is actually calculated today — an OR-Tools CP-SAT solver (`backend/src/solver_service.py`), not a hand-written heuristic.
 
 Key configuration (`backend/src/config.py`):
 - `TIME_TOLERANCE_MINUTES` (default 30): max deviation in minutes to group members into the same time slot.
 - `EXACT_MATCH_TOLERANCE_MINUTES` (default 5): deviation still treated as an "exact" match, e.g. for grouping passengers with an identical schedule.
 - `MAX_DRIVES_FULLTIME` (default 4) / `MAX_DRIVES_PARTTIME` (default 3): max drives per member type over the 2-week cycle.
+- `SOLVER_STOP_AFTER_NO_IMPROVEMENT_SECONDS` (default 5): stop searching once this many seconds pass without a better solution being found, and serve the best one so far — in practice the solver finds the true optimum within a few seconds and would otherwise keep searching for minutes just to *prove* it, which nobody is waiting for.
+- `SOLVER_MAX_TIME_SECONDS` / `SOLVER_BLOCKING_MAX_TIME_SECONDS`: wall-clock safety nets on top of the no-improvement timeout, for the streaming and plain endpoints respectively.
 
 If the WebUntis connection fails, the service falls back to mock timetables based on custom day settings and default times (7:55 AM - 3:30 PM).
 
@@ -149,7 +151,8 @@ backend/
 ├── src/
 │   ├── app.py                 # Flask application & API endpoints
 │   ├── models.py               # Data models (Member, Party, DayPlan, etc.)
-│   ├── algorithm_service.py    # Core driving plan algorithm
+│   ├── solver_service.py       # CP-SAT driving plan engine
+│   ├── plan_builder.py         # Turns decided parties into a validated DrivingPlan
 │   ├── timetable_service.py    # WebUntis connector
 │   ├── utils.py                 # Utility functions
 │   └── config.py                # Configuration

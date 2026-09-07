@@ -21,9 +21,9 @@ _MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 _SKILL_DIR = os.path.join(_MODULE_DIR, 'assistant', 'skill')
 _REPO_ROOT = os.path.abspath(os.path.join(_MODULE_DIR, '..', '..'))
 _INTERNAL_DOC_PATH = os.path.join(_REPO_ROOT, 'doc', 'internal_doc.md')
-# Written by the "algorithm_service" logger only (see app.py's logging setup);
-# holds the plan-generation rationale (driver selection, pool balancing, etc.)
-# without the rest of the backend's log noise.
+# Written by the "solver_service" logger only (see app.py's logging setup);
+# holds the plan-generation rationale (model size, solve status, objective
+# value, etc.) without the rest of the backend's log noise.
 _PLAN_LOG_PATH = os.path.join(_MODULE_DIR, 'plan_creation.log')
 
 _PLAN_LOG_TAIL_LINES = 500
