@@ -1,6 +1,6 @@
 # My Cartime - Teacher's Ride Share
 
-The ultimate way to calculates optimal school-run carpool driving plans for a group of teachers,
+Calculates optimal school-run carpool driving plans for a group of teachers,
 based on their WebUntis timetables and per-member preferences/constraints. Powered by [Google’s CP-SAT Solver](https://developers.google.com/optimization/cp/cp_solver?hl=en), it treats your chaotic school schedules as a constraint satisfaction problem, crunching millions of permutations to deliver mathematically optimal routes in seconds.
 
 ## Brief walkthrough
