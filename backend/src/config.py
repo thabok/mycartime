@@ -31,7 +31,7 @@ PORT = 1338
 # Flask debug mode (interactive debugger + auto-reload) - defaults to off so a
 # real deployment doesn't accidentally ship the debugger unless FLASK_DEBUG=true
 # is set explicitly. Enabled by default for local dev via run.sh/start.sh.
-DEBUG = os.environ.get('FLASK_DEBUG', 'true').lower() == 'true'
+DEBUG = False # os.environ.get('FLASK_DEBUG', 'true').lower() == 'true'
 
 # The Vite dev server port for the frontend (see frontend/vite.config.ts).
 # Used by the PNG export endpoint to drive a headless browser against the
@@ -46,8 +46,8 @@ ASSISTANT_CLI_TIMEOUT_SECONDS = 60
 # When True, every /api/v1/drivingplan request dumps its members + resolved
 # WebUntis timetables (no credentials) to CAPTURE_DIR, for offline replay of
 # real-world inputs against the solver (see backend/src/experiments/).
-CAPTURE_PLAN_INPUTS = True
-CAPTURE_DIR = "./captures"
+CAPTURE_PLAN_INPUTS = False
+# CAPTURE_DIR = "./captures"
 
 # ---------------------------------------------------------------------------
 # Plan engine (solver_service.py, an OR-Tools CP-SAT model)
@@ -55,14 +55,20 @@ CAPTURE_DIR = "./captures"
 # See doc/ALGORITHM_EVOLUTION.md for why this replaced the earlier five-phase
 # greedy heuristic.
 
-# Stop a solve after this many seconds without an improving solution, and
-# serve the best one found so far. In practice CP-SAT finds the optimum (or
-# something extremely close to it) within a few seconds on a real member set,
-# then spends minutes proving no better solution exists - this cuts that long
-# proof phase short once progress has clearly stalled, rather than making
-# every request wait for a proof nobody asked for. Set to None to disable and
-# rely solely on SOLVER_MAX_TIME_SECONDS / SOLVER_BLOCKING_MAX_TIME_SECONDS.
-SOLVER_STOP_AFTER_NO_IMPROVEMENT_SECONDS = 5.0
+# Stop a solve after this many seconds without an improving solution, and serve
+# the best one found so far. On a real ~20-member set CP-SAT reaches the optimum
+# in roughly 20s and needs about twice that to prove nothing better exists, so
+# this cuts the proof phase short once progress has clearly stalled rather than
+# making every request wait for a proof nobody asked for. Stopping here costs
+# very little quality: on a real capture the plan at this cutoff was within one
+# week-A/B mismatch of the proven optimum. Set to None to disable and rely
+# solely on SOLVER_MAX_TIME_SECONDS / SOLVER_BLOCKING_MAX_TIME_SECONDS.
+#
+# The streaming endpoint does not use this timer itself - it reports this value
+# to the client, which runs the countdown and calls /drivingplan/stop, so the UI
+# can show how long is left and let the user switch the auto-stop off mid-solve
+# without racing a server-side timer.
+SOLVER_STOP_AFTER_NO_IMPROVEMENT_SECONDS = 10.0
 
 # Wall-clock safety net for a single CP-SAT solve, on top of the no-improvement
 # stall timeout above - this limit only exists so a pathological input can't
@@ -95,14 +101,21 @@ SOLVER_RANDOM_SEED = 0
 # objective, which is what caps how many tiers there can be - solver_service
 # logs a warning if an unusually large member set could break the ordering.
 # Tune here rather than in solver_service.py.
+#
+# Note what is deliberately *absent*: there is no term rewarding fewer total
+# drives or fewer cars on the road. A good plan is the one where the fewest
+# members exceed their MAX_DRIVES - not the one with the least driving. Members
+# driving noticeably less than their MAX_DRIVES is not a win, it is a source of
+# friction within the group, so the solver is left indifferent between two plans
+# that keep everyone inside their quota.
 SOLVER_OBJECTIVE_WEIGHTS = {
     'overflow': 10_000_000_000_000_000,   # exceeding a member's max_drives
     'drives_despite_prefs': 10_000_000_000_000,  # driving on a drivingSkip day
     'over_6': 100_000_000_000,            # members driving more than 6x
     'over_5': 1_000_000_000,              # members driving more than 5x
     'over_4': 10_000_000,                 # members driving more than 4x
-    'total_drives': 10_000,               # sum of per-member driving days
-    'driver_legs': 1,                     # fewer, fuller cars
+    'week_ab_mismatch': 1_000,            # weekdays driven in only one of the two weeks
+    'week_ab_count_imbalance': 1,         # week A/B drive-count swing beyond the unavoidable 1
 }
 
 # ---------------------------------------------------------------------------

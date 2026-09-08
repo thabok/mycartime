@@ -299,7 +299,8 @@ def calculate_drivingplan_stream():
     Expects the same JSON payload as /api/v1/drivingplan.
 
     Streams newline-delimited JSON, one object per line:
-    {"type": "job", "jobId": "..."}                      exactly once, first
+    {"type": "job", "jobId": "...",                       exactly once, first
+     "noImprovementSeconds": 10.0}
     {"type": "status", "phase": "...", "message": "..."}  phase changes
     {"type": "progress", "metrics": {...}}                each improving solution
     {"type": "solved", "stats": {...}}                    how the solve ended
@@ -357,7 +358,14 @@ def calculate_drivingplan_stream():
             events.put(DONE)
 
     def generate():
-        yield json.dumps({'type': 'job', 'jobId': job_id}) + '\n'
+        yield json.dumps({
+            'type': 'job',
+            'jobId': job_id,
+            # How long without an improving solution the client should wait before
+            # auto-stopping. Reported rather than applied server-side so the UI owns
+            # the countdown and can be switched off mid-solve; see config's note.
+            'noImprovementSeconds': config.SOLVER_STOP_AFTER_NO_IMPROVEMENT_SECONDS,
+        }) + '\n'
         thread = threading.Thread(target=worker, daemon=True, name=f'plan-{job_id[:8]}')
         thread.start()
         try:
@@ -375,6 +383,11 @@ def calculate_drivingplan_stream():
             # no longer stoppable, so drop it rather than leaking the registry entry.
             with _plan_jobs_lock:
                 _plan_jobs.pop(job_id, None)
+            # Nobody is left to receive a plan, and the client is the only thing
+            # enforcing the no-improvement cutoff, so without this a disconnected
+            # solve would keep a core busy until SOLVER_MAX_TIME_SECONDS. Harmless
+            # on the normal path: the solve is already finished by then.
+            stop_event.set()
 
     return Response(generate(), mimetype='application/x-ndjson')
 
@@ -415,6 +428,13 @@ def _run_plan_engine(members, progress=None, stop_event=None):
         # Without a progress sink the caller can't watch or interrupt the solve, so
         # cap it well short of the streaming endpoint's budget.
         max_time_in_seconds=None if progress else config.SOLVER_BLOCKING_MAX_TIME_SECONDS,
+        # A streaming client enforces the no-improvement cutoff itself (it counts
+        # down to it and can switch it off mid-solve), so a server-side timer here
+        # would race the user's choice. Callers without a progress sink can do
+        # neither, so they keep the config default.
+        stop_after_no_improvement_seconds=(
+            None if progress else config.SOLVER_STOP_AFTER_NO_IMPROVEMENT_SECONDS
+        ),
     )
     try:
         plan = solver.calculate_driving_plan(members)

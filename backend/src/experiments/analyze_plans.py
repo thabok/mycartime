@@ -4,11 +4,13 @@ summarize/compare them.
 
 Usage: python analyze_plans.py <output_dir>
 
-Quality criteria (per user request):
+Quality criteria (per user request), in ranking order:
   - how many people drive more than 4 / 5 / 6 times
-  - how many times people drive in total
-  - how "tight" parties are: fewer, fuller parties beat many half-full ones
-    for the same group of people, even at equal total driving times
+  - how similar each member's driving weekdays are between week A and week B
+
+Total drives and party tightness are still reported, but deliberately do *not*
+rank plans: a member driving below their MAX_DRIVES is not an improvement (see
+config.SOLVER_OBJECTIVE_WEIGHTS).
 """
 import json
 import sys
@@ -49,6 +51,18 @@ def analyze_plan(plan: dict) -> dict:
     num_gt5 = sum(1 for c in drive_counts.values() if c > 5)
     num_gt6 = sum(1 for c in drive_counts.values() if c > 6)
 
+    # Week A/B similarity. Unlike the solver, this cannot tell "assigned a
+    # different weekday" from "wasn't at school that week at all" - a finished
+    # plan carries no presence data - so these counts can read slightly higher
+    # than the solver's own weekABMismatches metric.
+    week_ab_mismatches = 0
+    week_ab_imbalance = 0
+    for days in drive_days.values():
+        week_a = {d - 1 for d in days if d <= 5}
+        week_b = {d - 6 for d in days if d > 5}
+        week_ab_mismatches += len(week_a ^ week_b)
+        week_ab_imbalance += max(0, abs(len(week_a) - len(week_b)) - 1)
+
     # Pool-level tightness: group same (day, direction, rough time bucket) parties
     # together and see how many distinct cars were used to move that group, and
     # how full those cars ended up (as a fraction of the *group's* head count).
@@ -68,6 +82,8 @@ def analyze_plan(plan: dict) -> dict:
         'numDrivingMoreThan5': num_gt5,
         'numDrivingMoreThan6': num_gt6,
         'maxDrives': max(drive_counts.values()) if drive_counts else 0,
+        'weekABMismatches': week_ab_mismatches,
+        'weekABCountImbalance': week_ab_imbalance,
         'totalParties': len(parties_flat),
         'totalPools': len(pools),
         'avgCarsPerPool': mean(pool_car_counts) if pool_car_counts else 0,
@@ -99,10 +115,12 @@ def main():
     print(f"Analyzed {len(results)} plans from {output_dir}\n")
 
     # Per-run table
-    print(f"{'run':<16} {'totalDrives':>11} {'>4':>4} {'>5':>4} {'>6':>4} {'maxDrv':>7} {'parties':>8} {'pools':>6} {'carsPerPool':>12} {'avgOcc':>7}")
+    print(f"{'run':<16} {'>4':>4} {'>5':>4} {'>6':>4} {'abMism':>7} {'abImbal':>8} {'maxDrv':>7} "
+          f"{'totalDrives':>11} {'parties':>8} {'pools':>6} {'carsPerPool':>12} {'avgOcc':>7}")
     for m in results:
-        print(f"{m['file']:<16} {m['totalDrives']:>11} {m['numDrivingMoreThan4']:>4} {m['numDrivingMoreThan5']:>4} "
-              f"{m['numDrivingMoreThan6']:>4} {m['maxDrives']:>7} {m['totalParties']:>8} {m['totalPools']:>6} "
+        print(f"{m['file']:<16} {m['numDrivingMoreThan4']:>4} {m['numDrivingMoreThan5']:>4} "
+              f"{m['numDrivingMoreThan6']:>4} {m['weekABMismatches']:>7} {m['weekABCountImbalance']:>8} "
+              f"{m['maxDrives']:>7} {m['totalDrives']:>11} {m['totalParties']:>8} {m['totalPools']:>6} "
               f"{m['avgCarsPerPool']:>12.2f} {m['avgOccupancy']:>7.2f}")
 
     def col(name):
@@ -110,11 +128,13 @@ def main():
 
     print("\n=== Summary across runs ===")
     for name, label in [
-        ('totalDrives', 'Total drives'),
         ('numDrivingMoreThan4', '# driving >4x'),
         ('numDrivingMoreThan5', '# driving >5x'),
         ('numDrivingMoreThan6', '# driving >6x'),
+        ('weekABMismatches', 'Week A/B weekday mismatches'),
+        ('weekABCountImbalance', 'Week A/B count imbalance'),
         ('maxDrives', 'Max drives (any one person)'),
+        ('totalDrives', 'Total drives (not ranked)'),
         ('totalParties', 'Total parties'),
         ('totalPools', 'Total pools'),
         ('avgCarsPerPool', 'Avg cars/pool (lower = tighter)'),
@@ -124,11 +144,11 @@ def main():
         print(f"{label:<32} min={min(values):>7.2f}  max={max(values):>7.2f}  "
               f"mean={mean(values):>7.2f}  stdev={pstdev(values):>6.2f}")
 
-    # Identify best/worst runs by a simple composite: fewer high-frequency
-    # drivers, then fewer total drives, then tighter pooling.
+    # Identify best/worst runs by the same ordering the solver optimizes: fewer
+    # high-frequency drivers first, then week-to-week regularity.
     def score(m):
         return (m['numDrivingMoreThan6'], m['numDrivingMoreThan5'], m['numDrivingMoreThan4'],
-                m['totalDrives'], m['avgCarsPerPool'], -m['avgOccupancy'])
+                m['weekABMismatches'], m['weekABCountImbalance'])
 
     best = min(results, key=score)
     worst = max(results, key=score)

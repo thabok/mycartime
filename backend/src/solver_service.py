@@ -7,7 +7,8 @@ pool-by-pool and reconciling fairness afterwards (the approach the retired
 greedy heuristic used - see doc/ALGORITHM_EVOLUTION.md). That matters because
 the objective couples days together - a member's `drive_count` across all ten
 half-days is what `MAX_DRIVES_*` and the over-4/5/6 quality metrics apply to,
-so no per-day greedy pass can see the global picture.
+and the week A/B similarity goal couples each weekday to its counterpart five
+days later, so no per-day greedy pass can see the global picture.
 
 See algorithm-with-solver.md for the modeling rationale.
 
@@ -43,6 +44,10 @@ logger = logging.getLogger(__name__)
 
 DIRECTIONS = ("schoolbound", "homebound")
 DAY_NAMES_SHORT = ["mon", "tue", "wed", "thu", "fri", "mon", "tue", "wed", "thu", "fri"]
+
+# Distinguishes "caller said nothing, use the config default" from an explicit
+# `None`, which means "disable the no-improvement stall timeout entirely".
+_USE_CONFIG_DEFAULT = object()
 
 
 class SolverInfeasibleError(RuntimeError):
@@ -91,6 +96,14 @@ class _ProgressReporter(cp_model.CpSolverSolutionCallback):
                 self.Value(self._variables['is_driver'][k])
                 for k in sorted(self._variables['is_driver'])
             ),
+            'weekABMismatches': sum(
+                self.Value(self._variables['week_ab_mismatch'][k])
+                for k in sorted(self._variables['week_ab_mismatch'])
+            ),
+            'weekABCountImbalance': sum(
+                self.Value(self._variables['week_ab_excess'][i])
+                for i in sorted(self._variables['week_ab_excess'])
+            ),
             'objective': self.ObjectiveValue(),
             'bestObjectiveBound': self.BestObjectiveBound(),
             'elapsedSeconds': time.monotonic() - self._started_at,
@@ -105,14 +118,15 @@ class SolverService:
     """Builds driving plans with an OR-Tools CP-SAT model."""
 
     def __init__(self, tolerance_minutes: int = None, max_time_in_seconds: float = None,
-                 stop_after_no_improvement_seconds: float = None,
+                 stop_after_no_improvement_seconds=_USE_CONFIG_DEFAULT,
                  progress_callback: Callable[[dict], None] = None,
                  stop_event: 'threading.Event' = None):
         self.tolerance = tolerance_minutes or config.TIME_TOLERANCE_MINUTES
         self.max_time_in_seconds = max_time_in_seconds or config.SOLVER_MAX_TIME_SECONDS
         self.stop_after_no_improvement_seconds = (
             config.SOLVER_STOP_AFTER_NO_IMPROVEMENT_SECONDS
-            if stop_after_no_improvement_seconds is None else stop_after_no_improvement_seconds
+            if stop_after_no_improvement_seconds is _USE_CONFIG_DEFAULT
+            else stop_after_no_improvement_seconds
         )
         self.progress_callback = progress_callback
         self.stop_event = stop_event
@@ -352,7 +366,10 @@ class SolverService:
         for initials in sorted(drive_count):
             model.Add(max_drives_var >= drive_count[initials])
 
-        self._add_objective(model, is_driver, drive_count, overflow, over_n)
+        week_ab_mismatch, week_ab_excess = self._build_week_ab_similarity(model, drives_on_day)
+
+        self._add_objective(model, is_driver, drive_count, over_n, overflow,
+                            week_ab_mismatch, week_ab_excess)
 
         variables = {
             'is_driver': is_driver,
@@ -361,11 +378,13 @@ class SolverService:
             'drive_count': drive_count,
             'overflow': overflow,
             'over_n': over_n,
+            'week_ab_mismatch': week_ab_mismatch,
+            'week_ab_excess': week_ab_excess,
             'max_drives': max_drives_var,
         }
         logger.info(
             f"Model built: {len(is_driver)} driver vars, {len(rides_with)} ride vars, "
-            f"{len(drives_on_day)} day vars"
+            f"{len(drives_on_day)} day vars, {len(week_ab_mismatch)} week-A/B mismatch vars"
         )
         return model, variables
 
@@ -397,12 +416,71 @@ class SolverService:
                         continue
                     model.AddBoolOr([rides_with[key_p].Not(), rides_with[key_o].Not()])
 
-    def _add_objective(self, model, is_driver, drive_count, overflow, over_n) -> None:
+    def _build_week_ab_similarity(self, model, drives_on_day):
+        """
+        Secondary goal: give each member the same driving *weekdays* in week A and
+        week B, so they only have to remember one pattern ("I drive Mondays and
+        Thursdays") instead of two.
+
+        Two penalties per member:
+        - `mismatch`: one bool per weekday the member drives in exactly one of the
+          two weeks. Only built where the member travels on *both* of the paired
+          weekdays - being absent one week is a fact of their timetable rather
+          than a scheduling choice, so it must not read as a mismatch.
+        - `excess`: how far `|week A drives - week B drives|` exceeds one. An odd
+          total cannot split evenly over two weeks, so a swing of one is
+          unavoidable and stays free; only wider swings (3-and-1 where 2-and-2
+          was possible) are penalized. This is what separates "drives on the
+          wrong days" from "drives a lopsided number of days".
+        """
+        mismatch: Dict[Tuple[str, int], cp_model.IntVar] = {}
+        excess: Dict[str, cp_model.IntVar] = {}
+
+        for initials in sorted(self.members):
+            week_a_days, week_b_days = [], []
+
+            for weekday in range(5):
+                a_var = drives_on_day.get((initials, weekday))
+                b_var = drives_on_day.get((initials, weekday + 5))
+                if a_var is not None:
+                    week_a_days.append(a_var)
+                if b_var is not None:
+                    week_b_days.append(b_var)
+                if a_var is None or b_var is None:
+                    continue
+                flag = model.NewBoolVar(f"week_ab_mismatch_{initials}_{weekday}")
+                model.Add(a_var + b_var == 1).OnlyEnforceIf(flag)
+                model.Add(a_var == b_var).OnlyEnforceIf(flag.Not())
+                mismatch[(initials, weekday)] = flag
+
+            if not week_a_days or not week_b_days:
+                continue  # travels in only one of the two weeks - nothing to balance
+
+            diff = model.NewIntVar(-5, 5, f"week_ab_diff_{initials}")
+            model.Add(diff == sum(week_a_days) - sum(week_b_days))
+            abs_diff = model.NewIntVar(0, 5, f"week_ab_absdiff_{initials}")
+            model.AddAbsEquality(abs_diff, diff)
+
+            # Same hinge trick as `overflow`: a lower bound is all that's needed,
+            # since minimizing pins the variable to max(0, abs_diff - 1).
+            over = model.NewIntVar(0, 4, f"week_ab_excess_{initials}")
+            model.Add(over >= abs_diff - 1)
+            excess[initials] = over
+
+        return mismatch, excess
+
+    def _add_objective(self, model, is_driver, drive_count, over_n, overflow,
+                       week_ab_mismatch, week_ab_excess) -> None:
         """
         One weighted sum whose weights are separated by large enough gaps that the
         terms behave lexicographically, ordered to match `analyze_plans.py`'s
-        `score()`: over-6, over-5, over-4, total drives, then pool tightness -
-        with hard-ish preferences (max_drives overflow, drivingSkip) on top.
+        `score()`: over-6, over-5, over-4, then week A/B similarity - with
+        hard-ish preferences (max_drives overflow, drivingSkip) on top.
+
+        Nothing here rewards less driving. Keeping members inside their
+        MAX_DRIVES is the whole quality story; a member driving *below* their
+        quota is not an improvement, so plans that differ only in total drives
+        or car count are deliberately scored equal (see config's note).
         """
         w = self.weights
         # Each tier is (weight_key, [vars]); tiers are listed highest priority first.
@@ -425,10 +503,12 @@ class SolverService:
         for threshold, weight_key in ((6, 'over_6'), (5, 'over_5'), (4, 'over_4')):
             tiers.append((weight_key, [over_n[(i, threshold)] for i in sorted(drive_count)]))
 
-        tiers.append(('total_drives', [drive_count[i] for i in sorted(drive_count)]))
-
-        # Fewer, fuller cars: every driver-leg created costs a little.
-        tiers.append(('driver_legs', [is_driver[key] for key in sorted(is_driver)]))
+        # Same weekdays in both weeks, ranked below over-4/5/6 so week-to-week
+        # regularity can never be bought at the price of an extra frequent driver.
+        tiers.append(('week_ab_mismatch',
+                      [week_ab_mismatch[key] for key in sorted(week_ab_mismatch)]))
+        tiers.append(('week_ab_count_imbalance',
+                      [week_ab_excess[i] for i in sorted(week_ab_excess)]))
 
         self._warn_if_tiers_not_lexicographic(tiers)
 

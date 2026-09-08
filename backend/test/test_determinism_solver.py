@@ -19,11 +19,19 @@ guards both:
    whatever the incumbent happened to be at that instant, which does depend
    on machine speed and load.
 
-   Proving optimality on a real capture takes minutes, so this test uses a
-   bounded budget and relies on the optimum being *found* (not proven) within a
-   couple of seconds - see SOLVE_BUDGET_SECONDS. Truncating the search after
-   the optimum is already the incumbent still yields the same plan, so the
-   comparison is meaningful without a multi-minute test.
+   This test cuts the search short on purpose, so what it relies on is weaker
+   than "the search runs to completion": improving solutions get sparse long
+   before SOLVE_BUDGET_SECONDS expires, so every run is still sitting on the
+   same incumbent when the budget cuts it off, even though the cutoff lands on a
+   slightly different search node each time. That makes the plan comparison
+   meaningful without a multi-minute test, but it is a property of the search
+   flattening out - not a guarantee.
+
+   Practical consequence: point 1 is what this test really pins down. If it ever
+   starts reporting a difference, first raise SOLVE_BUDGET_SECONDS and re-run
+   before concluding that model building regressed - a genuine model-building bug
+   will differ at *any* budget, whereas an incumbent that hadn't yet settled will
+   stop differing once the budget grows.
 
 Usage: python test_determinism_solver.py
 """
@@ -38,8 +46,17 @@ REPO_ROOT = Path(__file__).parent.parent.parent
 REPLAY_SCRIPT = REPO_ROOT / 'backend' / 'src' / 'experiments' / 'replay_capture.py'
 CAPTURES_DIR = REPO_ROOT / 'backend' / 'src' / 'captures'
 
-# Comfortably longer than the ~3s the solver needs to *find* the optimum on
-# these captures, and far shorter than the ~3min it needs to prove it.
+# Deliberately far shorter than the search needs: on the largest of these
+# captures the optimum is *found* around 20s in and proven around 40s, so this
+# budget stops the solve while it is still grinding, on an incumbent that has
+# been stable for a while (see point 2 above). Sizing the budget to actually
+# reach the optimum would put the suite past 40 minutes for 18 captures x 3
+# seeds, which is too slow to run routinely.
+#
+# This value was picked back when the objective had no week A/B similarity tier
+# and the optimum turned up within ~3s, i.e. when the budget really did outlast
+# the search. That tier enlarged the search considerably, so read the number as
+# "long enough for the incumbent to settle", not "long enough to finish".
 SOLVE_BUDGET_SECONDS = '10'
 
 # Arbitrary, deliberately different hash seeds - the point is that they differ.
@@ -48,12 +65,14 @@ HASH_SEEDS = ['1', '424242', '7']
 
 def replay(capture: Path, seed: str, output_path: Path) -> None:
     # The no-improvement stall timeout (config.SOLVER_STOP_AFTER_NO_IMPROVEMENT_SECONDS)
-    # is itself wall-clock-based, so leaving it enabled here would make this test
-    # flaky under machine load - it could stop the search at a different incumbent
-    # on different runs even with byte-identical model building. Disabling it makes
-    # SOLVE_BUDGET_SECONDS the only (still wall-clock-based, but far more generous)
-    # cutoff, which is what actually gives this test its "finds the same optimum
-    # every time" guarantee.
+    # is itself wall-clock-based, so leaving it enabled would add a second
+    # load-sensitive cutoff on top of SOLVE_BUDGET_SECONDS - two chances to stop at
+    # a different incumbent instead of one. Passing `none` disables it outright,
+    # leaving the budget as the only cutoff.
+    #
+    # Note this only started taking effect once SolverService stopped treating
+    # `None` as "use the config default"; before that, `none` silently fell back to
+    # the configured stall and this test ran with both cutoffs active.
     result = subprocess.run(
         [sys.executable, str(REPLAY_SCRIPT), str(capture), str(output_path),
          '--max-seconds', SOLVE_BUDGET_SECONDS, '--no-improvement-seconds', 'none'],
