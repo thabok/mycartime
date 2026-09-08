@@ -38,6 +38,7 @@ build
 .vscode
 testdata/request.json
 *.png
+!demo/screenshots/*.png
 *.DS_Store
 **/.pytest_cache/
 

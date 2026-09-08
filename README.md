@@ -1,7 +1,54 @@
-# mycartime (Carpool Time)
+# My Cartime - Teacher's Ride Share
 
-Calculates optimal school-run carpool driving plans for a group of teachers,
-based on their WebUntis timetables and per-member preferences/constraints.
+The ultimate way to calculates optimal school-run carpool driving plans for a group of teachers,
+based on their WebUntis timetables and per-member preferences/constraints. Powered by [Google’s CP-SAT Solver](https://developers.google.com/optimization/cp/cp_solver?hl=en), it treats your chaotic school schedules as a constraint satisfaction problem, crunching millions of permutations to deliver mathematically optimal routes in seconds.
+
+## Brief walkthrough
+
+### 1. Managing members
+Add every teacher once, with their seat capacity and any day-specific quirks (part-time schedules, custom pickup/drop-off preferences), then drill into a member to review their WebUntis-derived timetable. This member roster is the single source of truth the solver plans against.
+
+![Members overview](demo/screenshots/01-members-overview.png)
+![Member details](demo/screenshots/02-member-details.png)
+![Member custom preferences](demo/screenshots/03-member-custom-prefs.png)
+![Member schedule](demo/screenshots/04-member-schedule.png)
+
+### 2. Authenticating with WebUntis
+Connect with your school's WebUntis account so the app can pull everone's real lesson times automatically, instead of anyone having to enter a timetable by hand.
+
+![WebUntis login](demo/screenshots/05-auth.png)
+
+### 3. Generating a driving plan
+With members and timetables in place, hit generate and let the CP-SAT solver crunch every combination of parties, seats, and schedules into a mathematically optimal, fairly-distributed driving plan in seconds.
+
+![Generating a plan](demo/screenshots/06-generating-plan.png)
+![Plan generated summary](demo/screenshots/07-plan-complete.png)
+![Full plan detail](demo/screenshots/08-plan-detail.png)
+
+### 4. Tweaking a plan
+Not every constraint fits neatly into the solver — so plans stay editable afterwards. Manually swap two passengers between matching parties directly in the grid, or describe a convenience tweak in plain English (e.g. "Put Cho and Harry into the same party where possible") and let the assistant find and apply it, highlighting exactly which slots it changed.
+
+![Manual passenger swap](demo/screenshots/09-plan-manual-passenger-swap.png)
+![Manual swap highlighted in plan](demo/screenshots/10-manual-swap-highlighted.png)
+![Assistant request](demo/screenshots/11-assistant-request.png)
+![Assistant response with highlighted changes](demo/screenshots/12-assistant-response-highlight.png)
+![Assistant response, full plan view](demo/screenshots/13-assistant-response-big.png)
+
+### 5. Generating PNGs to distribute the plan
+Once the plan is final, export it as ready-to-share PNG images — no spreadsheet wrangling needed to hand it to the whole group.
+
+![Export PNG](demo/screenshots/14-export-screenshots.png)
+
+### 6. Configuration options
+Tune the WebUntis connection and the solver's planning behavior to match how your school and carpool actually work.
+
+![WebUntis configuration](demo/screenshots/15-config-webuntis.png)
+![Plan configuration](demo/screenshots/16-config-plan.png)
+
+### 7. Feedback
+Spotted a bug or have an idea? The built-in feedback form files it straight to GitHub as an issue, no separate tracker to dig up.
+
+![Send feedback](demo/screenshots/17-send-feedback.png)
 
 ## Repository layout
 
@@ -11,7 +58,6 @@ based on their WebUntis timetables and per-member preferences/constraints.
 ├── frontend/    React/Vite UI (git submodule → mycartime-frontend)
 ├── webuntis/    Forked WebUntis API client (git submodule → python-webuntis)
 ├── schemas/     JSON schemas for the driving-plan API contracts
-├── testdata/    Sample members/requests/plans used in tests and locally
 ├── doc/         Design notes and setup docs
 └── run.sh       Runs backend + frontend together for local development
 ```
