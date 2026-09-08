@@ -33,6 +33,9 @@ htmlcov/
 test_driving_plan_output.json
 *.json.bak
 
+# Runtime-persisted user settings (see src/user_settings.py)
+src/user_settings.json
+
 # OS
 .DS_Store
 Thumbs.db

@@ -1,9 +1,14 @@
 # Configuration file for Carpool Time Backend
+import os
 
 # WebUntis Configuration
 WEBUNTIS_SERVER = "https://ngw-wilhelmshaven.webuntis.com"
 WEBUNTIS_SCHOOL = ""
 WEBUNTIS_USERAGENT = "github-carpoolparty-python"
+
+# Template for the "open timetable" link handed to the frontend, built from
+# WEBUNTIS_SERVER so there's a single source of truth for the school's domain.
+SCHEDULE_URL_TEMPLATE = f"{WEBUNTIS_SERVER}/timetable/teacher?date=DATE&entityId=TEACHER_ID"
 
 # Cache Configuration
 CACHE_DIR = "./cache_dir"
@@ -20,11 +25,13 @@ ROOM_NAME_FALLBACKS = {
 TIME_TOLERANCE_MINUTES = 30  # Maximum time deviation to group members together
 MAX_DRIVES_FULLTIME = 4  # Maximum drives for full-time members in 2-week cycle
 MAX_DRIVES_PARTTIME = 3  # Maximum drives for part-time members in 2-week cycle
-EXACT_MATCH_TOLERANCE_MINUTES = 5  # Max deviation still treated as an "exact" time match (e.g. grouping passengers with an identical schedule)
 
 # Server Configuration
 PORT = 1338
-DEBUG = True
+# Flask debug mode (interactive debugger + auto-reload) - defaults to off so a
+# real deployment doesn't accidentally ship the debugger unless FLASK_DEBUG=true
+# is set explicitly. Enabled by default for local dev via run.sh/start.sh.
+DEBUG = os.environ.get('FLASK_DEBUG', 'true').lower() == 'true'
 
 # The Vite dev server port for the frontend (see frontend/vite.config.ts).
 # Used by the PNG export endpoint to drive a headless browser against the
@@ -97,3 +104,16 @@ SOLVER_OBJECTIVE_WEIGHTS = {
     'total_drives': 10_000,               # sum of per-member driving days
     'driver_legs': 1,                     # fewer, fuller cars
 }
+
+# ---------------------------------------------------------------------------
+# Feedback endpoint (POST /api/v1/feedback in app.py)
+# ---------------------------------------------------------------------------
+GITHUB_FEEDBACK_REPO = 'thabok/mycartime'
+GITHUB_FEEDBACK_LABELS = {'bug', 'question', 'enhancement'}
+GITHUB_FEEDBACK_ASSIGNEE = 'thabok'
+
+# How long the /api/v1/drivingplan/stream connection waits for a plan event
+# before emitting a heartbeat, so the connection (and the UI's "still working"
+# state) stays alive during the long stretch where CP-SAT is proving
+# optimality without finding better solutions.
+PLAN_STREAM_HEARTBEAT_SECONDS = 2.0

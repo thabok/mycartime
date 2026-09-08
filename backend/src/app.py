@@ -17,6 +17,7 @@ import assistant_service
 import config
 import export_service
 import requests
+import user_settings
 from dotenv import load_dotenv
 from flask import Flask, Response, jsonify, request
 from flask_cors import CORS
@@ -54,13 +55,13 @@ _solver_logger.addHandler(logging.StreamHandler())
 # holds GITHUB_ISSUE_CREATION used by the feedback endpoint below.
 load_dotenv()
 
+# Applies any user-edited settings (see /api/v1/settings below) saved from a
+# previous run on top of the config.py defaults.
+user_settings.load_and_apply()
+
 # Initialize Flask app
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
-
-GITHUB_FEEDBACK_REPO = 'thabok/mycartime'
-GITHUB_FEEDBACK_LABELS = {'bug', 'question', 'enhancement'}
-GITHUB_FEEDBACK_ASSIGNEE = 'thabok'
 
 # Plan generation with the CP-SAT engine can run for minutes, so it is exposed as
 # a cancellable streaming job: /api/v1/drivingplan/stream emits progress and
@@ -69,11 +70,6 @@ GITHUB_FEEDBACK_ASSIGNEE = 'thabok'
 # stream ends, so a stop request for a finished job is simply a 404.
 _plan_jobs = {}
 _plan_jobs_lock = threading.Lock()
-
-# How long the stream waits for a plan event before emitting a heartbeat, so the
-# connection (and the UI's "still working" state) stays alive during the long
-# stretch where CP-SAT is proving optimality without finding better solutions.
-PLAN_STREAM_HEARTBEAT_SECONDS = 2.0
 
 
 @app.route('/api/v1/check', methods=['GET'])
@@ -86,6 +82,44 @@ def health_check():
     """
     logger.info(f"Health check request from {request.remote_addr}")
     return jsonify(True), 200
+
+
+@app.route('/api/v1/settings', methods=['GET'])
+def get_settings():
+    """
+    Current values of the user-editable settings (WebUntis connection +
+    plan generation parameters), for the frontend Preferences dialog.
+    """
+    return jsonify(user_settings.get_current()), 200
+
+
+@app.route('/api/v1/settings', methods=['PUT'])
+def update_settings():
+    """
+    Update one or more user-editable settings. Persists to disk (see
+    user_settings.py) and applies immediately, no restart required.
+
+    Expected JSON payload: a partial or full object of
+    {WEBUNTIS_SERVER, WEBUNTIS_SCHOOL, TIME_TOLERANCE_MINUTES,
+     MAX_DRIVES_FULLTIME, MAX_DRIVES_PARTTIME}.
+
+    Returns:
+        JSON response with the full set of current settings after the update
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No JSON data provided'}), 400
+
+        updated = user_settings.update(data)
+        logger.info(f"Settings updated: {list(data.keys())}")
+        return jsonify(updated), 200
+
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        logger.error(f"Error updating settings: {str(e)}", exc_info=True)
+        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
 
 
 @app.route('/api/v1/suggestedreferencedate', methods=['POST'])
@@ -329,7 +363,7 @@ def calculate_drivingplan_stream():
         try:
             while True:
                 try:
-                    event = events.get(timeout=PLAN_STREAM_HEARTBEAT_SECONDS)
+                    event = events.get(timeout=config.PLAN_STREAM_HEARTBEAT_SECONDS)
                 except queue.Empty:
                     yield json.dumps({'type': 'heartbeat'}) + '\n'
                     continue
@@ -612,7 +646,7 @@ def create_feedback_issue():
 
         if not title:
             return jsonify({'error': 'Title is required'}), 400
-        if label not in GITHUB_FEEDBACK_LABELS:
+        if label not in config.GITHUB_FEEDBACK_LABELS:
             return jsonify({'error': 'Invalid label'}), 400
 
         github_token = os.environ.get('GITHUB_ISSUE_CREATION')
@@ -621,7 +655,7 @@ def create_feedback_issue():
             return jsonify({'error': 'GITHUB_ISSUE_CREATION is not configured'}), 500
 
         response = requests.post(
-            f'https://api.github.com/repos/{GITHUB_FEEDBACK_REPO}/issues',
+            f'https://api.github.com/repos/{config.GITHUB_FEEDBACK_REPO}/issues',
             headers={
                 'Authorization': f'Bearer {github_token}',
                 'Accept': 'application/vnd.github+json',
@@ -631,7 +665,7 @@ def create_feedback_issue():
                 'title': title,
                 'body': description,
                 'labels': ['user feedback', label],
-                'assignees': [GITHUB_FEEDBACK_ASSIGNEE],
+                'assignees': [config.GITHUB_FEEDBACK_ASSIGNEE],
             },
             timeout=10,
         )

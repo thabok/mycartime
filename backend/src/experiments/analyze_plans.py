@@ -16,8 +16,6 @@ from collections import defaultdict
 from pathlib import Path
 from statistics import mean, pstdev
 
-TIME_TOLERANCE_MINUTES = 30
-
 
 def _cluster_key(members_by_initials, driver, time_):
     """Bucket a party's time into 30-min-tolerance clusters per (day, direction) for pool-level tightness."""

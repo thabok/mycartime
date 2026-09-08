@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 from datetime import datetime, time
 
+import config
+
 
 @dataclass
 class TimeInfo:
@@ -322,7 +324,7 @@ class DrivingPlan:
     summary: str
     day_plans: Dict[int, DayPlan] = field(default_factory=dict)
     member_id_map: Dict[str, Optional[int]] = field(default_factory=dict)
-    schedule_url_template: str = 'https://ngw-wilhelmshaven.webuntis.com/timetable/teacher?date=DATE&entityId=TEACHER_ID'
+    schedule_url_template: str = config.SCHEDULE_URL_TEMPLATE
     
     def to_dict(self) -> dict:
         """Convert to dictionary."""
