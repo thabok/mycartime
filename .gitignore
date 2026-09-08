@@ -49,6 +49,7 @@ testdata/request.json
 **/*.egg-info/
 **/legacycode/
 **/dist
+packaging/build/
 
 **/.venv
 

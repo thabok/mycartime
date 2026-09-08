@@ -10,11 +10,17 @@ re-implemented text/SVG layout to get subtly wrong.
 """
 import logging
 
+from playwright.sync_api import Error as PlaywrightError
 from playwright.sync_api import sync_playwright
 
 logger = logging.getLogger(__name__)
 
 CAPTURE_SELECTOR = '[data-export-capture="true"]'
+
+
+class ChromiumNotAvailableError(Exception):
+    """Raised when Playwright can't find a Chromium build to launch - e.g.
+    the "lite" packaged build, which ships without one (see packaging/)."""
 
 
 def render_week_screenshots(members, plan, reference_date, show_designated_driver,
@@ -26,7 +32,14 @@ def render_week_screenshots(members, plan, reference_date, show_designated_drive
     the frontend itself stores in localStorage under 'carpool-reference-date'.
     """
     with sync_playwright() as p:
-        browser = p.chromium.launch()
+        try:
+            browser = p.chromium.launch()
+        except PlaywrightError as e:
+            raise ChromiumNotAvailableError(
+                "PNG export needs a Chromium browser, which isn't available in this build. "
+                "Use the 'with Chromium' download, or run `playwright install chromium` if "
+                "running from source."
+            ) from e
         try:
             context = browser.new_context(device_scale_factor=2)
             page = context.new_page()

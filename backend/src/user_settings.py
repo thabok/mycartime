@@ -7,11 +7,12 @@ import json
 import logging
 import os
 
+import apppaths
 import config
 
 logger = logging.getLogger(__name__)
 
-SETTINGS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'user_settings.json')
+SETTINGS_FILE = apppaths.data_path('user_settings.json')
 
 # Keys editable via the Preferences dialog, and how to validate an incoming
 # value for each. WEBUNTIS_SCHOOL intentionally allows an empty string - some

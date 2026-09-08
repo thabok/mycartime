@@ -13,13 +13,14 @@ import zipfile
 from collections import defaultdict
 from datetime import datetime
 
+import apppaths
 import assistant_service
 import config
 import export_service
 import requests
 import user_settings
 from dotenv import load_dotenv
-from flask import Flask, Response, jsonify, request
+from flask import Flask, Response, jsonify, request, send_from_directory
 from flask_cors import CORS
 from models import Member
 from timetable_service import TimetableService
@@ -30,7 +31,7 @@ logging.basicConfig(
     level=logging.DEBUG,
     format='[%(name)s - %(levelname)s] %(message)s',
     handlers=[
-        logging.FileHandler('backend_debug.log'),
+        logging.FileHandler(apppaths.data_path('backend_debug.log')),
         logging.StreamHandler()
     ]
 )
@@ -41,9 +42,7 @@ logger = logging.getLogger(__name__)
 # rationale is also fed to the AI assistant (see assistant_service.PLAN_LOG_PATH)
 # so it can explain why the plan looks the way it does, so it's split into its
 # own file rather than mixed in with the rest of the app's logging noise.
-_plan_log_handler = logging.FileHandler(
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'plan_creation.log')
-)
+_plan_log_handler = logging.FileHandler(apppaths.data_path('plan_creation.log'))
 _plan_log_handler.setFormatter(logging.Formatter('[%(name)s - %(levelname)s] %(message)s'))
 _solver_logger = logging.getLogger('solver_service')
 _solver_logger.propagate = False
@@ -51,9 +50,13 @@ _solver_logger.setLevel(logging.DEBUG)
 _solver_logger.addHandler(_plan_log_handler)
 _solver_logger.addHandler(logging.StreamHandler())
 
-# Loads the repo-root .env (searched for by walking up from this file), which
-# holds GITHUB_ISSUE_CREATION used by the feedback endpoint below.
-load_dotenv()
+# In source checkouts, finds the repo-root .env by walking up from this file.
+# In the packaged build, .env (holding GITHUB_ISSUE_CREATION) is instead baked
+# in as a bundled resource - see packaging/build.sh - so it's read from there.
+if apppaths.FROZEN:
+    load_dotenv(apppaths.resource_path('.env'))
+else:
+    load_dotenv()
 
 # Applies any user-edited settings (see /api/v1/settings below) saved from a
 # previous run on top of the config.py defaults.
@@ -536,7 +539,7 @@ def _capture_plan_input(members, start_date_str):
     credentials again. Deliberately excludes username/password/hash.
     """
     try:
-        capture_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), config.CAPTURE_DIR)
+        capture_dir = config.CAPTURE_DIR
         os.makedirs(capture_dir, exist_ok=True)
 
         timetables = {}
@@ -690,7 +693,7 @@ def assistant_spinner_verbs():
     assistant is thinking (backed by assistant/harry-potter-spinning-verbs.txt).
     """
     try:
-        path = os.path.join(os.path.dirname(__file__), 'assistant', 'harry-potter-spinning-verbs.txt')
+        path = apppaths.resource_path('assistant', 'harry-potter-spinning-verbs.txt')
         with open(path, 'r', encoding='utf-8') as f:
             verbs = [line.strip() for line in f if line.strip()]
         return jsonify(verbs), 200
@@ -781,7 +784,11 @@ def export_png():
                 return jsonify({'error': f'Missing required field: {field}'}), 400
 
         frontend_host = request.host.split(':')[0]
-        frontend_origin = f'http://{frontend_host}:{config.FRONTEND_PORT}'
+        # In the packaged build there's no separate Vite dev server - the
+        # frontend is served by this same Flask process (see serve_frontend
+        # below), on config.PORT rather than config.FRONTEND_PORT.
+        frontend_port = config.PORT if apppaths.FROZEN else config.FRONTEND_PORT
+        frontend_origin = f'http://{frontend_host}:{frontend_port}'
 
         images = export_service.render_week_screenshots(
             members=data['members'],
@@ -800,9 +807,47 @@ def export_png():
 
         return Response(buffer.getvalue(), mimetype='application/zip')
 
+    except export_service.ChromiumNotAvailableError as e:
+        logger.warning(f"PNG export unavailable: {str(e)}")
+        return jsonify({'error': str(e)}), 501
+
     except Exception as e:
         logger.error(f"Error exporting plan as PNG: {str(e)}", exc_info=True)
         return jsonify({'error': f'Internal server error: {str(e)}'}), 500
+
+
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_frontend(path):
+    """
+    Serve the built frontend (frontend/dist, see apppaths.frontend_dist_path)
+    for everything that isn't an /api/v1/... route above - Flask/Werkzeug
+    always prefers the more specific /api/v1/... rules over this catch-all,
+    regardless of registration order.
+
+    Falls back to index.html for any path that isn't a real static asset, so
+    client-side routes (react-router's BrowserRouter, e.g. /plan, /export)
+    resolve correctly on a hard refresh or direct link instead of 404ing.
+    """
+    if path.startswith('api/'):
+        # Genuinely unknown API route (typo'd endpoint, wrong method's URL,
+        # etc.) - let it 404 as JSON rather than falling back to index.html.
+        return jsonify({'error': 'Endpoint not found'}), 404
+
+    dist_dir = apppaths.frontend_dist_path()
+    if not os.path.isdir(dist_dir):
+        return jsonify({
+            'error': 'Frontend not built. Run `npm run build` in frontend/ (or use `./run.sh` for local dev).'
+        }), 404
+
+    if path and os.path.isfile(os.path.join(dist_dir, path)):
+        return send_from_directory(dist_dir, path)
+    # A real static asset (JS/CSS/image/...) that's genuinely missing should
+    # 404, not silently serve index.html - only paths with no file extension
+    # are treated as client-side routes (react-router's BrowserRouter).
+    if path and os.path.splitext(path)[1]:
+        return jsonify({'error': 'Not found'}), 404
+    return send_from_directory(dist_dir, 'index.html')
 
 
 @app.errorhandler(404)
@@ -820,4 +865,13 @@ def internal_error(error):
 
 if __name__ == '__main__':
     logger.info(f"Starting Carpool Time backend service on port {config.PORT}")
-    app.run(debug=config.DEBUG, port=config.PORT, host='0.0.0.0', threaded=True)
+    if apppaths.FROZEN:
+        # Packaged build: there's no `npm run dev` / run.sh to open a browser
+        # for the user, so do it here once the server is up.
+        import webbrowser
+        threading.Timer(1.0, lambda: webbrowser.open(f'http://localhost:{config.PORT}')).start()
+    # Flask's debug reloader re-execs the process on file changes, which has
+    # no place in a packaged binary (and there's nothing to hot-reload
+    # anyway), so it's forced off regardless of FLASK_DEBUG.
+    debug = False if apppaths.FROZEN else config.DEBUG
+    app.run(debug=debug, port=config.PORT, host='0.0.0.0', threaded=True)

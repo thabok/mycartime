@@ -13,18 +13,17 @@ import re
 import subprocess
 import threading
 
+import apppaths
 import config
 
 logger = logging.getLogger(__name__)
 
-_MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
-_SKILL_DIR = os.path.join(_MODULE_DIR, 'assistant', 'skill')
-_REPO_ROOT = os.path.abspath(os.path.join(_MODULE_DIR, '..', '..'))
-_INTERNAL_DOC_PATH = os.path.join(_REPO_ROOT, 'doc', 'internal_doc.md')
+_SKILL_DIR = apppaths.resource_path('assistant', 'skill')
+_INTERNAL_DOC_PATH = apppaths.doc_path('internal_doc.md')
 # Written by the "solver_service" logger only (see app.py's logging setup);
 # holds the plan-generation rationale (model size, solve status, objective
 # value, etc.) without the rest of the backend's log noise.
-_PLAN_LOG_PATH = os.path.join(_MODULE_DIR, 'plan_creation.log')
+_PLAN_LOG_PATH = apppaths.data_path('plan_creation.log')
 
 _PLAN_LOG_TAIL_LINES = 500
 _PLAN_LOG_TAIL_MAX_CHARS = 20000

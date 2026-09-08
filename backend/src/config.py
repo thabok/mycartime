@@ -1,6 +1,8 @@
 # Configuration file for Carpool Time Backend
 import os
 
+import apppaths
+
 # WebUntis Configuration
 WEBUNTIS_SERVER = "https://ngw-wilhelmshaven.webuntis.com"
 WEBUNTIS_SCHOOL = ""
@@ -11,7 +13,7 @@ WEBUNTIS_USERAGENT = "github-carpoolparty-python"
 SCHEDULE_URL_TEMPLATE = f"{WEBUNTIS_SERVER}/timetable/teacher?date=DATE&entityId=TEACHER_ID"
 
 # Cache Configuration
-CACHE_DIR = "./cache_dir"
+CACHE_DIR = apppaths.data_path("cache_dir")
 CACHE_TTL_SECONDS = None # 3600  # 1 hour - timetables rarely change during the day
 
 # Room id -> name overrides for rooms that WebUntis's getRooms() doesn't
@@ -47,7 +49,7 @@ ASSISTANT_CLI_TIMEOUT_SECONDS = 60
 # WebUntis timetables (no credentials) to CAPTURE_DIR, for offline replay of
 # real-world inputs against the solver (see backend/src/experiments/).
 CAPTURE_PLAN_INPUTS = True
-CAPTURE_DIR = "./captures"
+CAPTURE_DIR = apppaths.data_path("captures")
 
 # ---------------------------------------------------------------------------
 # Plan engine (solver_service.py, an OR-Tools CP-SAT model)
