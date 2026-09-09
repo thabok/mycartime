@@ -4,6 +4,7 @@ Calculates optimal school-run carpool driving plans for a group of teachers,
 based on their WebUntis timetables and per-member preferences/constraints. Powered by [Google’s CP-SAT Solver](https://developers.google.com/optimization/cp/cp_solver?hl=en), it treats your chaotic school schedules as a constraint satisfaction problem, crunching millions of permutations to deliver mathematically optimal routes in seconds.
 
 ## Brief walkthrough
+Just interested in the code? [Skip ahead](#getting-the-code)
 
 ### 1. Managing members
 Add every teacher once, with their seat capacity and any day-specific quirks (part-time schedules, custom pickup/drop-off preferences), then drill into a member to review their WebUntis-derived timetable. This member roster is the single source of truth the solver plans against.
