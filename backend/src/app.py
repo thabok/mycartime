@@ -59,6 +59,17 @@ load_dotenv()
 # previous run on top of the config.py defaults.
 user_settings.load_and_apply()
 
+# Warm up the CP-SAT solver in a background thread to reduce initial latency.
+def _warmup_solver():
+    from ortools.sat.python import cp_model
+    m = cp_model.CpModel()
+    x = m.NewBoolVar('x')
+    m.Add(x == 1)
+    cp_model.CpSolver().Solve(m)
+
+threading.Thread(target=_warmup_solver, daemon=True, name='solver-warmup').start()
+
+
 # Initialize Flask app
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
