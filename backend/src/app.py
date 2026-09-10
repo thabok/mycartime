@@ -99,7 +99,7 @@ def health_check():
 def get_settings():
     """
     Current values of the user-editable settings (WebUntis connection +
-    plan generation parameters), for the frontend Preferences dialog.
+    plan generation parameters), for the frontend Settings dialog.
     """
     return jsonify(user_settings.get_current()), 200
 

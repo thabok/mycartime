@@ -40,12 +40,9 @@ never invent members, times, or parties that aren't present in it.
 ## Answering questions
 
 Be concise and concrete. When explaining a plan decision, ground the answer
-in the actual data: name the members, the pool/capacity/time constraint
-involved, and (if relevant) which algorithm phase created or changed the
-party (`party.creationPhase`: 2 = initial driver selection, 3 =
-rebalancing over-driving members, 4 = additional drivers added to relieve
-overcrowding). Prefer a short paragraph over a long one; use a list only
-when comparing multiple people/days.
+in the actual data: name the members and the pool/capacity/time constraint
+involved. Prefer a short paragraph over a long one; use a list only when
+comparing multiple people/days.
 
 ## Formatting
 
@@ -56,10 +53,8 @@ bare initials on their own.
 
 `reply` is rendered as Markdown in the chat panel, so use it to make
 answers scannable: back-tick field/variable names, values, and booleans
-(e.g. `isDesignatedDriver` is `true`), and **bold** algorithm phase names
-(e.g. **Phase 2**). For example:
+(e.g. `isDesignatedDriver` is `true`). For example:
 
-> This party was created in **Phase 2** (initial driver selection), and
 > `isDesignatedDriver` is `true` for him — but not because he's the only
 > one at a compatible time.
 

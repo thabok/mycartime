@@ -325,14 +325,16 @@ class DrivingPlan:
     day_plans: Dict[int, DayPlan] = field(default_factory=dict)
     member_id_map: Dict[str, Optional[int]] = field(default_factory=dict)
     schedule_url_template: str = config.SCHEDULE_URL_TEMPLATE
-    
+    quality_metrics: dict = field(default_factory=dict)
+
     def to_dict(self) -> dict:
         """Convert to dictionary."""
         return {
             'summary': self.summary,
             'dayPlans': {str(k): v.to_dict() for k, v in self.day_plans.items()},
             'memberIdMap': self.member_id_map,
-            'scheduleUrlTemplate': self.schedule_url_template
+            'scheduleUrlTemplate': self.schedule_url_template,
+            'qualityMetrics': self.quality_metrics
         }
 
 

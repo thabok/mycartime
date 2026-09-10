@@ -37,6 +37,8 @@ from ortools.sat.python import cp_model
 import config
 from models import DayOfWeekABCombo, DrivingPlan, Member, Party
 from plan_builder import PlanBuilder
+from plan_postprocessor import optimize_passenger_placement
+from plan_quality import compute_quality_metrics
 from utils import (WEEKDAY_NAMES, get_earliest_time, get_latest_time,
                    times_within_tolerance)
 
@@ -160,6 +162,7 @@ class SolverService:
         solution = self._solve(model, variables)
 
         parties_by_day = self._extract_parties(solution, variables)
+        optimize_passenger_placement(self.members, parties_by_day, self.tolerance)
         self._apply_drive_counts(parties_by_day)
 
         driving_plan = self._build_driving_plan(members, parties_by_day)
@@ -724,5 +727,7 @@ class SolverService:
 
         summary = builder.generate_summary(members)
         member_id_map = {m.initials: m.id for m in members if getattr(m, 'id', None) is not None}
+        quality_metrics = compute_quality_metrics(self.members, day_plans, self.tolerance)
 
-        return DrivingPlan(summary=summary, day_plans=day_plans, member_id_map=member_id_map)
+        return DrivingPlan(summary=summary, day_plans=day_plans, member_id_map=member_id_map,
+                            quality_metrics=quality_metrics)

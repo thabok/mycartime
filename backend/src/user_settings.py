@@ -1,6 +1,6 @@
 """
 Persistence for the handful of config.py values that end users can edit at
-runtime via the frontend Preferences dialog (see /api/v1/settings in app.py),
+runtime via the frontend Settings dialog (see /api/v1/settings in app.py),
 without requiring a source change or restart.
 """
 import json
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 SETTINGS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'user_settings.json')
 
-# Keys editable via the Preferences dialog, and how to validate an incoming
+# Keys editable via the Settings dialog, and how to validate an incoming
 # value for each. WEBUNTIS_SCHOOL intentionally allows an empty string - some
 # WebUntis tenants (like ours) don't need one.
 EDITABLE_SETTINGS = {
