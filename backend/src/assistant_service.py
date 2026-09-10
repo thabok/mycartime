@@ -102,6 +102,16 @@ def _parse_envelope(text: str) -> dict:
     except (json.JSONDecodeError, AttributeError):
         pass
 
+    # Strict parsing failed -- most often because the model emitted an
+    # unescaped `"` inside the `reply` string (e.g. quoting the user's own
+    # text). Fall back to the same lenient scanner used for streaming
+    # deltas, which recovers everything up to the bad character, rather
+    # than surfacing the raw ```json-fenced envelope as the reply text.
+    partial = _extract_partial_reply(text)
+    if partial:
+        logger.warning("Assistant response was not valid JSON; recovered partial reply text")
+        return {'reply': partial, 'actions': []}
+
     logger.warning("Assistant response did not match the expected JSON envelope; returning raw text")
     return {'reply': text.strip(), 'actions': []}
 
