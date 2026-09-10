@@ -107,9 +107,9 @@ def test_packed_parties_only_flags_full_five_seaters():
 
     metrics = compute_quality_metrics(members, day_plans, TOLERANCE)
 
-    assert metrics['packedParties']['value'] == 100
+    assert metrics['packedParties']['value'] == 50
     assert metrics['packedParties']['packedCount'] == 1
-    assert metrics['packedParties']['totalFiveSeaterRides'] == 1
+    assert metrics['packedParties']['totalRides'] == 2
     assert len(metrics['packedParties']['parties']) == 1
     packed_party = metrics['packedParties']['parties'][0]
     assert packed_party['dayOfWeek'] == 'MONDAY'
@@ -122,7 +122,7 @@ def test_packed_parties_only_flags_full_five_seaters():
     ]
 
 
-def test_packed_parties_value_is_a_percentage_of_five_seater_rides():
+def test_packed_parties_value_is_a_percentage_of_all_rides():
     d1, d2 = _member('D1', seats=5), _member('D2', seats=5)
     p1, p2, p3, p4 = (_member(f'P{i}') for i in range(1, 5))
     members = {'D1': d1, 'D2': d2, 'P1': p1, 'P2': p2, 'P3': p3, 'P4': p4}
@@ -139,7 +139,27 @@ def test_packed_parties_value_is_a_percentage_of_five_seater_rides():
 
     assert metrics['packedParties']['value'] == 50
     assert metrics['packedParties']['packedCount'] == 1
-    assert metrics['packedParties']['totalFiveSeaterRides'] == 2
+    assert metrics['packedParties']['totalRides'] == 2
+
+
+def test_packed_parties_total_includes_non_five_seater_rides():
+    d1, d2 = _member('D1', seats=5), _member('D2', seats=4)
+    p1, p2, p3, p4 = (_member(f'P{i}') for i in range(1, 5))
+    members = {'D1': d1, 'D2': d2, 'P1': p1, 'P2': p2, 'P3': p3, 'P4': p4}
+    for member in members.values():
+        _set_time(member, 0, start=745)
+
+    day_plans = _empty_day_plans()
+    day_plans[1].parties = [
+        _party('D1', 745, ['P1', 'P2', 'P3', 'P4']),  # 5-seater, full
+        _party('D2', 745, ['P1']),  # 4-seater, never "packed"
+    ]
+
+    metrics = compute_quality_metrics(members, day_plans, TOLERANCE)
+
+    assert metrics['packedParties']['value'] == 50
+    assert metrics['packedParties']['packedCount'] == 1
+    assert metrics['packedParties']['totalRides'] == 2
 
 
 def test_ab_driver_mismatch_flags_genuinely_different_pattern():

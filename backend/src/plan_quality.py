@@ -11,8 +11,9 @@ PlanViewer.tsx):
   percentage could still happen - every passenger finding another eligible,
   non-full ride that same day/direction - if that ride's own driver
   suddenly called in sick. High is good.
-- packedParties: percentage of 5-seater-car rides that are at full capacity
-  (driver + 4 passengers), where the 3 in the back have very little room.
+- packedParties: percentage of all rides that are a 5-seater car at full
+  capacity (driver + 4 passengers), where the 3 in the back have very little
+  room. Non-5-seater rides count toward the total but can never be "packed".
   Low is good.
 - abDriverMismatch: percentage of members whose driving weekdays (Mon-Fri)
   genuinely differ between week A and week B - tolerating the one-day swing
@@ -97,15 +98,15 @@ def _compute_flexibility(members: Dict[str, Member], day_plans: Dict[int, DayPla
 
 def _compute_packed_parties(day_plans: Dict[int, DayPlan], members: Dict[str, Member]) -> dict:
     packed = 0
-    total_five_seater_rides = 0
+    total_rides = 0
     packed_parties = []
 
     for day_plan in day_plans.values():
         for party in day_plan.parties:
+            total_rides += 1
             driver_seats = members[party.driver].number_of_seats
             if driver_seats != 5:
                 continue
-            total_five_seater_rides += 1
             if len(party.passengers) == 4:
                 packed += 1
                 packed_parties.append({
@@ -119,11 +120,11 @@ def _compute_packed_parties(day_plans: Dict[int, DayPlan], members: Dict[str, Me
                     ],
                 })
 
-    percentage = round(100 * packed / total_five_seater_rides) if total_five_seater_rides else 0
+    percentage = round(100 * packed / total_rides) if total_rides else 0
     return {
         'value': percentage,
         'packedCount': packed,
-        'totalFiveSeaterRides': total_five_seater_rides,
+        'totalRides': total_rides,
         'parties': packed_parties,
     }
 
