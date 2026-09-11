@@ -1,6 +1,7 @@
 """
 AI assistant service: explains the driving plan / members and proposes
-edits, backed by the Anthropic API with a `claude` CLI fallback.
+edits, backed by the Anthropic API with a `claude` CLI fallback that is
+available on developer machines only (see _stream_events).
 
 Both backends are given the same system prompt and are expected to answer
 with a single fenced ```json envelope (see SKILL.md), so there is exactly
@@ -10,21 +11,36 @@ import json
 import logging
 import os
 import re
+import shutil
 import subprocess
 import threading
 
 import config
+import paths
 
 logger = logging.getLogger(__name__)
 
-_MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
-_SKILL_DIR = os.path.join(_MODULE_DIR, 'assistant', 'skill')
-_REPO_ROOT = os.path.abspath(os.path.join(_MODULE_DIR, '..', '..'))
-_INTERNAL_DOC_PATH = os.path.join(_REPO_ROOT, 'doc', 'internal_doc.md')
+
+def _api_key() -> str:
+    """Settings dialog first, then the environment (how dev runs supply it)."""
+    return config.ANTHROPIC_API_KEY or os.environ.get('ANTHROPIC_API_KEY') or ''
+
+
+def _cli_executable() -> str | None:
+    """The configured claude CLI, else whatever is on PATH. None if neither
+    exists - a GUI-launched app inherits a minimal PATH, so "claude" often is
+    not resolvable even when it is installed."""
+    configured = config.CLAUDE_CLI_PATH.strip()
+    if configured:
+        return configured if os.path.isfile(configured) else None
+    return shutil.which('claude')
+
+_SKILL_DIR = paths.resource_path('assistant', 'skill')
+_INTERNAL_DOC_PATH = paths.resource_path('doc', 'internal_doc.md')
 # Written by the "solver_service" logger only (see app.py's logging setup);
 # holds the plan-generation rationale (model size, solve status, objective
 # value, etc.) without the rest of the backend's log noise.
-_PLAN_LOG_PATH = os.path.join(_MODULE_DIR, 'plan_creation.log')
+_PLAN_LOG_PATH = paths.data_path('plan_creation.log')
 
 _PLAN_LOG_TAIL_LINES = 500
 _PLAN_LOG_TAIL_MAX_CHARS = 20000
@@ -244,7 +260,7 @@ def _call_sdk_stream(system_prompt: str, messages: list[dict]):
     model produces any), 'tool_start' (the model invoked a tool)."""
     import anthropic
 
-    client = anthropic.Anthropic()
+    client = anthropic.Anthropic(api_key=_api_key())
     with client.messages.stream(
         model=config.ASSISTANT_MODEL,
         max_tokens=config.ASSISTANT_MAX_TOKENS,
@@ -264,7 +280,7 @@ def _call_sdk_stream(system_prompt: str, messages: list[dict]):
                     yield {'kind': 'thinking', 'text': delta.thinking}
 
 
-def _call_cli_stream(system_prompt: str, messages: list[dict]):
+def _call_cli_stream(system_prompt: str, messages: list[dict], executable: str):
     """Same normalized event shape as `_call_sdk_stream` (see its docstring),
     decoded from the claude CLI's `stream-json` output."""
     transcript = '\n\n'.join(f"{m['role']}: {m['content']}" for m in messages)
@@ -276,7 +292,7 @@ def _call_cli_stream(system_prompt: str, messages: list[dict]):
     # requires in print mode) is what gets us token-level text deltas
     # instead of one message dumped at the end.
     process = subprocess.Popen(
-        ['claude', '-p', '--model', 'claude-sonnet-4-6', '--effort', 'medium', '--output-format', 'stream-json', '--include-partial-messages', '--verbose', '--', prompt],
+        [executable, '-p', '--model', 'claude-sonnet-4-6', '--effort', 'medium', '--output-format', 'stream-json', '--include-partial-messages', '--verbose', '--', prompt],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
@@ -336,8 +352,7 @@ def _stream_events(system_prompt: str, messages: list[dict]):
     configured, falling back to the claude CLI if the SDK errors out before
     producing any output (same fallback behavior as the old non-streaming
     implementation)."""
-    api_key = os.environ.get('ANTHROPIC_API_KEY')
-    if api_key:
+    if _api_key():
         sdk_events = _call_sdk_stream(system_prompt, messages)
         try:
             first_event = next(sdk_events)
@@ -350,7 +365,14 @@ def _stream_events(system_prompt: str, messages: list[dict]):
             yield from sdk_events
             return
 
-    yield from _call_cli_stream(system_prompt, messages)
+    executable = _cli_executable()
+    if not executable:
+        raise RuntimeError(
+            'The assistant needs either an Anthropic API key or the path to the '
+            'claude CLI. Add one under Settings > AI Assistant.'
+        )
+
+    yield from _call_cli_stream(system_prompt, messages, executable)
 
 
 def _is_valid_party_ref(plan: dict, day_key: str, party_ref: dict) -> dict | None:

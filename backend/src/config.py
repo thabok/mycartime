@@ -1,6 +1,8 @@
 # Configuration file for Carpool Time Backend
 import os
 
+import paths
+
 # WebUntis Configuration
 WEBUNTIS_SERVER = "https://ngw-wilhelmshaven.webuntis.com"
 WEBUNTIS_SCHOOL = ""
@@ -11,7 +13,7 @@ WEBUNTIS_USERAGENT = "github-carpoolparty-python"
 SCHEDULE_URL_TEMPLATE = f"{WEBUNTIS_SERVER}/timetable/teacher?date=DATE&entityId=TEACHER_ID"
 
 # Cache Configuration
-CACHE_DIR = "./cache_dir"
+CACHE_DIR = paths.data_path("cache_dir")
 CACHE_TTL_SECONDS = None # 3600  # 1 hour - timetables rarely change during the day
 
 # Room id -> name overrides for rooms that WebUntis's getRooms() doesn't
@@ -27,18 +29,35 @@ MAX_DRIVES_FULLTIME = 4  # Maximum drives for full-time members in 2-week cycle
 MAX_DRIVES_PARTTIME = 3  # Maximum drives for part-time members in 2-week cycle
 
 # Server Configuration
-PORT = 1338
+# Both are overridable so the Tauri shell can hand the sidecar a free port and
+# keep it bound to the loopback interface, while development keeps the defaults.
+PORT = int(os.environ.get('BACKEND_PORT', 1338))
+HOST = os.environ.get('BACKEND_HOST', '0.0.0.0')
 # Flask debug mode (interactive debugger + auto-reload) - defaults to off so a
 # real deployment doesn't accidentally ship the debugger unless FLASK_DEBUG=true
 # is set explicitly. Enabled by default for local dev via run.sh/start.sh.
 DEBUG = False # os.environ.get('FLASK_DEBUG', 'true').lower() == 'true'
 
 # The Vite dev server port for the frontend (see frontend/vite.config.ts).
-# Used by the PNG export endpoint to drive a headless browser against the
-# live frontend app.
 FRONTEND_PORT = 8080
 
+# Origins allowed to call this backend. The packaged app serves the frontend
+# from the Tauri webview's own scheme (tauri://localhost on macOS/Linux,
+# http://tauri.localhost on Windows); the localhost entries keep the Vite dev
+# server working against an unpackaged backend.
+ALLOWED_ORIGINS = [
+    "tauri://localhost",
+    "http://tauri.localhost",
+    f"http://localhost:{FRONTEND_PORT}",
+    f"http://127.0.0.1:{FRONTEND_PORT}",
+]
+
 # AI Assistant Configuration
+# Both are set through the Settings dialog. The API key falls back to the
+# environment variable of the same name, which is how development runs supply
+# it; the CLI path falls back to whatever `claude` is on PATH.
+ANTHROPIC_API_KEY = ""
+CLAUDE_CLI_PATH = ""
 ASSISTANT_MODEL = "claude-sonnet-4-6"
 ASSISTANT_MAX_TOKENS = 2000
 ASSISTANT_CLI_TIMEOUT_SECONDS = 60
@@ -47,7 +66,7 @@ ASSISTANT_CLI_TIMEOUT_SECONDS = 60
 # WebUntis timetables (no credentials) to CAPTURE_DIR, for offline replay of
 # real-world inputs against the solver (see backend/src/experiments/).
 CAPTURE_PLAN_INPUTS = False
-# CAPTURE_DIR = "./captures"
+CAPTURE_DIR = paths.data_path("captures")
 
 # ---------------------------------------------------------------------------
 # Plan engine (solver_service.py, an OR-Tools CP-SAT model)

@@ -1,0 +1,3 @@
+/target/
+# Regenerated from tauri.conf.json + capabilities on every build.
+/gen/schemas/

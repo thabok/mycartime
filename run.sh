@@ -62,9 +62,6 @@ fi
 source "$ROOT_DIR/.venv/bin/activate"
 pip install -q -r "$BACKEND_DIR/requirements.txt"
 pip install -q -e "$WEBUNTIS_DIR"
-# Chromium for the PNG export feature (Playwright). Cached after the first
-# run, so this is a fast no-op on subsequent runs.
-python -m playwright install chromium
 deactivate
 
 echo "Installing frontend dependencies..."

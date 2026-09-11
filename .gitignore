@@ -39,6 +39,8 @@ build
 testdata/request.json
 *.png
 !demo/screenshots/*.png
+# App icons are build inputs (see src-tauri/tauri.conf.json), not screenshots.
+!src-tauri/icons/*.png
 *.DS_Store
 **/.pytest_cache/
 

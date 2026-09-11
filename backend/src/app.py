@@ -2,20 +2,19 @@
 Flask application for Carpool Time backend service.
 """
 import base64
-import io
 import json
 import logging
 import os
 import queue
+import sys
 import threading
 import uuid
-import zipfile
 from collections import defaultdict
 from datetime import datetime
 
 import assistant_service
 import config
-import export_service
+import paths
 import requests
 import user_settings
 from dotenv import load_dotenv
@@ -30,7 +29,7 @@ logging.basicConfig(
     level=logging.DEBUG,
     format='[%(name)s - %(levelname)s] %(message)s',
     handlers=[
-        logging.FileHandler('backend_debug.log'),
+        logging.FileHandler(paths.data_path('backend_debug.log')),
         logging.StreamHandler()
     ]
 )
@@ -41,9 +40,7 @@ logger = logging.getLogger(__name__)
 # rationale is also fed to the AI assistant (see assistant_service.PLAN_LOG_PATH)
 # so it can explain why the plan looks the way it does, so it's split into its
 # own file rather than mixed in with the rest of the app's logging noise.
-_plan_log_handler = logging.FileHandler(
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'plan_creation.log')
-)
+_plan_log_handler = logging.FileHandler(paths.data_path('plan_creation.log'))
 _plan_log_handler.setFormatter(logging.Formatter('[%(name)s - %(levelname)s] %(message)s'))
 _solver_logger = logging.getLogger('solver_service')
 _solver_logger.propagate = False
@@ -59,6 +56,19 @@ load_dotenv()
 # previous run on top of the config.py defaults.
 user_settings.load_and_apply()
 
+def _exit_when_supervisor_disconnects():
+    """The Tauri shell holds our stdin open for as long as it lives, so EOF
+    means it is gone - including the force-quit and crash cases where it never
+    gets to stop us itself. Without this we would linger as an orphan holding
+    the port."""
+    sys.stdin.read()
+    os._exit(0)
+
+
+if os.environ.get('SUPERVISED') == '1':
+    threading.Thread(target=_exit_when_supervisor_disconnects, daemon=True,
+                     name='supervisor-watchdog').start()
+
 # Warm up the CP-SAT solver in a background thread to reduce initial latency.
 def _warmup_solver():
     from ortools.sat.python import cp_model
@@ -72,7 +82,7 @@ threading.Thread(target=_warmup_solver, daemon=True, name='solver-warmup').start
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app, resources={r"/*": {"origins": config.ALLOWED_ORIGINS}})
 
 # Plan generation with the CP-SAT engine can run for minutes, so it is exposed as
 # a cancellable streaming job: /api/v1/drivingplan/stream emits progress and
@@ -567,7 +577,7 @@ def _capture_plan_input(members, start_date_str):
     credentials again. Deliberately excludes username/password/hash.
     """
     try:
-        capture_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), config.CAPTURE_DIR)
+        capture_dir = config.CAPTURE_DIR
         os.makedirs(capture_dir, exist_ok=True)
 
         timetables = {}
@@ -776,66 +786,6 @@ def assistant_chat():
     return Response(generate(), mimetype='application/x-ndjson')
 
 
-@app.route('/api/v1/export/png', methods=['POST'])
-def export_png():
-    """
-    Render the current plan's Week A and Week B tables (as shown by the
-    frontend's isolated /export view) in a headless browser and return them
-    as PNG screenshots.
-
-    Expected JSON payload:
-    {
-        "members": [...],
-        "plan": {...},
-        "referenceDate": "2026-09-09" | null,
-        "showDesignatedDriver": bool,
-        "showSoloDriver": bool,
-        "darkMode": bool
-    }
-
-    Returns:
-        A single ZIP file (image/png entries "driving-plan-week-a.png" and
-        "driving-plan-week-b.png"). Both images are bundled into one download
-        rather than returned separately, because browsers throttle/drop
-        automatically-triggered downloads that fire back-to-back without a
-        fresh user gesture in between - a single download avoids that
-        entirely.
-    """
-    try:
-        data = request.get_json()
-
-        if not data:
-            return jsonify({'error': 'No JSON data provided'}), 400
-
-        for field in ['members', 'plan']:
-            if field not in data:
-                return jsonify({'error': f'Missing required field: {field}'}), 400
-
-        frontend_host = request.host.split(':')[0]
-        frontend_origin = f'http://{frontend_host}:{config.FRONTEND_PORT}'
-
-        images = export_service.render_week_screenshots(
-            members=data['members'],
-            plan=data['plan'],
-            reference_date=data.get('referenceDate'),
-            show_designated_driver=bool(data.get('showDesignatedDriver')),
-            show_solo_driver=bool(data.get('showSoloDriver')),
-            dark_mode=bool(data.get('darkMode')),
-            frontend_origin=frontend_origin,
-        )
-
-        buffer = io.BytesIO()
-        with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
-            zf.writestr('driving-plan-week-a.png', images['weekA'])
-            zf.writestr('driving-plan-week-b.png', images['weekB'])
-
-        return Response(buffer.getvalue(), mimetype='application/zip')
-
-    except Exception as e:
-        logger.error(f"Error exporting plan as PNG: {str(e)}", exc_info=True)
-        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
-
-
 @app.errorhandler(404)
 def not_found(error):
     """Handle 404 errors."""
@@ -851,4 +801,4 @@ def internal_error(error):
 
 if __name__ == '__main__':
     logger.info(f"Starting Carpool Time backend service on port {config.PORT}")
-    app.run(debug=config.DEBUG, port=config.PORT, host='0.0.0.0', threaded=True)
+    app.run(debug=config.DEBUG, port=config.PORT, host=config.HOST, threaded=True)

@@ -8,10 +8,11 @@ import logging
 import os
 
 import config
+import paths
 
 logger = logging.getLogger(__name__)
 
-SETTINGS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'user_settings.json')
+SETTINGS_FILE = paths.data_path('user_settings.json')
 
 # Keys editable via the Settings dialog, and how to validate an incoming
 # value for each. WEBUNTIS_SCHOOL intentionally allows an empty string - some
@@ -22,7 +23,14 @@ EDITABLE_SETTINGS = {
     'TIME_TOLERANCE_MINUTES': lambda v: isinstance(v, int) and not isinstance(v, bool) and v >= 0,
     'MAX_DRIVES_FULLTIME': lambda v: isinstance(v, int) and not isinstance(v, bool) and v >= 0,
     'MAX_DRIVES_PARTTIME': lambda v: isinstance(v, int) and not isinstance(v, bool) and v >= 0,
+    'ANTHROPIC_API_KEY': lambda v: isinstance(v, str),
+    'CLAUDE_CLI_PATH': lambda v: isinstance(v, str),
 }
+
+# Persisted like everything else, but never sent back to the client - callers
+# get a boolean telling them whether one is stored instead. The settings file
+# is written user-only (0600) because of these.
+SECRET_SETTINGS = {'ANTHROPIC_API_KEY'}
 
 
 def load_and_apply():
@@ -40,9 +48,18 @@ def load_and_apply():
             setattr(config, key, value)
 
 
-def get_current():
-    """Current effective values (defaults, or persisted overrides if any)."""
+def _effective_values():
+    """Everything that gets persisted, secrets included."""
     return {key: getattr(config, key) for key in EDITABLE_SETTINGS}
+
+
+def get_current():
+    """Current effective values, with secrets reduced to a "<KEY>_SET" flag."""
+    exposed = {key: value for key, value in _effective_values().items()
+               if key not in SECRET_SETTINGS}
+    for key in SECRET_SETTINGS:
+        exposed[f'{key}_SET'] = bool(getattr(config, key))
+    return exposed
 
 
 def update(values: dict):
@@ -53,13 +70,17 @@ def update(values: dict):
         if not EDITABLE_SETTINGS[key](value):
             raise ValueError(f"Invalid value for {key}: {value!r}")
 
-    current = get_current()
+    current = _effective_values()
     current.update(values)
 
-    with open(SETTINGS_FILE, 'w') as f:
+    # Created 0600 rather than chmod'd afterwards, so the API key is never
+    # briefly readable by other accounts on a shared machine.
+    fd = os.open(SETTINGS_FILE, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, 'w') as f:
         json.dump(current, f, indent=2)
+    os.chmod(SETTINGS_FILE, 0o600)
 
     for key, value in values.items():
         setattr(config, key, value)
 
-    return current
+    return get_current()

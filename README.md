@@ -60,6 +60,7 @@ Spotted a bug or have an idea? The built-in feedback form files it straight to G
 ├── webuntis/    Forked WebUntis API client (git submodule → python-webuntis)
 ├── schemas/     JSON schemas for the driving-plan API contracts
 ├── doc/         Design notes and setup docs
+├── src-tauri/   Tauri desktop shell (Rust) that ships the app to end users
 └── run.sh       Runs backend + frontend together for local development
 ```
 
@@ -109,6 +110,30 @@ Press `Ctrl+C` to stop both. The frontend supports hot-reloading — edits
 there take effect immediately. **The backend does not auto-reload**; after
 changing backend code, stop and re-run `./run.sh` (or just re-run it, it
 skips the already-installed dependencies).
+
+## Building the desktop app
+
+End users get a native app rather than the two dev servers above: a Tauri
+shell loads the built frontend and runs the Flask backend as a sidecar
+process, compiled to a standalone executable with Nuitka.
+
+Additionally required: Rust (via [rustup](https://rustup.rs)) and `nuitka`
+(`pip install nuitka`) in the backend venv.
+
+```bash
+./backend/build_sidecar.sh   # compile the backend (once per OS, minutes)
+npm install                  # Tauri CLI, repo root
+npm run build                # produces the installer
+```
+
+Installers land in `src-tauri/target/release/bundle/` — `.dmg`/`.app` on
+macOS, `.msi`/`.exe` on Windows. Nuitka does not cross-compile, so each
+platform builds its own; `.github/workflows/release.yml` does both on tag.
+
+The packaged backend keeps its cache, logs and settings in the OS
+per-user data directory (the shell passes it as `APP_DATA_DIR`), not next
+to the code, and binds an OS-assigned loopback port so it cannot collide
+with a development backend.
 
 ## Backend
 
