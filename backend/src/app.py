@@ -812,11 +812,14 @@ def assistant_spinner_verbs():
 def assistant_availability():
     """
     Whether the AI Assistant currently has a usable backend (a valid
-    Anthropic API key, or an authenticated claude CLI). Checked once by the
-    frontend at startup to decide whether to show the assistant button at
-    all - see assistant_service.test_connection for what "usable" means.
+    Anthropic API key, or an explicitly configured, resolvable claude CLI).
+    Checked once by the frontend at startup to decide whether to show the
+    assistant button at all - see assistant_service.test_connection for
+    what "usable" means. Uses strict_cli=True so a `claude` binary that
+    merely happens to be on PATH doesn't count unless CLAUDE_CLI_PATH is
+    actually set in Settings.
     """
-    result = assistant_service.test_connection()
+    result = assistant_service.test_connection(strict_cli=True)
     return jsonify({'available': result['success']}), 200
 
 
