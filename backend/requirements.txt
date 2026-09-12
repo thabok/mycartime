@@ -8,6 +8,3 @@ anthropic>=0.40.0
 ortools>=9.10.0
 platformdirs>=4.0.0
 cryptography>=42.0.0
-
-# webuntis is installed from the local fork in ../webuntis (see run.sh),
-# not from PyPI, so it is intentionally not listed here.

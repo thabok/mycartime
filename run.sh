@@ -12,7 +12,6 @@ cd "$(dirname "$0")" || exit 1
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$ROOT_DIR/backend"
 FRONTEND_DIR="$ROOT_DIR/frontend"
-WEBUNTIS_DIR="$ROOT_DIR/webuntis"
 PID_FILE="$ROOT_DIR/.run.pids"
 
 # Make sure the frontend submodule is checked out (e.g. on a fresh clone).
@@ -61,7 +60,6 @@ if [ ! -d "$ROOT_DIR/.venv" ]; then
 fi
 source "$ROOT_DIR/.venv/bin/activate"
 pip install -q -r "$BACKEND_DIR/requirements.txt"
-pip install -q -e "$WEBUNTIS_DIR"
 deactivate
 
 echo "Installing frontend dependencies..."

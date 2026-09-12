@@ -8,8 +8,8 @@ from typing import Dict, List, Tuple
 import config
 import diskcache
 import requests
-import webuntis
-import webuntis.errors
+import webuntis_client
+from webuntis_client import AuthError, BadCredentialsError, RemoteError
 from models import DayOfWeekABCombo, Member, Timetable
 from utils import (
     get_term_slot_dates,
@@ -68,7 +68,7 @@ class TimetableService:
                 why login failed (bad credentials, wrong server/school,
                 unreachable server, etc.) - see _describe_login_error.
         """
-        self.session = webuntis.Session(
+        self.session = webuntis_client.Session(
             server=self.server,
             school=self.school,
             username=username,
@@ -96,7 +96,7 @@ class TimetableService:
             (success, message) - message is a user-facing description of the
             failure (or a success confirmation).
         """
-        session = webuntis.Session(
+        session = webuntis_client.Session(
             server=self.server,
             school=self.school,
             username=username,
@@ -121,11 +121,11 @@ class TimetableService:
         by connect() and test_connection() so a failed plan generation and a
         failed "Test connection" button explain themselves the same way.
         """
-        if isinstance(exc, webuntis.errors.BadCredentialsError):
+        if isinstance(exc, BadCredentialsError):
             return 'Invalid username or password.'
-        if isinstance(exc, webuntis.errors.AuthError):
+        if isinstance(exc, AuthError):
             return f'WebUntis rejected the login: {exc}'
-        if isinstance(exc, webuntis.errors.RemoteError):
+        if isinstance(exc, RemoteError):
             message = str(exc)
             logger.warning(f"WebUntis rejected the request: {message}")
             if 'Invalid JSON' in message or 'Request ID was not the same' in message:
@@ -255,15 +255,13 @@ class TimetableService:
             logger.debug(f"Querying WebUntis API for {member.initials} from {start_int} to {end_int}")
             
             # Query timetable for the teacher
-            tte = self.session.timetable_extended(
+            periods = self.session.timetable_extended(
                 start=start_int,
                 end=end_int,
-                key_type="name",
+                teacher=member.initials,
                 teacher_fields=["id", "name", "externalkey"],
-                teacher=member.initials
             )
-            
-            periods = tte._data
+
             logger.info(f"Retrieved {len(periods)} periods for {member.initials}")
             return periods
             
@@ -305,8 +303,8 @@ class TimetableService:
         (e.g. "Mathematics", "Room 12", "5a") get resolved for the UI.
 
         Args:
-            session_method: Name of the webuntis.Session batch method to
-                call ('subjects', 'rooms' or 'klassen')
+            session_method: Name of the webuntis_client.Session batch method
+                to call ('subjects', 'rooms' or 'klassen')
 
         Returns:
             Dict mapping element ID to its long name (falling back to the

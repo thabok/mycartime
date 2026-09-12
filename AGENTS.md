@@ -12,28 +12,22 @@ data and viewing/editing plans.
 
 ## Repo structure and submodule caveat
 
-- `frontend/` and `webuntis/` are both **git submodules** pointing at
-  separate repositories (`https://github.com/thabok/mycartime-frontend.git` and
-  `https://github.com/thabok/python-webuntis` respectively), not plain
-  subdirectories.
-  - `git status` in the superproject will show each as a single entity
+- `frontend/` is a **git submodule** pointing at a separate repository
+  (`https://github.com/thabok/mycartime-frontend.git`), not a plain
+  subdirectory.
+  - `git status` in the superproject will show it as a single entity
     (modified/new commits), not individual file diffs.
-  - To change code in either: edit files under that directory normally,
-    then commit *inside* it (e.g. `git -C frontend add -A && git -C
-    frontend commit`, or `git -C webuntis add -A && git -C webuntis
+  - To change code in it: edit files under `frontend/` normally, then
+    commit *inside* it (`git -C frontend add -A && git -C frontend
     commit`). The superproject only tracks which commit hash the submodule
-    points at — after committing inside the submodule, `git add
-    frontend`/`git add webuntis` in the superproject to record the new
-    pointer.
-  - Do not `git add`/commit individual files under `frontend/` or
-    `webuntis/` from the superproject; those paths are gitlinks, not
-    directories of trackable files.
+    points at — after committing inside the submodule, `git add frontend`
+    in the superproject to record the new pointer.
+  - Do not `git add`/commit individual files under `frontend/` from the
+    superproject; that path is a gitlink, not a directory of trackable
+    files.
   - Pushing submodule commits requires pushing from inside the submodule
-    (e.g. `git -C webuntis push origin main`) — the superproject's own push
+    (`git -C frontend push origin main`) — the superproject's own push
     does not push submodule commits.
-  - `webuntis/`'s own `.gitignore` already excludes `build/` and
-    `*.egg-info/` (setuptools artifacts from local `pip install -e`) —
-    don't commit those if they reappear.
 - Backend code under `backend/src/` uses **flat imports** (`import config`,
   `from solver_service import ...`), so it must be run with
   `backend/src` as the working directory / on `sys.path`, e.g. `cd
@@ -74,13 +68,12 @@ defaults meant for interactive use.
 
 ## WebUntis dependency
 
-`backend/requirements.txt` intentionally does **not** list `webuntis` —
-it's installed from the local submodule at `../webuntis` in editable mode
-(see `run.sh`). If you add/restore a `webuntis>=...` line to
-`backend/requirements.txt` pointing at PyPI, you will silently undo the
-fork and likely break the backend's WebUntis connection approach. If you
-need to update the fork, edit files under `webuntis/webuntis/` directly
-and commit/push from inside the `webuntis/` submodule (see above).
+There is no third-party WebUntis library. `backend/src/webuntis_client.py`
+is a small hand-written JSON-RPC 2.0 client covering only what
+`timetable_service.py` needs (login/logout, schoolyears, subject/room/class
+name lookups, and a teacher's timetable looked up by name). Extend it
+directly if new WebUntis endpoints are needed rather than reintroducing a
+dependency on `python-webuntis` or similar.
 
 ## Conventions
 

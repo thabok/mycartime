@@ -31,7 +31,6 @@ python -m nuitka \
   --remove-output \
   --nofollow-import-to=pytest \
   --nofollow-import-to=nuitka \
-  --include-package=webuntis \
   --include-package=ortools \
   --include-package-data=ortools \
   --include-package=anthropic \
