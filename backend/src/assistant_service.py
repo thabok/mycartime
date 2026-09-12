@@ -26,14 +26,18 @@ def _api_key() -> str:
     return config.ANTHROPIC_API_KEY or os.environ.get('ANTHROPIC_API_KEY') or ''
 
 
-def _cli_executable() -> str | None:
-    """The configured claude CLI, else whatever is on PATH. None if neither
-    exists - a GUI-launched app inherits a minimal PATH, so "claude" often is
-    not resolvable even when it is installed."""
-    configured = config.CLAUDE_CLI_PATH.strip()
-    if configured:
-        return configured if os.path.isfile(configured) else None
+def _resolve_cli_executable(configured_path: str) -> str | None:
+    """The given CLI path if it exists, else whatever is on PATH. None if
+    neither resolves - a GUI-launched app inherits a minimal PATH, so "claude"
+    often is not resolvable even when it is installed."""
+    configured_path = (configured_path or '').strip()
+    if configured_path:
+        return configured_path if os.path.isfile(configured_path) else None
     return shutil.which('claude')
+
+
+def _cli_executable() -> str | None:
+    return _resolve_cli_executable(config.CLAUDE_CLI_PATH)
 
 _SKILL_DIR = paths.resource_path('assistant', 'skill')
 _INTERNAL_DOC_PATH = paths.resource_path('doc', 'internal_doc.md')
@@ -373,6 +377,131 @@ def _stream_events(system_prompt: str, messages: list[dict]):
         )
 
     yield from _call_cli_stream(system_prompt, messages, executable)
+
+
+def _test_api_key(api_key: str) -> str:
+    """Live-checks an Anthropic API key with a minimal (1-token) request -
+    the API has no dedicated "validate this key" endpoint.
+
+    Returns: 'valid', 'invalid', 'unreachable', or 'error'.
+    """
+    import anthropic
+
+    try:
+        anthropic.Anthropic(api_key=api_key).messages.create(
+            model=config.ASSISTANT_MODEL,
+            max_tokens=1,
+            messages=[{'role': 'user', 'content': 'hi'}],
+        )
+    except anthropic.AuthenticationError as e:
+        logger.warning(f"Anthropic API key rejected: {e}")
+        return 'invalid'
+    except (anthropic.APIConnectionError, anthropic.APITimeoutError) as e:
+        logger.warning(f"Could not reach Anthropic: {e}")
+        return 'unreachable'
+    except Exception as e:
+        logger.error(f"Unexpected error validating Anthropic API key: {e}", exc_info=True)
+        return 'error'
+    return 'valid'
+
+
+# Substrings the claude CLI (or its wrapped SDK) is known to print when it
+# has no valid session - used to tell "not logged in" apart from any other
+# CLI failure, since there is no dedicated "am I authenticated" flag.
+_CLI_AUTH_HINTS = re.compile(r'not authenticated|please (log|sign) in|/login|invalid api key|unauthorized', re.IGNORECASE)
+
+
+def _test_cli(executable: str) -> str:
+    """Live-checks a resolved claude CLI executable with a minimal prompt.
+
+    Returns: 'valid', 'not_authenticated', or 'error'.
+    """
+    try:
+        result = subprocess.run(
+            [executable, '-p', '--output-format', 'json', '--', 'Reply with only the word: ok'],
+            capture_output=True, text=True, timeout=20,
+        )
+    except (OSError, subprocess.TimeoutExpired) as e:
+        logger.warning(f"Could not run claude CLI at {executable}: {e}")
+        return 'error'
+
+    if result.returncode == 0:
+        return 'valid'
+
+    combined = f"{result.stdout or ''}\n{result.stderr or ''}"
+    if _CLI_AUTH_HINTS.search(combined):
+        return 'not_authenticated'
+    logger.warning(f"claude CLI test failed (exit {result.returncode}): {combined.strip()[:500]}")
+    return 'error'
+
+
+def _describe_connection_test(api_key_status: str | None, cli_status: str | None) -> str:
+    """Turn the two backends' independent statuses into one message a
+    non-technical user can act on."""
+    if api_key_status == 'valid' and cli_status == 'valid':
+        return ('Connected successfully, using your Anthropic API key '
+                '(the claude CLI is also available as a backup).')
+    if api_key_status == 'valid':
+        return 'Connected successfully, using your Anthropic API key.'
+    if cli_status == 'valid':
+        message = 'Connected successfully, using the claude CLI.'
+        if api_key_status == 'invalid':
+            message += (' (Note: the Anthropic API key above was rejected - you can remove '
+                        'it or fix it, but the CLI works fine on its own.)')
+        elif api_key_status == 'unreachable':
+            message += ' (Note: Anthropic could not be reached just now to check the API key.)'
+        return message
+
+    problems = []
+    if api_key_status is None:
+        problems.append('no Anthropic API key is set')
+    elif api_key_status == 'invalid':
+        problems.append('the Anthropic API key was rejected - double-check it was copied correctly')
+    elif api_key_status == 'unreachable':
+        problems.append('Anthropic could not be reached to check the API key - check your internet connection')
+    else:
+        problems.append('checking the Anthropic API key failed unexpectedly')
+
+    if cli_status is None:
+        problems.append('no claude CLI was found (set its path above, or install it and make sure it is on your PATH)')
+    elif cli_status == 'not_authenticated':
+        problems.append(
+            "the claude CLI is installed but not signed in - open a terminal, run 'claude', "
+            "and use the '/login' command to sign in, then test again"
+        )
+    else:
+        problems.append('checking the claude CLI failed unexpectedly')
+
+    return 'The AI Assistant is not usable yet: ' + '; and '.join(problems) + '.'
+
+
+def test_connection(api_key: str | None = None, cli_path: str | None = None) -> dict:
+    """
+    Live-checks whichever AI assistant backend(s) are configured: an actual
+    minimal request to the Anthropic API if a key is present, and an actual
+    invocation of the claude CLI if one is resolvable.
+
+    Used both by the Settings > AI Assistant "Test connection" button, and
+    (via GET /api/v1/assistant/availability in app.py) once at startup to
+    decide whether to show the assistant at all.
+
+    Args:
+        api_key: overrides config.ANTHROPIC_API_KEY / the environment variable
+        cli_path: overrides config.CLAUDE_CLI_PATH
+
+    Returns:
+        {'success': bool, 'message': str} - message explains the outcome (or
+        the specific problem(s)) in plain language.
+    """
+    resolved_key = (api_key if api_key is not None else _api_key()).strip()
+    resolved_cli_path = config.CLAUDE_CLI_PATH if cli_path is None else cli_path
+
+    api_key_status = _test_api_key(resolved_key) if resolved_key else None
+    executable = _resolve_cli_executable(resolved_cli_path)
+    cli_status = _test_cli(executable) if executable else None
+
+    success = api_key_status == 'valid' or cli_status == 'valid'
+    return {'success': success, 'message': _describe_connection_test(api_key_status, cli_status)}
 
 
 def _is_valid_party_ref(plan: dict, day_key: str, party_ref: dict) -> dict | None:

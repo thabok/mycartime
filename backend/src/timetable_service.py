@@ -3,11 +3,13 @@ Timetable service for querying schedules from WebUntis.
 """
 import logging
 from datetime import datetime, timedelta
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import config
 import diskcache
+import requests
 import webuntis
+import webuntis.errors
 from models import DayOfWeekABCombo, Member, Timetable
 from utils import (
     get_term_slot_dates,
@@ -19,6 +21,15 @@ from utils import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class WebUntisConnectionError(Exception):
+    """
+    Raised by TimetableService.connect() when login() fails. The message is
+    already user-facing (see TimetableService._describe_login_error), so
+    callers can surface str(exc) directly instead of the raw WebUntis/requests
+    exception text.
+    """
 
 
 class TimetableService:
@@ -44,29 +55,119 @@ class TimetableService:
     def connect(self, username: str, password: str) -> bool:
         """
         Connect to WebUntis using credentials.
-        
+
         Args:
             username: WebUntis username
             password: WebUntis password (hashed)
-            
+
         Returns:
             True if connection successful
+
+        Raises:
+            WebUntisConnectionError: with a user-facing message describing
+                why login failed (bad credentials, wrong server/school,
+                unreachable server, etc.) - see _describe_login_error.
         """
+        self.session = webuntis.Session(
+            server=self.server,
+            school=self.school,
+            username=username,
+            password=password,
+            useragent=self.useragent
+        )
         try:
-            self.session = webuntis.Session(
-                server=self.server,
-                school=self.school,
-                username=username,
-                password=password,
-                useragent=self.useragent
-            )
             self.session.login()
-            logger.info(f"Successfully connected to WebUntis for user {username}")
-            return True
         except Exception as e:
-            logger.error(f"Failed to connect to WebUntis: {str(e)}")
-            return False
-    
+            self.session = None
+            message = self._describe_login_error(e)
+            logger.warning(f"Failed to connect to WebUntis: {message}")
+            raise WebUntisConnectionError(message) from e
+
+        logger.info(f"Successfully connected to WebUntis for user {username}")
+        return True
+
+    def test_connection(self, username: str, password: str) -> Tuple[bool, str]:
+        """
+        Attempt a login + logout against this instance's server/school,
+        without keeping the session around, and classify the outcome for
+        display in the Settings dialog's "Test connection" button.
+
+        Returns:
+            (success, message) - message is a user-facing description of the
+            failure (or a success confirmation).
+        """
+        session = webuntis.Session(
+            server=self.server,
+            school=self.school,
+            username=username,
+            password=password,
+            useragent=self.useragent,
+        )
+        try:
+            session.login()
+        except Exception as e:
+            return False, self._describe_login_error(e)
+
+        try:
+            session.logout()
+        except Exception as e:
+            logger.warning(f"Test connection: login succeeded but logout failed: {str(e)}")
+
+        return True, 'Connection successful.'
+
+    def _describe_login_error(self, exc: Exception) -> str:
+        """
+        Turn a session.login() exception into a user-facing message. Shared
+        by connect() and test_connection() so a failed plan generation and a
+        failed "Test connection" button explain themselves the same way.
+        """
+        if isinstance(exc, webuntis.errors.BadCredentialsError):
+            return 'Invalid username or password.'
+        if isinstance(exc, webuntis.errors.AuthError):
+            return f'WebUntis rejected the login: {exc}'
+        if isinstance(exc, webuntis.errors.RemoteError):
+            message = str(exc)
+            logger.warning(f"WebUntis rejected the request: {message}")
+            if 'Invalid JSON' in message or 'Request ID was not the same' in message:
+                # Both happen when the server doesn't answer with a normal
+                # WebUntis JSON-RPC response (e.g. an HTML error page) -
+                # in practice that's almost always a wrong school identifier.
+                return (
+                    "The server didn't recognize the school identifier. "
+                    "Double-check it for typos, or leave it empty if your "
+                    "server only hosts one school."
+                )
+            return f'WebUntis rejected the request: {message}'
+        if isinstance(exc, (requests.exceptions.InvalidURL, requests.exceptions.MissingSchema,
+                            requests.exceptions.InvalidSchema)):
+            logger.warning(f"Invalid WebUntis server URL: {self.server}")
+            return (
+                "That doesn't look like a valid server address. It should look like "
+                "https://<your-school>.webuntis.com"
+            )
+        if isinstance(exc, requests.exceptions.ConnectionError):
+            logger.warning(f"Could not reach WebUntis server: {self.server}", exc_info=True)
+            return (
+                f"Could not reach '{self.server}'. Double-check the server address for "
+                "typos, and make sure this computer is connected to the internet."
+            )
+        if isinstance(exc, requests.exceptions.Timeout):
+            logger.warning(f"WebUntis server timed out: {self.server}", exc_info=True)
+            return 'The server took too long to respond. Please try again in a moment.'
+        if isinstance(exc, requests.exceptions.RequestException):
+            logger.warning(f"Error reaching WebUntis server: {self.server}", exc_info=True)
+            return 'Could not reach the WebUntis server. Check the server address and try again.'
+
+        logger.error(f"Unexpected error logging into WebUntis: {str(exc)}", exc_info=True)
+        return 'Something unexpected went wrong while connecting to WebUntis.'
+
+        try:
+            session.logout()
+        except Exception as e:
+            logger.warning(f"Test connection: login succeeded but logout failed: {str(e)}")
+
+        return True, 'Connection successful.'
+
     def disconnect(self):
         """Disconnect from WebUntis."""
         if self.session:

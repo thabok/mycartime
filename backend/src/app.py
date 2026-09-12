@@ -21,7 +21,7 @@ from dotenv import load_dotenv
 from flask import Flask, Response, jsonify, request
 from flask_cors import CORS
 from models import Member
-from timetable_service import TimetableService
+from timetable_service import TimetableService, WebUntisConnectionError
 from utils import parse_date_yymmdd
 
 # Configure logging
@@ -48,9 +48,12 @@ _solver_logger.setLevel(logging.DEBUG)
 _solver_logger.addHandler(_plan_log_handler)
 _solver_logger.addHandler(logging.StreamHandler())
 
-# Loads the repo-root .env (searched for by walking up from this file), which
-# holds GITHUB_ISSUE_CREATION used by the feedback endpoint below.
-load_dotenv()
+# Loads the .env holding GITHUB_ISSUE_CREATION (used by the feedback endpoint
+# below): the repo-root one in dev, or the copy bundled next to the packaged
+# sidecar executable (see build_sidecar.sh) once shipped. Resolved explicitly
+# via paths.resource_path rather than dotenv's own upward file search, which
+# depends on frame introspection that a Nuitka-compiled binary can't provide.
+load_dotenv(paths.resource_path('.env'))
 
 # Applies any user-edited settings (see /api/v1/settings below) saved from a
 # previous run on top of the config.py defaults.
@@ -93,6 +96,34 @@ _plan_jobs = {}
 _plan_jobs_lock = threading.Lock()
 
 
+def _resolve_webuntis_credentials(data: dict):
+    """
+    Username/password for a WebUntis-backed request: an explicit
+    username/hash in the payload takes priority, falling back to whatever is
+    saved via the Settings dialog (see user_settings.py) so the frontend
+    doesn't have to resend them once stored there.
+
+    Returns:
+        (username, password)
+
+    Raises:
+        ValueError: no credentials were supplied in the request and none are stored
+    """
+    username = (data.get('username') or '').strip()
+    hash_value = data.get('hash')
+    if username and hash_value:
+        try:
+            password = base64.b64decode(hash_value).decode('utf-8')
+        except Exception:
+            raise ValueError('Invalid hash: expected base64-encoded password')
+        return username, password
+
+    if config.WEBUNTIS_USERNAME and config.WEBUNTIS_PASSWORD:
+        return config.WEBUNTIS_USERNAME, config.WEBUNTIS_PASSWORD
+
+    raise ValueError('WebUntis credentials required: none were supplied and none are stored')
+
+
 @app.route('/api/v1/check', methods=['GET'])
 def health_check():
     """
@@ -121,8 +152,8 @@ def update_settings():
     user_settings.py) and applies immediately, no restart required.
 
     Expected JSON payload: a partial or full object of
-    {WEBUNTIS_SERVER, WEBUNTIS_SCHOOL, TIME_TOLERANCE_MINUTES,
-     MAX_DRIVES_FULLTIME, MAX_DRIVES_PARTTIME}.
+    {WEBUNTIS_SERVER, WEBUNTIS_SCHOOL, WEBUNTIS_USERNAME, WEBUNTIS_PASSWORD,
+     TIME_TOLERANCE_MINUTES, MAX_DRIVES_FULLTIME, MAX_DRIVES_PARTTIME}.
 
     Returns:
         JSON response with the full set of current settings after the update
@@ -143,6 +174,43 @@ def update_settings():
         return jsonify({'error': f'Internal server error: {str(e)}'}), 500
 
 
+@app.route('/api/v1/webuntis/test-connection', methods=['POST'])
+def test_webuntis_connection():
+    """
+    Attempt a login + logout against WebUntis with the given (or, if
+    omitted, the currently stored) server/school/username/password, so the
+    Settings dialog can confirm the connection works and report a specific
+    reason when it doesn't.
+
+    Expected JSON payload (all optional, falling back to stored settings):
+    {
+        "server": "...",
+        "school": "...",
+        "username": "...",
+        "password": "..."
+    }
+
+    Returns:
+        JSON {"success": true} or {"success": false, "error": "..."}
+    """
+    data = request.get_json(silent=True) or {}
+
+    server = (data.get('server') if 'server' in data else config.WEBUNTIS_SERVER) or ''
+    school = data.get('school') if 'school' in data else config.WEBUNTIS_SCHOOL
+    username = (data.get('username') or config.WEBUNTIS_USERNAME or '').strip()
+    password = data.get('password') or config.WEBUNTIS_PASSWORD or ''
+
+    if not server.strip():
+        return jsonify({'success': False, 'error': 'Server URL is required.'}), 200
+    if not username or not password:
+        return jsonify({'success': False, 'error': 'Username and password are required.'}), 200
+
+    with TimetableService(server=server.strip(), school=school, use_cache=False) as timetable_service:
+        success, message = timetable_service.test_connection(username, password)
+
+    return jsonify({'success': success, 'error': None if success else message}), 200
+
+
 @app.route('/api/v1/suggestedreferencedate', methods=['POST'])
 def suggested_reference_date():
     """
@@ -151,8 +219,8 @@ def suggested_reference_date():
 
     Expected JSON payload:
     {
-        "username": "...",
-        "hash": "..."  // Base64 encoded password
+        "username": "...",   // optional - falls back to stored settings
+        "hash": "..."        // optional - Base64 encoded password
     }
 
     Returns:
@@ -166,17 +234,16 @@ def suggested_reference_date():
         if not data:
             return jsonify({'error': 'No JSON data provided'}), 400
 
-        for field in ['username', 'hash']:
-            if field not in data:
-                return jsonify({'error': f'Missing required field: {field}'}), 400
-
-        username = data['username']
-        password = base64.b64decode(data['hash']).decode('utf-8')
+        try:
+            username, password = _resolve_webuntis_credentials(data)
+        except ValueError as e:
+            return jsonify({'error': str(e)}), 400
 
         with TimetableService() as timetable_service:
-            connected = timetable_service.connect(username, password)
-            if not connected:
-                return jsonify({'error': 'Could not connect to WebUntis'}), 502
+            try:
+                timetable_service.connect(username, password)
+            except WebUntisConnectionError as e:
+                return jsonify({'error': str(e)}), 502
 
             suggested_date = timetable_service.get_suggested_reference_date()
 
@@ -199,8 +266,8 @@ def member_timetable_detail():
     {
         "person": {...},  // Member object
         "scheduleReferenceStartDate": "20251223",  // YYYYMMDD format
-        "username": "...",
-        "hash": "..."  // Base64 encoded password
+        "username": "...",   // optional - falls back to stored settings
+        "hash": "..."        // optional - Base64 encoded password
     }
 
     Returns:
@@ -212,10 +279,15 @@ def member_timetable_detail():
         if not data:
             return jsonify({'error': 'No JSON data provided'}), 400
 
-        required_fields = ['person', 'scheduleReferenceStartDate', 'username', 'hash']
+        required_fields = ['person', 'scheduleReferenceStartDate']
         for field in required_fields:
             if field not in data:
                 return jsonify({'error': f'Missing required field: {field}'}), 400
+
+        try:
+            username, password = _resolve_webuntis_credentials(data)
+        except ValueError as e:
+            return jsonify({'error': str(e)}), 400
 
         try:
             member = Member.from_dict(data['person'])
@@ -232,13 +304,11 @@ def member_timetable_detail():
             logger.error(f"Error parsing date: {str(e)}")
             return jsonify({'error': 'Invalid date format. Expected YYYYMMDD'}), 400
 
-        username = data['username']
-        password = base64.b64decode(data['hash']).decode('utf-8')
-
         with TimetableService() as timetable_service:
-            connected = timetable_service.connect(username, password)
-            if not connected:
-                return jsonify({'error': 'Could not connect to WebUntis'}), 502
+            try:
+                timetable_service.connect(username, password)
+            except WebUntisConnectionError as e:
+                return jsonify({'error': str(e)}), 502
 
             detail = timetable_service.get_member_timetable_detail(member, start_date)
 
@@ -263,30 +333,28 @@ def calculate_drivingplan():
     {
         "persons": [...],  // Array of member objects
         "scheduleReferenceStartDate": "20251223",  // YYYYMMDD format
-        "username": "...",
-        "hash": "..."  // Base64 encoded password
+        "username": "...",   // optional - falls back to stored settings
+        "hash": "..."        // optional - Base64 encoded password
     }
-    
+
     Returns:
         JSON response with driving plan
     """
     try:
         # Parse request
         data = request.get_json()
-        
+
         if not data:
             return jsonify({'error': 'No JSON data provided'}), 400
-        
+
         # Validate required fields
-        required_fields = ['persons', 'scheduleReferenceStartDate', 'username', 'hash']
+        required_fields = ['persons', 'scheduleReferenceStartDate']
         for field in required_fields:
             if field not in data:
                 return jsonify({'error': f'Missing required field: {field}'}), 400
-        
-        # Extract and decode password
-        username = data['username']
-        password = base64.b64decode(data['hash']).decode('utf-8')
-        
+
+        username, password = _resolve_webuntis_credentials(data)
+
         # Call core business logic
         driving_plan = calculate_driving_plan_logic(
             persons_data=data['persons'],
@@ -337,18 +405,17 @@ def calculate_drivingplan_stream():
     if not data:
         return jsonify({'error': 'No JSON data provided'}), 400
 
-    for field in ['persons', 'scheduleReferenceStartDate', 'username', 'hash']:
+    for field in ['persons', 'scheduleReferenceStartDate']:
         if field not in data:
             return jsonify({'error': f'Missing required field: {field}'}), 400
 
     try:
-        password = base64.b64decode(data['hash']).decode('utf-8')
-    except Exception:
-        return jsonify({'error': 'Invalid hash: expected base64-encoded password'}), 400
+        username, password = _resolve_webuntis_credentials(data)
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
 
     persons_data = data['persons']
     start_date_str = data['scheduleReferenceStartDate']
-    username = data['username']
 
     job_id = uuid.uuid4().hex
     stop_event = threading.Event()
@@ -538,14 +605,15 @@ def calculate_driving_plan_logic(persons_data, start_date_str, username, passwor
 
     # Connect to timetable provider and get schedules
     with TimetableService() as timetable_service:
-        # Try to connect to WebUntis
         try:
-            connected = timetable_service.connect(username, password)
-            if not connected:
-                logger.warning("Failed to connect to WebUntis, using mock timetables")
-        except Exception as e:
-            logger.warning(f"WebUntis connection error: {str(e)}, using mock timetables")
-        
+            timetable_service.connect(username, password)
+        except WebUntisConnectionError as e:
+            # Surfaced to the user as-is (see ValueError handling in both
+            # /drivingplan and /drivingplan/stream): a user-facing message
+            # describing why login failed (bad credentials, wrong
+            # server/school, unreachable server, etc.).
+            raise ValueError(str(e)) from e
+
         # Get timetables for all members
         try:
             timetable_service.get_timetables_for_members(members, start_date)
@@ -738,6 +806,40 @@ def assistant_spinner_verbs():
     except Exception as e:
         logger.error(f"Error reading spinner verbs: {str(e)}", exc_info=True)
         return jsonify([]), 200
+
+
+@app.route('/api/v1/assistant/availability', methods=['GET'])
+def assistant_availability():
+    """
+    Whether the AI Assistant currently has a usable backend (a valid
+    Anthropic API key, or an authenticated claude CLI). Checked once by the
+    frontend at startup to decide whether to show the assistant button at
+    all - see assistant_service.test_connection for what "usable" means.
+    """
+    result = assistant_service.test_connection()
+    return jsonify({'available': result['success']}), 200
+
+
+@app.route('/api/v1/assistant/test-connection', methods=['POST'])
+def test_assistant_connection():
+    """
+    Live-checks the Anthropic API key and/or claude CLI, for the Settings >
+    AI Assistant "Test connection" button.
+
+    Expected JSON payload (both optional, falling back to stored settings):
+    {
+        "apiKey": "...",
+        "cliPath": "..."
+    }
+
+    Returns:
+        JSON {"success": bool, "message": "..."}
+    """
+    data = request.get_json(silent=True) or {}
+    api_key = data.get('apiKey') or None
+    cli_path = data.get('cliPath') if 'cliPath' in data else None
+    result = assistant_service.test_connection(api_key=api_key, cli_path=cli_path)
+    return jsonify(result), 200
 
 
 @app.route('/api/v1/assistant/chat', methods=['POST'])
