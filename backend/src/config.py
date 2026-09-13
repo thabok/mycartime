@@ -61,9 +61,11 @@ ALLOWED_ORIGINS = [
 # AI Assistant Configuration
 # Both are set through the Settings dialog. The API key falls back to the
 # environment variable of the same name, which is how development runs supply
-# it; the CLI path falls back to whatever `claude` is on PATH.
+# it. CLAUDE_CLI_PATH defaults to the bare command name so a normal install
+# (on PATH) works out of the box - see assistant_service._resolve_cli_executable
+# for how a bare name is looked up vs. an absolute/relative path.
 ANTHROPIC_API_KEY = ""
-CLAUDE_CLI_PATH = ""
+CLAUDE_CLI_PATH = "claude"
 ASSISTANT_MODEL = "claude-sonnet-4-6"
 ASSISTANT_MAX_TOKENS = 2000
 ASSISTANT_CLI_TIMEOUT_SECONDS = 60

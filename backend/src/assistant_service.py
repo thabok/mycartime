@@ -26,15 +26,21 @@ def _api_key() -> str:
     return config.ANTHROPIC_API_KEY or os.environ.get('ANTHROPIC_API_KEY') or ''
 
 
-def _resolve_cli_executable(configured_path: str, allow_path_search: bool = True) -> str | None:
-    """The given CLI path if it exists, else whatever is on PATH (unless
-    allow_path_search is False). None if neither resolves - a GUI-launched
-    app inherits a minimal PATH, so "claude" often is not resolvable even
-    when it is installed."""
+def _resolve_cli_executable(configured_path: str) -> str | None:
+    """Resolves CLAUDE_CLI_PATH (default "claude") to an actual executable.
+
+    An absolute/relative path must exist as a file; a bare command name
+    (the default) is looked up on PATH - which a GUI-launched app inherits in
+    minimal form, so "claude" often does not resolve even when it is
+    installed. An empty value means the setting was explicitly cleared and
+    never resolves, so the assistant is hidden until a path is configured
+    again."""
     configured_path = (configured_path or '').strip()
-    if configured_path:
-        return configured_path if os.path.isfile(configured_path) else None
-    return shutil.which('claude') if allow_path_search else None
+    if not configured_path:
+        return None
+    if os.path.isfile(configured_path):
+        return configured_path
+    return shutil.which(configured_path)
 
 
 def _cli_executable() -> str | None:
@@ -479,8 +485,6 @@ def _describe_connection_test(api_key_status: str | None, cli_status: str | None
 def test_connection(
     api_key: str | None = None,
     cli_path: str | None = None,
-    *,
-    strict_cli: bool = False,
 ) -> dict:
     """
     Live-checks whichever AI assistant backend(s) are configured: an actual
@@ -494,12 +498,6 @@ def test_connection(
     Args:
         api_key: overrides config.ANTHROPIC_API_KEY / the environment variable
         cli_path: overrides config.CLAUDE_CLI_PATH
-        strict_cli: when True, only credit an explicitly configured
-            CLAUDE_CLI_PATH - skips the "whatever is on PATH" fallback that
-            _stream_events otherwise uses at chat time. Without this, the
-            assistant button would appear just because a `claude` binary
-            happens to be on this machine's PATH (e.g. Claude Code itself),
-            even though nothing was actually configured in Settings.
 
     Returns:
         {'success': bool, 'message': str} - message explains the outcome (or
@@ -509,7 +507,7 @@ def test_connection(
     resolved_cli_path = config.CLAUDE_CLI_PATH if cli_path is None else cli_path
 
     api_key_status = _test_api_key(resolved_key) if resolved_key else None
-    executable = _resolve_cli_executable(resolved_cli_path, allow_path_search=not strict_cli)
+    executable = _resolve_cli_executable(resolved_cli_path)
     cli_status = _test_cli(executable) if executable else None
 
     success = api_key_status == 'valid' or cli_status == 'valid'

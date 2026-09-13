@@ -37,6 +37,7 @@ python -m nuitka \
   --include-package=diskcache \
   --include-package=flask_cors \
   --include-data-dir=src/assistant/skill=assistant/skill \
+  --include-data-files=src/assistant/harry-potter-spinning-verbs.txt=assistant/harry-potter-spinning-verbs.txt \
   --include-data-files=../doc/internal_doc.md=doc/internal_doc.md \
   src/app.py
 
