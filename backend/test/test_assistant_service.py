@@ -57,10 +57,14 @@ def test_parse_envelope_falls_back_to_raw_text_on_malformed_json():
     assert envelope == {'reply': 'This is not JSON at all.', 'actions': []}
 
 
-def test_parse_envelope_falls_back_when_actions_field_missing():
+def test_parse_envelope_recovers_reply_text_when_actions_field_missing():
+    # Valid JSON but missing the required "actions" array fails the schema
+    # check, same as malformed JSON would -- _parse_envelope should still
+    # recover the "Hi" reply text via the lenient scanner rather than
+    # surfacing the raw ```json-fenced envelope as the reply.
     text = '```json\n{"reply": "Hi"}\n```'
     envelope = _parse_envelope(text)
-    assert envelope == {'reply': text.strip(), 'actions': []}
+    assert envelope == {'reply': 'Hi', 'actions': []}
 
 
 def _plan_with_two_parties(schoolbound_a=True, schoolbound_b=True, lonely_b=False):

@@ -57,7 +57,6 @@ Spotted a bug or have an idea? The built-in feedback form files it straight to G
 .
 ├── backend/     Flask REST API + scheduling algorithm (Python)
 ├── frontend/    React/Vite UI (git submodule → mycartime-frontend)
-├── webuntis/    Forked WebUntis API client (git submodule → python-webuntis)
 ├── schemas/     JSON schemas for the driving-plan API contracts
 ├── doc/         Design notes and setup docs
 ├── src-tauri/   Tauri desktop shell (Rust) that ships the app to end users
@@ -69,13 +68,9 @@ Spotted a bug or have an idea? The built-in feedback form files it straight to G
   separate repository with its own history; commits made inside `frontend/`
   must be committed and pushed from within that directory, and the
   superproject then records the new commit hash via `git add frontend`.
-- **webuntis/** is a git submodule pointing at
-  [thabok/python-webuntis](https://github.com/thabok/python-webuntis), a
-  fork of the original
-  [python-webuntis](https://github.com/python-webuntis/python-webuntis)
-  client. The backend installs it in editable mode from this path instead
-  of pulling `webuntis` from PyPI, because the fork contains changes
-  required for this backend's connection approach to work.
+- WebUntis access is implemented directly in `backend/src/webuntis_client.py`,
+  a small hand-written JSON-RPC client — there is no third-party WebUntis
+  dependency to install.
 
 ## Prerequisites
 
@@ -99,8 +94,7 @@ git submodule update --init --recursive
 
 This will, on first run:
 1. Create a Python virtualenv in `backend/venv` and install `backend/requirements.txt`.
-2. Install the local `webuntis` fork into that venv in editable mode.
-3. Run `npm install` in `frontend/` if `node_modules` is missing.
+2. Run `npm install` in `frontend/` if `node_modules` is missing.
 
 Then it starts both services concurrently:
 - Backend on `http://localhost:1338` (Flask)

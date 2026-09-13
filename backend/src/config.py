@@ -4,9 +4,15 @@ import os
 import paths
 
 # WebUntis Configuration
-WEBUNTIS_SERVER = "https://ngw-wilhelmshaven.webuntis.com"
+WEBUNTIS_SERVER = ""
 WEBUNTIS_SCHOOL = ""
 WEBUNTIS_USERAGENT = "github-carpoolparty-python"
+# Set through the Settings dialog so returning users aren't asked to log in
+# to WebUntis again after every restart. Stored encrypted at rest (see
+# crypto_store.py / user_settings.SECRET_SETTINGS); requests can still send
+# their own username/hash to override these for a one-off login.
+WEBUNTIS_USERNAME = ""
+WEBUNTIS_PASSWORD = ""
 
 # Template for the "open timetable" link handed to the frontend, built from
 # WEBUNTIS_SERVER so there's a single source of truth for the school's domain.

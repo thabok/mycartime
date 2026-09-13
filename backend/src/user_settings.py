@@ -8,6 +8,7 @@ import logging
 import os
 
 import config
+import crypto_store
 import paths
 
 logger = logging.getLogger(__name__)
@@ -20,6 +21,8 @@ SETTINGS_FILE = paths.data_path('user_settings.json')
 EDITABLE_SETTINGS = {
     'WEBUNTIS_SERVER': lambda v: isinstance(v, str) and v.strip() != '',
     'WEBUNTIS_SCHOOL': lambda v: isinstance(v, str),
+    'WEBUNTIS_USERNAME': lambda v: isinstance(v, str),
+    'WEBUNTIS_PASSWORD': lambda v: isinstance(v, str),
     'TIME_TOLERANCE_MINUTES': lambda v: isinstance(v, int) and not isinstance(v, bool) and v >= 0,
     'MAX_DRIVES_FULLTIME': lambda v: isinstance(v, int) and not isinstance(v, bool) and v >= 0,
     'MAX_DRIVES_PARTTIME': lambda v: isinstance(v, int) and not isinstance(v, bool) and v >= 0,
@@ -28,9 +31,10 @@ EDITABLE_SETTINGS = {
 }
 
 # Persisted like everything else, but never sent back to the client - callers
-# get a boolean telling them whether one is stored instead. The settings file
-# is written user-only (0600) because of these.
-SECRET_SETTINGS = {'ANTHROPIC_API_KEY'}
+# get a boolean telling them whether one is stored instead. Encrypted at rest
+# (see crypto_store.py) and the settings file is written user-only (0600)
+# because of these.
+SECRET_SETTINGS = {'ANTHROPIC_API_KEY', 'WEBUNTIS_PASSWORD'}
 
 
 def load_and_apply():
@@ -44,8 +48,15 @@ def load_and_apply():
         logger.warning(f"Could not read {SETTINGS_FILE}, ignoring", exc_info=True)
         return
     for key, value in saved.items():
-        if key in EDITABLE_SETTINGS:
-            setattr(config, key, value)
+        if key not in EDITABLE_SETTINGS:
+            continue
+        if key in SECRET_SETTINGS and value:
+            try:
+                value = crypto_store.decrypt(value)
+            except Exception:
+                logger.warning(f"Could not decrypt stored {key}, ignoring", exc_info=True)
+                continue
+        setattr(config, key, value)
 
 
 def _effective_values():
@@ -73,11 +84,16 @@ def update(values: dict):
     current = _effective_values()
     current.update(values)
 
-    # Created 0600 rather than chmod'd afterwards, so the API key is never
+    on_disk = dict(current)
+    for key in SECRET_SETTINGS:
+        if on_disk.get(key):
+            on_disk[key] = crypto_store.encrypt(on_disk[key])
+
+    # Created 0600 rather than chmod'd afterwards, so a secret is never
     # briefly readable by other accounts on a shared machine.
     fd = os.open(SETTINGS_FILE, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
     with os.fdopen(fd, 'w') as f:
-        json.dump(current, f, indent=2)
+        json.dump(on_disk, f, indent=2)
     os.chmod(SETTINGS_FILE, 0o600)
 
     for key, value in values.items():

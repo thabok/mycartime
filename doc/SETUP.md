@@ -28,7 +28,6 @@ This backend service implements the core algorithm for calculating optimal carpo
    ```bash
    pip install -r requirements.txt
    ```
-   Note: `webuntis` is installed from a local fork (see `../webuntis`), not from PyPI, so it is intentionally not listed in `requirements.txt`.
 
 4. **Configure settings:**
    Edit `backend/src/config.py` to set your WebUntis server/school and algorithm parameters:

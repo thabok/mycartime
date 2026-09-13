@@ -6,9 +6,9 @@ range against a live WebUntis account, to determine whether that flag returns
 the regular/master schedule (ignoring substitutions, cancellations, class
 trips, etc.) instead of what actually happened on those dates.
 
-python-webuntis's session.py hardcodes onlyBaseTimetable=False in
-_timetable_extended_raw, so we bypass that by calling session._request(...)
-directly with our own options dict.
+webuntis_client.Session.timetable_extended() hardcodes onlyBaseTimetable=False,
+so we bypass that by calling session._request(...) directly with our own
+options dict.
 
 Usage:
     keyring.set_password("webuntis", "Kc", "<password>")   # once
@@ -24,7 +24,7 @@ backend_src = Path(__file__).parent.parent / 'src'
 sys.path.insert(0, str(backend_src))
 
 import config  # noqa: E402
-import webuntis  # noqa: E402
+import webuntis_client  # noqa: E402
 
 USERNAME = "Kc"
 TEACHER_ELEMENT_TYPE = 2
@@ -72,7 +72,7 @@ def main():
         print(f'Set it first: keyring.set_password("webuntis", "{USERNAME}", "<password>")')
         sys.exit(1)
 
-    session = webuntis.Session(
+    session = webuntis_client.Session(
         server=config.WEBUNTIS_SERVER,
         school=config.WEBUNTIS_SCHOOL,
         username=USERNAME,
