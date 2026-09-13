@@ -6,9 +6,6 @@
   "permissions": [
     "core:default",
     "dialog:allow-save",
-    {
-      "identifier": "fs:allow-write-file",
-      "allow": [{ "path": "**" }]
-    }
+    "fs:allow-write-file"
   ]
 }
