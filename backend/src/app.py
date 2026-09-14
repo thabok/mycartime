@@ -809,7 +809,7 @@ def assistant_spinner_verbs():
     assistant is thinking (backed by assistant/harry-potter-spinning-verbs.txt).
     """
     try:
-        path = os.path.join(os.path.dirname(__file__), 'assistant', 'harry-potter-spinning-verbs.txt')
+        path = paths.resource_path('assistant', 'harry-potter-spinning-verbs.txt')
         with open(path, 'r', encoding='utf-8') as f:
             verbs = [line.strip() for line in f if line.strip()]
         return jsonify(verbs), 200
@@ -821,14 +821,12 @@ def assistant_spinner_verbs():
 @app.route('/api/v1/assistant/availability', methods=['GET'])
 def assistant_availability():
     """
-    Whether the AI Assistant currently has a usable backend (an explicitly
-    configured, resolvable claude CLI). Checked once by the frontend at
-    startup to decide whether to show the assistant button at all - see
-    assistant_service.test_connection for what "usable" means. Uses
-    strict_cli=True so a `claude` binary that merely happens to be on PATH
-    doesn't count unless CLAUDE_CLI_PATH is actually set in Settings.
+    Whether the AI Assistant currently has a usable backend (a resolvable
+    claude CLI). Checked once by the frontend at startup to decide whether to
+    show the assistant button at all - see assistant_service.test_connection
+    for what "usable" means.
     """
-    result = assistant_service.test_connection(strict_cli=True)
+    result = assistant_service.test_connection()
     return jsonify({'available': result['success']}), 200
 
 

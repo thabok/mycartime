@@ -59,8 +59,12 @@ ALLOWED_ORIGINS = [
 ]
 
 # AI Assistant Configuration
-# Set through the Settings dialog. Falls back to whatever `claude` is on PATH.
-CLAUDE_CLI_PATH = ""
+# Set through the Settings dialog. Defaults to the bare command name so a
+# normal install (on PATH) works out of the box - see
+# assistant_service._resolve_cli_executable for how a bare name is looked up
+# vs. an absolute/relative path. An explicitly cleared (empty) value hides
+# the assistant rather than falling back to PATH.
+CLAUDE_CLI_PATH = "claude"
 ASSISTANT_CLI_TIMEOUT_SECONDS = 60
 
 # When True, every /api/v1/drivingplan request dumps its members + resolved
