@@ -72,7 +72,14 @@ if os.environ.get('SUPERVISED') == '1':
     threading.Thread(target=_exit_when_supervisor_disconnects, daemon=True,
                      name='supervisor-watchdog').start()
 
-# Warm up the CP-SAT solver in a background thread to reduce initial latency.
+# Warm up the CP-SAT solver before serving any requests, so the (large, native)
+# ortools/numpy import happens up front instead of racing the Flask server's
+# request-handling thread pool for the GIL. That import can take a long time on
+# a freshly-installed exe (e.g. antivirus scanning newly-written DLLs), and
+# spawning a new request-handler thread itself requires the GIL - so doing this
+# import on a background thread after the server is already listening lets a
+# slow import silently freeze every incoming connection instead of merely
+# delaying startup.
 def _warmup_solver():
     from ortools.sat.python import cp_model
     m = cp_model.CpModel()
@@ -80,7 +87,10 @@ def _warmup_solver():
     m.Add(x == 1)
     cp_model.CpSolver().Solve(m)
 
-threading.Thread(target=_warmup_solver, daemon=True, name='solver-warmup').start()
+# Disabled for now to verify whether the installed app even needs this warmup
+# (uncomment once confirmed necessary; keep it synchronous, not threaded - see
+# comment above for why).
+# _warmup_solver()
 
 
 # Initialize Flask app
@@ -811,13 +821,12 @@ def assistant_spinner_verbs():
 @app.route('/api/v1/assistant/availability', methods=['GET'])
 def assistant_availability():
     """
-    Whether the AI Assistant currently has a usable backend (a valid
-    Anthropic API key, or an explicitly configured, resolvable claude CLI).
-    Checked once by the frontend at startup to decide whether to show the
-    assistant button at all - see assistant_service.test_connection for
-    what "usable" means. Uses strict_cli=True so a `claude` binary that
-    merely happens to be on PATH doesn't count unless CLAUDE_CLI_PATH is
-    actually set in Settings.
+    Whether the AI Assistant currently has a usable backend (an explicitly
+    configured, resolvable claude CLI). Checked once by the frontend at
+    startup to decide whether to show the assistant button at all - see
+    assistant_service.test_connection for what "usable" means. Uses
+    strict_cli=True so a `claude` binary that merely happens to be on PATH
+    doesn't count unless CLAUDE_CLI_PATH is actually set in Settings.
     """
     result = assistant_service.test_connection(strict_cli=True)
     return jsonify({'available': result['success']}), 200
@@ -826,12 +835,11 @@ def assistant_availability():
 @app.route('/api/v1/assistant/test-connection', methods=['POST'])
 def test_assistant_connection():
     """
-    Live-checks the Anthropic API key and/or claude CLI, for the Settings >
-    AI Assistant "Test connection" button.
+    Live-checks the claude CLI, for the Settings > AI Assistant "Test
+    connection" button.
 
-    Expected JSON payload (both optional, falling back to stored settings):
+    Expected JSON payload (optional, falling back to stored settings):
     {
-        "apiKey": "...",
         "cliPath": "..."
     }
 
@@ -839,9 +847,8 @@ def test_assistant_connection():
         JSON {"success": bool, "message": "..."}
     """
     data = request.get_json(silent=True) or {}
-    api_key = data.get('apiKey') or None
     cli_path = data.get('cliPath') if 'cliPath' in data else None
-    result = assistant_service.test_connection(api_key=api_key, cli_path=cli_path)
+    result = assistant_service.test_connection(cli_path=cli_path)
     return jsonify(result), 200
 
 

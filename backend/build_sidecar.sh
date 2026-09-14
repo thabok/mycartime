@@ -18,8 +18,18 @@ IS_WINDOWS=false
 WINDOWS_ONLY_FLAGS=()
 if [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* || "$OSTYPE" == "win32"* ]]; then
   IS_WINDOWS=true
+  # A CC/CXX pointing at MinGW64 (e.g. inherited from the calling shell) takes
+  # priority over --msvc in Nuitka's Scons backend, silently defeating the
+  # pin below and making the build depend on whatever toolchain the shell
+  # happens to export - unset them so --msvc=14.3 is unconditionally honored.
+  unset CC CXX
   WINDOWS_ONLY_FLAGS=(
     --windows-console-mode=disable
+    # Pin the compiler to VS2022 (Nuitka's --msvc takes the MSVC toolset
+    # version, not the VS product version - "14.3" means VS2022) so the
+    # build doesn't silently fall back to MinGW64 or an older VS install if
+    # one happens to be present on the machine.
+    --msvc=14.3
     # Nuitka does not pick the bundled MSVC C++ runtime (msvcp140.dll etc.)
     # from PATH: it shells out to `vswhere -latest` and grabs whatever
     # redist folder ships inside that VS install, regardless of which
@@ -49,7 +59,22 @@ if [ ! -f "../.env" ]; then
   exit 1
 fi
 
+# Nuitka's standalone mode statically follows every import it finds in the
+# source of an included module, even ones nested in a function body that this
+# app never calls - not just what's reachable at runtime. That drags in extra
+# modules we don't use: pandas (pulled in unconditionally by
+# ortools.sat.python.cp_model, which this app does use) only reaches scipy
+# through its optional sparse-array, plotting, and interpolation helpers,
+# none of which this app calls. Flask's own click usage (app.cli) is a real,
+# always-imported dependency and must stay.
+# --show-progress/--show-scons: without a real terminal attached (e.g. piped
+# through build.ps1 or a CI log), Nuitka's default output is a \r-updating
+# progress bar and an otherwise-silent C-compilation phase - both effectively
+# invisible to anything reading the stream line by line. These force plain,
+# newline-terminated progress and compiler-invocation output instead.
 python -m nuitka \
+  --show-progress \
+  --show-scons \
   --include-data-files=../.env=.env \
   --standalone \
   --output-dir="$OUT_DIR" \
@@ -58,9 +83,9 @@ python -m nuitka \
   --remove-output \
   --nofollow-import-to=pytest \
   --nofollow-import-to=nuitka \
+  --nofollow-import-to=scipy \
   --include-package=ortools \
   --include-package-data=ortools \
-  --include-package=anthropic \
   --include-package=diskcache \
   --include-package=flask_cors \
   --include-data-dir=src/assistant/skill=assistant/skill \

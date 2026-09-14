@@ -1,11 +1,9 @@
 """
 AI assistant service: explains the driving plan / members and proposes
-edits, backed by the Anthropic API with a `claude` CLI fallback that is
-available on developer machines only (see _stream_events).
+edits, backed by the `claude` CLI (see _stream_events).
 
-Both backends are given the same system prompt and are expected to answer
-with a single fenced ```json envelope (see SKILL.md), so there is exactly
-one response-parsing path regardless of which backend answered.
+The CLI is given a system prompt and is expected to answer with a single
+fenced ```json envelope (see SKILL.md).
 """
 import json
 import logging
@@ -19,11 +17,6 @@ import config
 import paths
 
 logger = logging.getLogger(__name__)
-
-
-def _api_key() -> str:
-    """Settings dialog first, then the environment (how dev runs supply it)."""
-    return config.ANTHROPIC_API_KEY or os.environ.get('ANTHROPIC_API_KEY') or ''
 
 
 def _resolve_cli_executable(configured_path: str, allow_path_search: bool = True) -> str | None:
@@ -259,35 +252,11 @@ class _PartialReplyTracker:
         return ''.join(self._out[out_before:])
 
 
-def _call_sdk_stream(system_prompt: str, messages: list[dict]):
-    """Yield normalized {'kind': ..., ...} events. `kind` is one of:
-    'text' (reply content), 'thinking' (extended-thinking content, if the
-    model produces any), 'tool_start' (the model invoked a tool)."""
-    import anthropic
-
-    client = anthropic.Anthropic(api_key=_api_key())
-    with client.messages.stream(
-        model=config.ASSISTANT_MODEL,
-        max_tokens=config.ASSISTANT_MAX_TOKENS,
-        system=system_prompt,
-        messages=[{'role': m['role'], 'content': m['content']} for m in messages],
-    ) as stream:
-        for event in stream:
-            if event.type == 'content_block_start':
-                block = event.content_block
-                if block.type == 'tool_use':
-                    yield {'kind': 'tool_start', 'name': block.name}
-            elif event.type == 'content_block_delta':
-                delta = event.delta
-                if delta.type == 'text_delta' and delta.text:
-                    yield {'kind': 'text', 'text': delta.text}
-                elif delta.type == 'thinking_delta' and delta.thinking:
-                    yield {'kind': 'thinking', 'text': delta.thinking}
-
-
 def _call_cli_stream(system_prompt: str, messages: list[dict], executable: str):
-    """Same normalized event shape as `_call_sdk_stream` (see its docstring),
-    decoded from the claude CLI's `stream-json` output."""
+    """Yield normalized {'kind': ..., ...} events, decoded from the claude
+    CLI's `stream-json` output. `kind` is one of: 'text' (reply content),
+    'thinking' (extended-thinking content, if the model produces any),
+    'tool_start' (the model invoked a tool)."""
     transcript = '\n\n'.join(f"{m['role']}: {m['content']}" for m in messages)
     prompt = f"{system_prompt}\n\n---\n\nConversation so far:\n\n{transcript}\n\nRespond now as the assistant, following the JSON envelope contract above."
 
@@ -352,58 +321,16 @@ def _call_cli_stream(system_prompt: str, messages: list[dict], executable: str):
 
 
 def _stream_events(system_prompt: str, messages: list[dict]):
-    """Yield normalized events (see `_call_sdk_stream`'s docstring) from
-    whichever backend answers: the Anthropic SDK if an API key is
-    configured, falling back to the claude CLI if the SDK errors out before
-    producing any output (same fallback behavior as the old non-streaming
-    implementation)."""
-    if _api_key():
-        sdk_events = _call_sdk_stream(system_prompt, messages)
-        try:
-            first_event = next(sdk_events)
-        except StopIteration:
-            return
-        except Exception as e:
-            logger.warning(f"Anthropic SDK stream failed ({e}); falling back to claude CLI")
-        else:
-            yield first_event
-            yield from sdk_events
-            return
-
+    """Yield normalized events (see `_call_cli_stream`'s docstring) from the
+    claude CLI."""
     executable = _cli_executable()
     if not executable:
         raise RuntimeError(
-            'The assistant needs either an Anthropic API key or the path to the '
-            'claude CLI. Add one under Settings > AI Assistant.'
+            'The assistant needs the path to the claude CLI. Set it under '
+            'Settings > AI Assistant.'
         )
 
     yield from _call_cli_stream(system_prompt, messages, executable)
-
-
-def _test_api_key(api_key: str) -> str:
-    """Live-checks an Anthropic API key with a minimal (1-token) request -
-    the API has no dedicated "validate this key" endpoint.
-
-    Returns: 'valid', 'invalid', 'unreachable', or 'error'.
-    """
-    import anthropic
-
-    try:
-        anthropic.Anthropic(api_key=api_key).messages.create(
-            model=config.ASSISTANT_MODEL,
-            max_tokens=1,
-            messages=[{'role': 'user', 'content': 'hi'}],
-        )
-    except anthropic.AuthenticationError as e:
-        logger.warning(f"Anthropic API key rejected: {e}")
-        return 'invalid'
-    except (anthropic.APIConnectionError, anthropic.APITimeoutError) as e:
-        logger.warning(f"Could not reach Anthropic: {e}")
-        return 'unreachable'
-    except Exception as e:
-        logger.error(f"Unexpected error validating Anthropic API key: {e}", exc_info=True)
-        return 'error'
-    return 'valid'
 
 
 # Substrings the claude CLI (or its wrapped SDK) is known to print when it
@@ -436,63 +363,33 @@ def _test_cli(executable: str) -> str:
     return 'error'
 
 
-def _describe_connection_test(api_key_status: str | None, cli_status: str | None) -> str:
-    """Turn the two backends' independent statuses into one message a
-    non-technical user can act on."""
-    if api_key_status == 'valid' and cli_status == 'valid':
-        return ('Connected successfully, using your Anthropic API key '
-                '(the claude CLI is also available as a backup).')
-    if api_key_status == 'valid':
-        return 'Connected successfully, using your Anthropic API key.'
+def _describe_connection_test(cli_status: str | None) -> str:
+    """Turn the CLI's status into one message a non-technical user can act on."""
     if cli_status == 'valid':
-        message = 'Connected successfully, using the claude CLI.'
-        if api_key_status == 'invalid':
-            message += (' (Note: the Anthropic API key above was rejected - you can remove '
-                        'it or fix it, but the CLI works fine on its own.)')
-        elif api_key_status == 'unreachable':
-            message += ' (Note: Anthropic could not be reached just now to check the API key.)'
-        return message
-
-    problems = []
-    if api_key_status is None:
-        problems.append('no Anthropic API key is set')
-    elif api_key_status == 'invalid':
-        problems.append('the Anthropic API key was rejected - double-check it was copied correctly')
-    elif api_key_status == 'unreachable':
-        problems.append('Anthropic could not be reached to check the API key - check your internet connection')
-    else:
-        problems.append('checking the Anthropic API key failed unexpectedly')
+        return 'Connected successfully, using the claude CLI.'
 
     if cli_status is None:
-        problems.append('no claude CLI was found (set its path above, or install it and make sure it is on your PATH)')
+        problem = 'no claude CLI was found (set its path above, or install it and make sure it is on your PATH)'
     elif cli_status == 'not_authenticated':
-        problems.append(
+        problem = (
             "the claude CLI is installed but not signed in - open a terminal, run 'claude', "
             "and use the '/login' command to sign in, then test again"
         )
     else:
-        problems.append('checking the claude CLI failed unexpectedly')
+        problem = 'checking the claude CLI failed unexpectedly'
 
-    return 'The AI Assistant is not usable yet: ' + '; and '.join(problems) + '.'
+    return f'The AI Assistant is not usable yet: {problem}.'
 
 
-def test_connection(
-    api_key: str | None = None,
-    cli_path: str | None = None,
-    *,
-    strict_cli: bool = False,
-) -> dict:
+def test_connection(cli_path: str | None = None, *, strict_cli: bool = False) -> dict:
     """
-    Live-checks whichever AI assistant backend(s) are configured: an actual
-    minimal request to the Anthropic API if a key is present, and an actual
-    invocation of the claude CLI if one is resolvable.
+    Live-checks the claude CLI with an actual invocation, if one is resolvable.
 
     Used both by the Settings > AI Assistant "Test connection" button, and
     (via GET /api/v1/assistant/availability in app.py) once at startup to
     decide whether to show the assistant at all.
 
     Args:
-        api_key: overrides config.ANTHROPIC_API_KEY / the environment variable
         cli_path: overrides config.CLAUDE_CLI_PATH
         strict_cli: when True, only credit an explicitly configured
             CLAUDE_CLI_PATH - skips the "whatever is on PATH" fallback that
@@ -503,17 +400,14 @@ def test_connection(
 
     Returns:
         {'success': bool, 'message': str} - message explains the outcome (or
-        the specific problem(s)) in plain language.
+        the specific problem) in plain language.
     """
-    resolved_key = (api_key if api_key is not None else _api_key()).strip()
     resolved_cli_path = config.CLAUDE_CLI_PATH if cli_path is None else cli_path
 
-    api_key_status = _test_api_key(resolved_key) if resolved_key else None
     executable = _resolve_cli_executable(resolved_cli_path, allow_path_search=not strict_cli)
     cli_status = _test_cli(executable) if executable else None
 
-    success = api_key_status == 'valid' or cli_status == 'valid'
-    return {'success': success, 'message': _describe_connection_test(api_key_status, cli_status)}
+    return {'success': cli_status == 'valid', 'message': _describe_connection_test(cli_status)}
 
 
 def _is_valid_party_ref(plan: dict, day_key: str, party_ref: dict) -> dict | None:

@@ -26,7 +26,6 @@ EDITABLE_SETTINGS = {
     'TIME_TOLERANCE_MINUTES': lambda v: isinstance(v, int) and not isinstance(v, bool) and v >= 0,
     'MAX_DRIVES_FULLTIME': lambda v: isinstance(v, int) and not isinstance(v, bool) and v >= 0,
     'MAX_DRIVES_PARTTIME': lambda v: isinstance(v, int) and not isinstance(v, bool) and v >= 0,
-    'ANTHROPIC_API_KEY': lambda v: isinstance(v, str),
     'CLAUDE_CLI_PATH': lambda v: isinstance(v, str),
 }
 
@@ -34,7 +33,7 @@ EDITABLE_SETTINGS = {
 # get a boolean telling them whether one is stored instead. Encrypted at rest
 # (see crypto_store.py) and the settings file is written user-only (0600)
 # because of these.
-SECRET_SETTINGS = {'ANTHROPIC_API_KEY', 'WEBUNTIS_PASSWORD'}
+SECRET_SETTINGS = {'WEBUNTIS_PASSWORD'}
 
 
 def load_and_apply():

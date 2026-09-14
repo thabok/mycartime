@@ -59,13 +59,8 @@ ALLOWED_ORIGINS = [
 ]
 
 # AI Assistant Configuration
-# Both are set through the Settings dialog. The API key falls back to the
-# environment variable of the same name, which is how development runs supply
-# it; the CLI path falls back to whatever `claude` is on PATH.
-ANTHROPIC_API_KEY = ""
+# Set through the Settings dialog. Falls back to whatever `claude` is on PATH.
 CLAUDE_CLI_PATH = ""
-ASSISTANT_MODEL = "claude-sonnet-4-6"
-ASSISTANT_MAX_TOKENS = 2000
 ASSISTANT_CLI_TIMEOUT_SECONDS = 60
 
 # When True, every /api/v1/drivingplan request dumps its members + resolved

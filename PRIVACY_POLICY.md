@@ -24,7 +24,7 @@ We do not collect names, addresses, email addresses, or precise location data be
 ## How Your Data Is Stored
 
 - Data is kept in local files on your device (e.g. `user_settings.json`, a local cache of timetable data, and log files), not on a remote server.
-- Sensitive values — your WebUntis password and any AI assistant API key you provide — are encrypted at rest using industry-standard symmetric encryption (Fernet/AES), with the encryption key stored separately from the encrypted data.
+- Sensitive values — your WebUntis password — are encrypted at rest using industry-standard symmetric encryption (Fernet/AES), with the encryption key stored separately from the encrypted data.
 - This encryption protects your credentials from casual exposure, such as when copying files or creating backups. It does not protect against someone who already has full access to your unlocked device.
 - Log files may contain diagnostic information about App operation but do not include your credentials.
 
@@ -43,7 +43,7 @@ Each of these third parties processes data under their own privacy policies:
 - Anthropic: https://www.anthropic.com/legal/privacy
 - GitHub: https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement
 
-The AI assistant feature requires you to supply your own Anthropic API key (or use a locally installed Claude CLI); no AI assistant data is sent unless you configure and use this feature.
+The AI assistant feature requires a locally installed `claude` CLI, signed in to your own Anthropic account; no AI assistant data is sent unless you configure and use this feature.
 
 ## Data Sharing
 
