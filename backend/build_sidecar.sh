@@ -21,15 +21,18 @@ if [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* || "$OSTYPE" == "win32"* ]]
   # A CC/CXX pointing at MinGW64 (e.g. inherited from the calling shell) takes
   # priority over --msvc in Nuitka's Scons backend, silently defeating the
   # pin below and making the build depend on whatever toolchain the shell
-  # happens to export - unset them so --msvc=14.3 is unconditionally honored.
+  # happens to export - unset them so --msvc=latest is unconditionally honored.
   unset CC CXX
   WINDOWS_ONLY_FLAGS=(
     --windows-console-mode=disable
-    # Pin the compiler to VS2022 (Nuitka's --msvc takes the MSVC toolset
-    # version, not the VS product version - "14.3" means VS2022) so the
-    # build doesn't silently fall back to MinGW64 or an older VS install if
-    # one happens to be present on the machine.
-    --msvc=14.3
+    # Force MSVC (Nuitka's --msvc takes the MSVC toolset version, not the VS
+    # product version) so the build doesn't silently fall back to MinGW64 if
+    # it happens to be present on the machine. "latest" rather than a pinned
+    # version (e.g. "14.3" for VS2022) because GitHub-hosted windows-latest
+    # runners upgrade their bundled VS/MSVC toolset over time, which breaks a
+    # hardcoded pin outright instead of just picking a different (but still
+    # present) toolset.
+    --msvc=latest
     # Nuitka does not pick the bundled MSVC C++ runtime (msvcp140.dll etc.)
     # from PATH: it shells out to `vswhere -latest` and grabs whatever
     # redist folder ships inside that VS install, regardless of which
