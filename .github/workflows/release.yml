@@ -88,6 +88,21 @@ jobs:
           npm ci
           npm --prefix frontend ci
 
+      # Tauri copies the Nuitka dist into target/<target>/release/backend as a
+      # bundle resource, but it only ever adds/overwrites - it never removes
+      # files that have since disappeared from the source. The rust-cache step
+      # above persists this target/ dir across workflow runs keyed on Rust
+      # files, not backend/requirements.txt, so a package dropped from the
+      # backend can linger here indefinitely and still get shipped. A leftover
+      # numexpr tree (from before it left the dependency set) made pandas -
+      # imported by ortools' cp_model - die at import with "Can't determine
+      # version for numexpr", taking the whole backend down, even though the
+      # freshly built dist had no numexpr at all. Wipe the staged copy so the
+      # bundle can only ever contain what this build actually produced.
+      - name: Remove stale staged backend resources
+        shell: bash
+        run: rm -rf "src-tauri/target/${{ matrix.target }}/release/backend"
+
       - name: Build the app bundle
         # Unsigned build (no Apple developer account) - macOS Gatekeeper will warn on first run.
         run: npm run build -- --target ${{ matrix.target }}

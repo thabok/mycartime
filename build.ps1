@@ -117,3 +117,4 @@ Invoke-Step -Name "Install root dependencies" -Executable "npm" -Arguments @("ci
 Invoke-Step -Name "Build Tauri app" -Executable "npm" -Arguments @("run", "build")
 
 Write-Log "Build complete."
+explorer "src-tauri\target\release\bundle\msi"

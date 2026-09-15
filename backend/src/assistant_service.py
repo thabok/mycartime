@@ -11,6 +11,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import threading
 
 import config
@@ -18,6 +19,11 @@ import paths
 
 logger = logging.getLogger(__name__)
 
+# On Windows, spawning a console subprocess (the claude CLI is a console app)
+# from a process that has no console of its own (the GUI-launched backend
+# sidecar) pops up a visible terminal window. CREATE_NO_WINDOW suppresses
+# that; it doesn't exist on other platforms, where no such window ever appears.
+_SUBPROCESS_FLAGS = subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0
 
 def _resolve_cli_executable(configured_path: str) -> str | None:
     """Resolves CLAUDE_CLI_PATH (default "claude") to an actual executable.
@@ -276,6 +282,7 @@ def _call_cli_stream(system_prompt: str, messages: list[dict], executable: str):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
+        creationflags=_SUBPROCESS_FLAGS,
     )
     # An inactivity timeout, not a total-duration one: a real answer can take
     # well over ASSISTANT_CLI_TIMEOUT_SECONDS to finish once you count a large
@@ -354,6 +361,7 @@ def _test_cli(executable: str) -> str:
         result = subprocess.run(
             [executable, '-p', '--output-format', 'json', '--', 'Reply with only the word: ok'],
             capture_output=True, text=True, timeout=20,
+            creationflags=_SUBPROCESS_FLAGS,
         )
     except (OSError, subprocess.TimeoutExpired) as e:
         logger.warning(f"Could not run claude CLI at {executable}: {e}")

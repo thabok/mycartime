@@ -122,7 +122,15 @@ npm run build                # produces the installer
 
 Installers land in `src-tauri/target/release/bundle/` — `.dmg`/`.app` on
 macOS, `.msi`/`.exe` on Windows. Nuitka does not cross-compile, so each
-platform builds its own; `.github/workflows/release.yml` does both on tag.
+platform builds its own.
+
+Three scripts wrap these steps:
+
+- `build.sh` — local build on macOS.
+- `build.ps1` — local build on Windows.
+- `.github/workflows/release.yml` — builds both installers via GitHub
+  Actions and publishes them as release artifacts when a `v*` tag is
+  pushed.
 
 The packaged backend keeps its cache, logs and settings in the OS
 per-user data directory (the shell passes it as `APP_DATA_DIR`), not next
