@@ -1,0 +1,2 @@
+time (python3 -m venv .venv && . .venv/bin/activate && python -m pip install --upgrade pip && pip install -r backend/requirements.txt && pip install nuitka && ./backend/build_sidecar.sh && cd frontend && npm install && cd .. && npm run build)
+open src-tauri/target/release/bundle/dmg

@@ -88,7 +88,7 @@ python -m nuitka \
   --include-data-dir=src/assistant/skill=assistant/skill \
   --include-data-files=src/assistant/harry-potter-spinning-verbs.txt=assistant/harry-potter-spinning-verbs.txt \
   --include-data-files=../doc/internal_doc.md=doc/internal_doc.md \
-  "${WINDOWS_ONLY_FLAGS[@]}" \
+  "${WINDOWS_ONLY_FLAGS[@]+"${WINDOWS_ONLY_FLAGS[@]}"}" \
   src/app.py
 
 # --include-windows-runtime-dlls=no (above) stops Nuitka from bundling a CRT

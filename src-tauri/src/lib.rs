@@ -11,8 +11,13 @@ use tauri::{Manager, RunEvent, State};
 const DEFAULT_PORT: u16 = 1338;
 const BACKEND_STARTUP_TIMEOUT: Duration = Duration::from_secs(90);
 
+/// Populated once the sidecar (or dev backend) is confirmed reachable. Managed
+/// synchronously in `setup` (unlike the port/child themselves) so `backend_port`
+/// can be invoked - and answer "not ready yet" rather than error out entirely -
+/// from the moment the window appears, instead of only once startup finishes.
 struct Backend {
     port: u16,
+    ready: Mutex<bool>,
     child: Mutex<Option<Child>>,
     /// Held open purely so the backend sees EOF when this process goes away,
     /// which is the only shutdown signal that survives a crash or force-quit.
@@ -20,10 +25,17 @@ struct Backend {
 }
 
 /// The frontend asks for this at startup because the sidecar does not always
-/// get the default port (see `pick_port`).
+/// get the default port (see `pick_port`), and polls it until it returns
+/// `Some` because startup (spawning the sidecar, waiting for it to bind its
+/// port) happens on a background thread rather than blocking the window from
+/// appearing.
 #[tauri::command]
-fn backend_port(backend: State<Backend>) -> u16 {
-    backend.port
+fn backend_port(backend: State<Backend>) -> Option<u16> {
+    if *backend.ready.lock().unwrap() {
+        Some(backend.port)
+    } else {
+        None
+    }
 }
 
 fn pick_port() -> u16 {
@@ -79,31 +91,63 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .invoke_handler(tauri::generate_handler![backend_port])
         .setup(|app| {
-            let (port, child, stdin) = match backend_executable(app.handle()) {
+            match backend_executable(app.handle()) {
                 Some(executable) => {
+                    // Spawning the sidecar and waiting for it to bind its port
+                    // can take the better part of a minute for a cold Nuitka
+                    // build (importing ortools/numpy from disk). Doing that
+                    // here, synchronously, would block the window from ever
+                    // appearing - `setup` runs before the event loop starts
+                    // pumping, so the OS sees an unresponsive, unpainted
+                    // window for the whole wait. Do it on a background thread
+                    // instead and let the frontend poll `backend_port` and
+                    // show its own loading state until it's ready.
                     let port = pick_port();
                     let data_dir = app.path().app_data_dir()?;
                     std::fs::create_dir_all(&data_dir)?;
 
-                    let mut child = Command::new(executable)
-                        .env("APP_DATA_DIR", &data_dir)
-                        .env("BACKEND_PORT", port.to_string())
-                        .env("BACKEND_HOST", "127.0.0.1")
-                        .env("SUPERVISED", "1")
-                        .stdin(Stdio::piped())
-                        .spawn()?;
-                    let stdin = child.stdin.take();
-                    wait_for_backend(port);
-                    (port, Some(child), stdin)
+                    app.manage(Backend {
+                        port,
+                        ready: Mutex::new(false),
+                        child: Mutex::new(None),
+                        _stdin: Mutex::new(None),
+                    });
+
+                    let app_handle = app.handle().clone();
+                    std::thread::spawn(move || {
+                        let mut child = match Command::new(executable)
+                            .env("APP_DATA_DIR", &data_dir)
+                            .env("BACKEND_PORT", port.to_string())
+                            .env("BACKEND_HOST", "127.0.0.1")
+                            .env("SUPERVISED", "1")
+                            .stdin(Stdio::piped())
+                            .spawn()
+                        {
+                            Ok(child) => child,
+                            Err(err) => {
+                                eprintln!("failed to spawn backend: {err}");
+                                return;
+                            }
+                        };
+                        let stdin = child.stdin.take();
+                        wait_for_backend(port);
+
+                        let backend = app_handle.state::<Backend>();
+                        *backend.child.lock().unwrap() = Some(child);
+                        *backend._stdin.lock().unwrap() = stdin;
+                        *backend.ready.lock().unwrap() = true;
+                    });
                 }
-                None => (DEFAULT_PORT, None, None),
+                None => {
+                    app.manage(Backend {
+                        port: DEFAULT_PORT,
+                        ready: Mutex::new(true),
+                        child: Mutex::new(None),
+                        _stdin: Mutex::new(None),
+                    });
+                }
             };
 
-            app.manage(Backend {
-                port,
-                child: Mutex::new(child),
-                _stdin: Mutex::new(stdin),
-            });
             Ok(())
         })
         .build(tauri::generate_context!())
