@@ -1,10 +1,36 @@
 """
 Flask application for Carpool Time backend service.
 """
+import os
+
+# Force single-threaded OpenBLAS/OpenMP: numpy (pulled in transitively by
+# ortools.sat.python.cp_model, see solver_service.py) bundles its own OpenBLAS
+# DLL, which can otherwise spin up a worker thread pool on load. CP-SAT itself
+# doesn't use BLAS - numpy is only an incidental dependency of cp_model.py - so
+# this costs nothing, and it removes one source of the thread-related loader
+# contention described below.
+os.environ.setdefault('OPENBLAS_NUM_THREADS', '1')
+os.environ.setdefault('OMP_NUM_THREADS', '1')
+
+# Import the CP-SAT engine before anything else in this file gets a chance to
+# start another thread (e.g. the supervisor-watchdog below). This is a real
+# deadlock, not a latency optimization: on this frozen Windows build, the
+# first import of ortools (which pulls in numpy's native multiarray extension)
+# hangs forever - confirmed with `py-spy dump` against a hung install, stuck at
+# 0% CPU in module_from_spec importing numpy._core.multiarray - whenever a
+# second thread already exists in the process, even one just blocked in a
+# blocking read() and doing nothing else. Windows sends a DLL_THREAD_ATTACH
+# notification to every loaded DLL for each new thread, and that apparently
+# contends with the very loader lock this import is holding. The
+# supervisor-watchdog thread (started only when Tauri sets SUPERVISED=1, i.e.
+# always in the packaged app, never in a plain `python app.py` dev run) was
+# exactly that second thread - reordering so this import happens while the
+# process is still single-threaded avoids the deadlock entirely.
+import solver_service  # noqa: F401  (import side effect only)
+
 import base64
 import json
 import logging
-import os
 import queue
 import sys
 import threading
@@ -72,26 +98,21 @@ if os.environ.get('SUPERVISED') == '1':
     threading.Thread(target=_exit_when_supervisor_disconnects, daemon=True,
                      name='supervisor-watchdog').start()
 
-# Warm up the CP-SAT solver before serving any requests, so the (large, native)
-# ortools/numpy import happens up front instead of racing the Flask server's
-# request-handling thread pool for the GIL. That import can take a long time on
-# a freshly-installed exe (e.g. antivirus scanning newly-written DLLs), and
-# spawning a new request-handler thread itself requires the GIL - so doing this
-# import on a background thread after the server is already listening lets a
-# slow import silently freeze every incoming connection instead of merely
-# delaying startup.
-def _warmup_solver():
-    from ortools.sat.python import cp_model
-    m = cp_model.CpModel()
-    x = m.NewBoolVar('x')
-    m.Add(x == 1)
-    cp_model.CpSolver().Solve(m)
-
-# Disabled for now to verify whether the installed app even needs this warmup
-# (uncomment once confirmed necessary; keep it synchronous, not threaded - see
-# comment above for why).
-# _warmup_solver()
-
+# Import the CP-SAT engine on the main thread before serving any requests.
+# This is not a latency optimization - it works around a real deadlock: on
+# this frozen Windows build, the first import of ortools (which pulls in
+# numpy's native multiarray extension) hangs forever if it happens on any
+# thread other than the main one, apparently because the extension's DLL
+# thread-attach handling and CPython's per-module import lock can each end up
+# waiting on the other. Confirmed with py-spy against a hung install: the
+# stuck thread was sitting in module_from_spec importing numpy._core.multiarray,
+# with 0% CPU, not merely a slow load. Without this, the deadlock hits
+# whichever thread first calls into solver_service (_run_plan_engine below) -
+# a spawned per-request worker thread, never the main one - which is exactly
+# what made plan generation hang forever in the packaged app while `python
+# app.py` in dev, which always happens to import this on the main thread
+# first, never showed the problem.
+from solver_service import SolverService  # noqa: F401  (import side effect only)
 
 # Initialize Flask app
 app = Flask(__name__)

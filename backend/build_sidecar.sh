@@ -73,14 +73,11 @@ fi
 # invisible to anything reading the stream line by line. These force plain,
 # newline-terminated progress and compiler-invocation output instead.
 python -m nuitka \
-  --show-progress \
-  --show-scons \
   --include-data-files=../.env=.env \
   --standalone \
   --output-dir="$OUT_DIR" \
   --output-filename=mycartime-backend \
   --assume-yes-for-downloads \
-  --remove-output \
   --nofollow-import-to=pytest \
   --nofollow-import-to=nuitka \
   --nofollow-import-to=scipy \

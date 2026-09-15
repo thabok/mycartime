@@ -57,7 +57,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/.nuitka-cache
-          key: nuitka-${{ runner.os }}-${{ hashFiles('backend/requirements.txt', 'webuntis/**') }}
+          key: nuitka-${{ runner.os }}-${{ hashFiles('backend/requirements.txt') }}
           restore-keys: |
             nuitka-${{ runner.os }}-
 
@@ -68,7 +68,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
-          pip install ./webuntis
           pip install nuitka
           bash backend/build_sidecar.sh
 

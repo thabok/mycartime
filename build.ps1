@@ -11,6 +11,15 @@ multiple Visual Studio versions installed.
 
 $ErrorActionPreference = "Stop"
 
+# A CC/CXX pointing at MinGW64 makes both Nuitka (backend sidecar) and any
+# Rust crate using the `cc` crate (e.g. vswhom-sys, pulled in by Tauri) build
+# with g++ instead of cl.exe, producing GNU-ABI object code that MSVC's
+# link.exe then fails to link (unresolved __gxx_personality_seh0 /
+# _Unwind_Resume). Unset for the whole build regardless of what the calling
+# shell happens to export.
+Remove-Item Env:\CC -ErrorAction SilentlyContinue
+Remove-Item Env:\CXX -ErrorAction SilentlyContinue
+
 $root = $PSScriptRoot
 $logFile = Join-Path $root "build.log"
 Remove-Item $logFile -ErrorAction SilentlyContinue
@@ -89,6 +98,21 @@ Invoke-Step -Name "Install frontend dependencies" -Executable "npm" -Arguments @
 Invoke-Step -Name "Build frontend" -Executable "npm" -Arguments @("run", "build") -WorkingDirectory (Join-Path $root "frontend")
 
 # 4. Tauri build
+# Tauri copies the Nuitka dist into target\release\backend as a bundle resource,
+# but it only ever adds/overwrites - it never removes files that have since
+# disappeared from the source. Packages dropped from requirements.txt therefore
+# linger there and get shipped, and a stale one is not merely dead weight: a
+# leftover numexpr tree (from before it left the dependency set) made pandas -
+# imported by ortools' cp_model - die at import with "Can't determine version
+# for numexpr", taking the whole backend down, even though the freshly built
+# dist had no numexpr at all. Wipe the staged copy so the bundle can only ever
+# contain what this build actually produced.
+$stagedBackend = Join-Path $root "src-tauri\target\release\backend"
+if (Test-Path $stagedBackend) {
+    Write-Log "==> Remove stale staged backend resources ($stagedBackend)"
+    Remove-Item -Recurse -Force $stagedBackend
+}
+
 Invoke-Step -Name "Install root dependencies" -Executable "npm" -Arguments @("ci")
 Invoke-Step -Name "Build Tauri app" -Executable "npm" -Arguments @("run", "build")
 
