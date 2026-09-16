@@ -98,4 +98,4 @@ A result that stops this way (or via the user pressing Stop, or the
 the solve stats) and is not guaranteed to be reproducible run-to-run, since
 it depends on real elapsed time rather than solely on the model and a fixed
 random seed. A full `OPTIMAL` result, in contrast, is fully deterministic
-(see `backend/test/test_determinism_solver.py`).
+(see `src/backend/test/test_determinism_solver.py`).

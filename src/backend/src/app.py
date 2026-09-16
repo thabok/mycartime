@@ -827,10 +827,10 @@ def create_feedback_issue():
 def assistant_spinner_verbs():
     """
     Returns the list of whimsical status messages shown in the UI while the
-    assistant is thinking (backed by assistant/harry-potter-spinning-verbs.txt).
+    assistant is thinking (backed by assistant/hp-spinning-verbs.txt).
     """
     try:
-        path = paths.resource_path('assistant', 'harry-potter-spinning-verbs.txt')
+        path = paths.resource_path('assistant', 'hp-spinning-verbs.txt')
         with open(path, 'r', encoding='utf-8') as f:
             verbs = [line.strip() for line in f if line.strip()]
         return jsonify(verbs), 200

@@ -59,7 +59,7 @@ A pool of size 1 has only one eligible member for that slot — a **Mandatory Dr
 This grouping concept is still useful for reasoning about the problem (and `solver_service.py` reuses it internally just to keep the CP-SAT model small — see `algorithm-with-solver.md`), but it no longer describes an *algorithmic step*: the current implementation doesn't select drivers pool-by-pool at all. Instead it hands the CP-SAT solver hard constraints that force mandatory drivers exactly the way a size-1 pool would (see [ALGORITHM_EVOLUTION.md](ALGORITHM_EVOLUTION.md)), and lets the solver decide every other driver/passenger assignment jointly, across the whole 2-week cycle at once, rather than pool-by-pool in isolation.
 
 ### Implementation: CP-SAT solver
-The backend (`backend/src/solver_service.py`) models the whole 2-week cycle as a single OR-Tools CP-SAT constraint program rather than a hand-written phase-by-phase heuristic — see [ALGORITHM_EVOLUTION.md](ALGORITHM_EVOLUTION.md) for why, and `algorithm-with-solver.md` for the full modeling writeup. In short:
+The backend (`src/backend/src/solver_service.py`) models the whole 2-week cycle as a single OR-Tools CP-SAT constraint program rather than a hand-written phase-by-phase heuristic — see [ALGORITHM_EVOLUTION.md](ALGORITHM_EVOLUTION.md) for why, and `algorithm-with-solver.md` for the full modeling writeup. In short:
 
 - **Decision variables**: for every (member, day, direction) where the member is present, whether they drive that leg (`is_driver`), and for every plausible (passenger, driver, day, direction) combination, whether the passenger rides with that driver (`rides_with`).
 - **Hard constraints** mirror the rules below directly: exactly one role (driver or passenger of exactly one driver) per present member per leg; seat capacity; time tolerance (`TIME_TOLERANCE_MINUTES`, or a member's per-day override); `needsCar` forces `is_driver`; `skipMorning`/`skipAfternoon` cap that leg's capacity at 0; `noWaitingAfternoon` forbids any homebound pairing that would make the exact-time member wait.
@@ -67,7 +67,7 @@ The backend (`backend/src/solver_service.py`) models the whole 2-week cycle as a
 
 The solver finds the true optimum (or something indistinguishable from it) within a few seconds for a realistic member set, then would keep searching for minutes just to *prove* no better solution exists — `config.SOLVER_STOP_AFTER_NO_IMPROVEMENT_SECONDS` cuts that proof phase short once progress has stalled (see [ALGORITHM_EVOLUTION.md](ALGORITHM_EVOLUTION.md)).
 
-Before returning, the plan is validated (`backend/src/plan_builder.py`): no member is both driver and passenger on the same day, every active member appears somewhere in each relevant day plan, and the custom-preference invariants below hold.
+Before returning, the plan is validated (`src/backend/src/plan_builder.py`): no member is both driver and passenger on the same day, every active member appears somewhere in each relevant day plan, and the custom-preference invariants below hold.
 
 ### Custom Day Preferences
 Custom day settings override a member's schedule for a specific day. The available flags and their rules:
@@ -78,7 +78,7 @@ Custom day settings override a member's schedule for a specific day. The availab
 - **Skip PM** (`skipAfternoon`) implicitly activates `needsCar` when enabled (same as above).
 - **No Wait PM** (`noWaitingAfternoon`) is mutually exclusive with `skipAfternoon`.
 
-**Backend solver rules** (`backend/src/solver_service.py`, `models.py`):
+**Backend solver rules** (`src/backend/src/solver_service.py`, `models.py`):
 - **Skip** (`ignoreCompletely`): the person is excluded entirely from that day's plan — neither driver nor passenger.
 - **Needs Car** (`needsCar`): mutually exclusive with `drivingSkip`; the person becomes a mandatory driver for the day and must not appear as a passenger.
 - **Skip AM** (`skipMorning`): requires `needsCar`; the person is a mandatory driver whose schoolbound party is flagged as a "lonely driver" party and must have 0 passengers.

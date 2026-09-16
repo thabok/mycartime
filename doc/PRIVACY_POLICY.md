@@ -4,7 +4,7 @@ _Last updated: 2026-09-12_
 
 ## Overview
 
-CarpoolPlanner ("the App") is a desktop application that helps a group of colleagues (e.g. teachers) organize carpool driving schedules. The App runs locally on your device and is designed to keep your data under your control. This policy explains what data the App collects, how it is stored, and when it is shared with third-party services.
+CarpoolPlanner ("the App") is a desktop application that helps a group of colleagues organize carpool driving schedules. The App runs locally on your device and is designed to keep your data under your control. This policy explains what data the App collects, how it is stored, and when it is shared with third-party services.
 
 ## Data We Collect and Store
 

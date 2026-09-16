@@ -5,13 +5,13 @@
 # - Backend runs via `python -m src.app`; restart this script after backend
 #   code changes since Flask's own auto-reloader is not used here.
 #
-# Usage: ./run.sh
+# Usage: ./scripts/run.sh
 set -e
-cd "$(dirname "$0")" || exit 1
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BACKEND_DIR="$ROOT_DIR/backend"
-FRONTEND_DIR="$ROOT_DIR/frontend"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT_DIR" || exit 1
+BACKEND_DIR="$ROOT_DIR/src/backend"
+FRONTEND_DIR="$ROOT_DIR/src/frontend"
 PID_FILE="$ROOT_DIR/.run.pids"
 
 # Make sure the frontend submodule is checked out (e.g. on a fresh clone).
@@ -100,6 +100,6 @@ PIDS+=($!)
 echo "$!" >> "$PID_FILE"
 
 sleep 1
-open -a Safari "http://localhost:8080"
+open "http://localhost:8080"
 
 wait

@@ -30,7 +30,7 @@ This backend service implements the core algorithm for calculating optimal carpo
    ```
 
 4. **Configure settings:**
-   Edit `backend/src/config.py` to set your WebUntis server/school and algorithm parameters:
+   Edit `src/backend/src/config.py` to set your WebUntis server/school and algorithm parameters:
    ```python
    WEBUNTIS_SERVER = "https://your-school.webuntis.com"
    WEBUNTIS_SCHOOL = "your-school-name"
@@ -132,9 +132,9 @@ Request/response shapes are formally defined in `schemas/driving_plan_request.js
 
 ## Algorithm Details
 
-See [internal_doc.md](internal_doc.md#algorithm) for the full functional spec (constraints, custom day preference rules) and [ALGORITHM_EVOLUTION.md](ALGORITHM_EVOLUTION.md) for how the plan is actually calculated today — an OR-Tools CP-SAT solver (`backend/src/solver_service.py`), not a hand-written heuristic.
+See [internal_doc.md](internal_doc.md#algorithm) for the full functional spec (constraints, custom day preference rules) and [ALGORITHM_EVOLUTION.md](ALGORITHM_EVOLUTION.md) for how the plan is actually calculated today — an OR-Tools CP-SAT solver (`src/backend/src/solver_service.py`), not a hand-written heuristic.
 
-Key configuration (`backend/src/config.py`):
+Key configuration (`src/backend/src/config.py`):
 - `TIME_TOLERANCE_MINUTES` (default 30): max deviation in minutes to group members into the same time slot.
 - `MAX_DRIVES_FULLTIME` (default 4) / `MAX_DRIVES_PARTTIME` (default 3): max drives per member type over the 2-week cycle.
 - `SOLVER_STOP_AFTER_NO_IMPROVEMENT_SECONDS` (default 5): stop searching once this many seconds pass without a better solution being found, and serve the best one so far — in practice the solver finds the true optimum within a few seconds and would otherwise keep searching for minutes just to *prove* it, which nobody is waiting for.
@@ -145,7 +145,7 @@ If the WebUntis connection fails, the service falls back to mock timetables base
 ## Architecture
 
 ```
-backend/
+src/backend/
 ├── src/
 │   ├── app.py                 # Flask application & API endpoints
 │   ├── models.py               # Data models (Member, Party, DayPlan, etc.)

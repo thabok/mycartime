@@ -20,7 +20,7 @@ $ErrorActionPreference = "Stop"
 Remove-Item Env:\CC -ErrorAction SilentlyContinue
 Remove-Item Env:\CXX -ErrorAction SilentlyContinue
 
-$root = $PSScriptRoot
+$root = Split-Path -Parent $PSScriptRoot
 $logFile = Join-Path $root "build.log"
 Remove-Item $logFile -ErrorAction SilentlyContinue
 
@@ -76,7 +76,7 @@ function Find-Bash {
 Write-Log "Build started. Logging to $logFile"
 
 # 1. Python venv + backend dependencies
-$venvDir = Join-Path $root "backend\.venv"
+$venvDir = Join-Path $root "src\backend\.venv"
 $venvPython = Join-Path $venvDir "Scripts\python.exe"
 
 if (-not (Test-Path $venvPython)) {
@@ -84,18 +84,18 @@ if (-not (Test-Path $venvPython)) {
 }
 
 Invoke-Step -Name "Upgrade pip" -Executable $venvPython -Arguments @("-m", "pip", "install", "--upgrade", "pip")
-Invoke-Step -Name "Install backend dependencies" -Executable $venvPython -Arguments @("-m", "pip", "install", "-r", "backend\requirements.txt")
+Invoke-Step -Name "Install backend dependencies" -Executable $venvPython -Arguments @("-m", "pip", "install", "-r", "src\backend\requirements.txt")
 Invoke-Step -Name "Install Nuitka" -Executable $venvPython -Arguments @("-m", "pip", "install", "nuitka")
 
 # 2. Backend sidecar build (Nuitka) - build_sidecar.sh shells out to "python",
 # so the venv's Scripts dir must be first on PATH for the bash subprocess too.
 $bash = Find-Bash
 $env:PATH = "$(Join-Path $venvDir 'Scripts');$env:PATH"
-Invoke-Step -Name "Build backend sidecar" -Executable $bash -Arguments @("backend/build_sidecar.sh")
+Invoke-Step -Name "Build backend sidecar" -Executable $bash -Arguments @("src/backend/build_sidecar.sh")
 
 # 3. Frontend build
-Invoke-Step -Name "Install frontend dependencies" -Executable "npm" -Arguments @("ci") -WorkingDirectory (Join-Path $root "frontend")
-Invoke-Step -Name "Build frontend" -Executable "npm" -Arguments @("run", "build") -WorkingDirectory (Join-Path $root "frontend")
+Invoke-Step -Name "Install frontend dependencies" -Executable "npm" -Arguments @("ci") -WorkingDirectory (Join-Path $root "src\frontend")
+Invoke-Step -Name "Build frontend" -Executable "npm" -Arguments @("run", "build") -WorkingDirectory (Join-Path $root "src\frontend")
 
 # 4. Tauri build
 # Tauri copies the Nuitka dist into target\release\backend as a bundle resource,
@@ -107,14 +107,14 @@ Invoke-Step -Name "Build frontend" -Executable "npm" -Arguments @("run", "build"
 # for numexpr", taking the whole backend down, even though the freshly built
 # dist had no numexpr at all. Wipe the staged copy so the bundle can only ever
 # contain what this build actually produced.
-$stagedBackend = Join-Path $root "src-tauri\target\release\backend"
+$stagedBackend = Join-Path $root "src\src-tauri\target\release\backend"
 if (Test-Path $stagedBackend) {
     Write-Log "==> Remove stale staged backend resources ($stagedBackend)"
     Remove-Item -Recurse -Force $stagedBackend
 }
 
-Invoke-Step -Name "Install root dependencies" -Executable "npm" -Arguments @("ci")
-Invoke-Step -Name "Build Tauri app" -Executable "npm" -Arguments @("run", "build")
+Invoke-Step -Name "Install root dependencies" -Executable "npm" -Arguments @("ci") -WorkingDirectory (Join-Path $root "src")
+Invoke-Step -Name "Build Tauri app" -Executable "npm" -Arguments @("run", "build") -WorkingDirectory (Join-Path $root "src")
 
 Write-Log "Build complete."
-explorer "src-tauri\target\release\bundle\msi"
+explorer (Join-Path $root "src\src-tauri\target\release\bundle\msi")

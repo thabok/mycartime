@@ -38,8 +38,10 @@ def _resource_roots() -> list[str]:
     if IS_PACKAGED:
         return [os.path.dirname(os.path.abspath(sys.executable))]
     # Unpackaged, assets sit either next to the code (assistant/skill) or at the
-    # repo root (doc/), which the Nuitka build flattens into one dist directory.
-    return [_MODULE_DIR, os.path.abspath(os.path.join(_MODULE_DIR, '..', '..'))]
+    # repo root (doc/, .env), which the Nuitka build flattens into one dist
+    # directory. _MODULE_DIR is src/backend/src, so the repo root is three
+    # levels up.
+    return [_MODULE_DIR, os.path.abspath(os.path.join(_MODULE_DIR, '..', '..', '..'))]
 
 
 def resource_path(*parts: str) -> str:

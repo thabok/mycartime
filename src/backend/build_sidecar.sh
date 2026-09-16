@@ -57,8 +57,8 @@ fi
 # packaged app can never create feedback issues. Only acceptable because the
 # token is scoped to just "issues:write" on the single feedback repo; a
 # broader token must never be shipped this way.
-if [ ! -f "../.env" ]; then
-  echo "../.env not found - the packaged app's feedback feature would have no GITHUB_ISSUE_CREATION token. Aborting." >&2
+if [ ! -f "../../.env" ]; then
+  echo "../../.env not found - the packaged app's feedback feature would have no GITHUB_ISSUE_CREATION token. Aborting." >&2
   exit 1
 fi
 
@@ -76,7 +76,7 @@ fi
 # invisible to anything reading the stream line by line. These force plain,
 # newline-terminated progress and compiler-invocation output instead.
 python -m nuitka \
-  --include-data-files=../.env=.env \
+  --include-data-files=../../.env=.env \
   --standalone \
   --output-dir="$OUT_DIR" \
   --output-filename=mycartime-backend \
@@ -89,8 +89,8 @@ python -m nuitka \
   --include-package=diskcache \
   --include-package=flask_cors \
   --include-data-dir=src/assistant/skill=assistant/skill \
-  --include-data-files=src/assistant/harry-potter-spinning-verbs.txt=assistant/harry-potter-spinning-verbs.txt \
-  --include-data-files=../doc/internal_doc.md=doc/internal_doc.md \
+  --include-data-files=src/assistant/hp-spinning-verbs.txt=assistant/hp-spinning-verbs.txt \
+  --include-data-files=../../doc/internal_doc.md=doc/internal_doc.md \
   "${WINDOWS_ONLY_FLAGS[@]+"${WINDOWS_ONLY_FLAGS[@]}"}" \
   src/app.py
 
