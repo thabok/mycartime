@@ -16,10 +16,11 @@ logger = logging.getLogger(__name__)
 SETTINGS_FILE = paths.data_path('user_settings.json')
 
 # Keys editable via the Settings dialog, and how to validate an incoming
-# value for each. WEBUNTIS_SCHOOL intentionally allows an empty string - some
-# WebUntis tenants (like ours) don't need one.
+# value for each. WEBUNTIS_SERVER and WEBUNTIS_SCHOOL intentionally allow an
+# empty string - some WebUntis tenants (like ours) don't need one, and users
+# should be able to clear the server too.
 EDITABLE_SETTINGS = {
-    'WEBUNTIS_SERVER': lambda v: isinstance(v, str) and v.strip() != '',
+    'WEBUNTIS_SERVER': lambda v: isinstance(v, str),
     'WEBUNTIS_SCHOOL': lambda v: isinstance(v, str),
     'WEBUNTIS_USERNAME': lambda v: isinstance(v, str),
     'WEBUNTIS_PASSWORD': lambda v: isinstance(v, str),

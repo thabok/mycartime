@@ -35,6 +35,11 @@ data and viewing/editing plans.
   `src/backend/` will fail with `ModuleNotFoundError: No module named
   'config'`.
 
+## Building
+- `./scripts/build.sh` ensures the right prerequisites and mainly runs the backend sidecar build, the frontend build and the tauri build.
+- The backend sidecar build can take between 3 and 30 minutes, depending on caching. Ask before running it.
+- If a build.sh run fails in the frontend or tauri build phase, don't repeat build.sh but instead simply run the npm-based builds for the frontend and tauri.
+
 ## Running / testing
 
 - `./scripts/run.sh` from repo root starts both backend (port 1338) and
