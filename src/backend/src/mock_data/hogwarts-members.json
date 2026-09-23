@@ -1,0 +1,452 @@
+[
+  {
+    "firstName": "Harry",
+    "lastName": "Potter",
+    "initials": "Hp",
+    "isPartTime": false,
+    "numberOfSeats": 5,
+    "customDays": {
+      "2": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": true,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": "15:30"
+      },
+      "7": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": true,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": "15:30"
+      }
+    }
+  },
+  {
+    "firstName": "Hermione",
+    "lastName": "Granger",
+    "initials": "Hg",
+    "isPartTime": false,
+    "numberOfSeats": 5
+  },
+  {
+    "firstName": "Ron",
+    "lastName": "Weasley",
+    "initials": "Rw",
+    "isPartTime": false,
+    "numberOfSeats": 4
+  },
+  {
+    "firstName": "Draco",
+    "lastName": "Malfoy",
+    "initials": "Dm",
+    "isPartTime": false,
+    "numberOfSeats": 5
+  },
+  {
+    "firstName": "Neville",
+    "lastName": "Longbottom",
+    "initials": "Nl",
+    "isPartTime": false,
+    "numberOfSeats": 5,
+    "customDays": {
+      "1": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": true,
+        "drivingSkip": false,
+        "skipMorning": true,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "6": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": true,
+        "drivingSkip": false,
+        "skipMorning": true,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      }
+    }
+  },
+  {
+    "firstName": "Luna",
+    "lastName": "Lovegood",
+    "initials": "Ll",
+    "isPartTime": true,
+    "numberOfSeats": 3,
+    "customDays": {
+      "2": {
+        "ignoreCompletely": true,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      }
+    }
+  },
+  {
+    "firstName": "Cho",
+    "lastName": "Chang",
+    "initials": "Cc",
+    "isPartTime": true,
+    "numberOfSeats": 5
+  },
+  {
+    "firstName": "Seamus",
+    "lastName": "Finnigan",
+    "initials": "Sf",
+    "isPartTime": false,
+    "numberOfSeats": 5
+  },
+  {
+    "firstName": "Dean",
+    "lastName": "Thomas",
+    "initials": "Dt",
+    "isPartTime": false,
+    "numberOfSeats": 4,
+    "customDays": {
+      "0": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": true,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "5": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": true,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      }
+    }
+  },
+  {
+    "firstName": "Parvati",
+    "lastName": "Patil",
+    "initials": "Pp",
+    "isPartTime": false,
+    "numberOfSeats": 5
+  },
+  {
+    "firstName": "Lavender",
+    "lastName": "Brown",
+    "initials": "Lb",
+    "isPartTime": false,
+    "numberOfSeats": 5
+  },
+  {
+    "firstName": "Cedric",
+    "lastName": "Diggory",
+    "initials": "Cd",
+    "isPartTime": false,
+    "numberOfSeats": 3,
+    "customDays": {
+      "3": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": "16:15"
+      },
+      "8": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": "16:15"
+      }
+    }
+  },
+  {
+    "firstName": "Fleur",
+    "lastName": "Delacour",
+    "initials": "Fd",
+    "isPartTime": true,
+    "numberOfSeats": 5
+  },
+  {
+    "firstName": "Viktor",
+    "lastName": "Krum",
+    "initials": "Vk",
+    "isPartTime": false,
+    "numberOfSeats": 5
+  },
+  {
+    "firstName": "Susan",
+    "lastName": "Bones",
+    "initials": "Sb",
+    "isPartTime": false,
+    "numberOfSeats": 4
+  },
+  {
+    "firstName": "Justin",
+    "lastName": "Finch-Fletchley",
+    "initials": "Jf",
+    "isPartTime": false,
+    "numberOfSeats": 5,
+    "customDays": {
+      "0": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": true,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "1": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": true,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "2": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": true,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "3": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": true,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "4": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": true,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      }
+    }
+  },
+  {
+    "firstName": "Terry",
+    "lastName": "Boot",
+    "initials": "Tb",
+    "isPartTime": false,
+    "numberOfSeats": 5
+  },
+  {
+    "firstName": "Michael",
+    "lastName": "Corner",
+    "initials": "Mc",
+    "isPartTime": false,
+    "numberOfSeats": 3
+  },
+  {
+    "firstName": "Angelina",
+    "lastName": "Johnson",
+    "initials": "Aj",
+    "isPartTime": false,
+    "numberOfSeats": 5,
+    "customDays": {
+      "1": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": true,
+        "drivingSkip": false,
+        "skipMorning": true,
+        "skipAfternoon": true,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "6": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": true,
+        "drivingSkip": false,
+        "skipMorning": true,
+        "skipAfternoon": true,
+        "customStart": "",
+        "customEnd": ""
+      }
+    }
+  },
+  {
+    "firstName": "Oliver",
+    "lastName": "Wood",
+    "initials": "Ow",
+    "isPartTime": false,
+    "numberOfSeats": 5
+  },
+  {
+    "firstName": "Ginny",
+    "lastName": "Weasley",
+    "initials": "Gw",
+    "isPartTime": false,
+    "numberOfSeats": 4
+  },
+  {
+    "firstName": "Fred",
+    "lastName": "Weasley",
+    "initials": "Fw",
+    "isPartTime": false,
+    "numberOfSeats": 5,
+    "customDays": {
+      "4": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "07:30",
+        "customEnd": ""
+      },
+      "9": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "07:30",
+        "customEnd": ""
+      }
+    }
+  },
+  {
+    "firstName": "Katie",
+    "lastName": "Bell",
+    "initials": "Kb",
+    "isPartTime": false,
+    "numberOfSeats": 5
+  },
+  {
+    "firstName": "Alicia",
+    "lastName": "Spinnet",
+    "initials": "As",
+    "isPartTime": false,
+    "numberOfSeats": 3
+  },
+  {
+    "firstName": "Marcus",
+    "lastName": "Flint",
+    "initials": "Mf",
+    "isPartTime": true,
+    "numberOfSeats": 5
+  },
+  {
+    "firstName": "Blaise",
+    "lastName": "Zabini",
+    "initials": "Bz",
+    "isPartTime": false,
+    "numberOfSeats": 5,
+    "customDays": {
+      "4": {
+        "ignoreCompletely": true,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "9": {
+        "ignoreCompletely": true,
+        "noWaitingAfternoon": false,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      }
+    }
+  },
+  {
+    "firstName": "Lee",
+    "lastName": "Jordan",
+    "initials": "Lj",
+    "isPartTime": false,
+    "numberOfSeats": 4
+  },
+  {
+    "firstName": "Ernie",
+    "lastName": "Macmillan",
+    "initials": "Em",
+    "isPartTime": false,
+    "numberOfSeats": 5
+  },
+  {
+    "firstName": "Hannah",
+    "lastName": "Abbott",
+    "initials": "Ha",
+    "isPartTime": false,
+    "numberOfSeats": 5,
+    "customDays": {
+      "0": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": false,
+        "needsCar": true,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      },
+      "5": {
+        "ignoreCompletely": false,
+        "noWaitingAfternoon": true,
+        "needsCar": false,
+        "drivingSkip": false,
+        "skipMorning": false,
+        "skipAfternoon": false,
+        "customStart": "",
+        "customEnd": ""
+      }
+    }
+  },
+  {
+    "firstName": "Zacharias",
+    "lastName": "Smith",
+    "initials": "Zs",
+    "isPartTime": false,
+    "numberOfSeats": 3
+  }
+]

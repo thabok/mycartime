@@ -9,6 +9,7 @@ import os
 
 import config
 import crypto_store
+import mock_webuntis
 import paths
 
 logger = logging.getLogger(__name__)
@@ -24,6 +25,8 @@ EDITABLE_SETTINGS = {
     'WEBUNTIS_SCHOOL': lambda v: isinstance(v, str),
     'WEBUNTIS_USERNAME': lambda v: isinstance(v, str),
     'WEBUNTIS_PASSWORD': lambda v: isinstance(v, str),
+    'WEBUNTIS_AUTH_MODE': lambda v: v in ('password', 'secret'),
+    'WEBUNTIS_SECRET': lambda v: isinstance(v, str),
     'TIME_TOLERANCE_MINUTES': lambda v: isinstance(v, int) and not isinstance(v, bool) and v >= 0,
     'MAX_DRIVES_FULLTIME': lambda v: isinstance(v, int) and not isinstance(v, bool) and v >= 0,
     'MAX_DRIVES_PARTTIME': lambda v: isinstance(v, int) and not isinstance(v, bool) and v >= 0,
@@ -34,7 +37,7 @@ EDITABLE_SETTINGS = {
 # get a boolean telling them whether one is stored instead. Encrypted at rest
 # (see crypto_store.py) and the settings file is written user-only (0600)
 # because of these.
-SECRET_SETTINGS = {'WEBUNTIS_PASSWORD'}
+SECRET_SETTINGS = {'WEBUNTIS_PASSWORD', 'WEBUNTIS_SECRET'}
 
 
 def load_and_apply():
@@ -70,6 +73,11 @@ def get_current():
                if key not in SECRET_SETTINGS}
     for key in SECRET_SETTINGS:
         exposed[f'{key}_SET'] = bool(getattr(config, key))
+    # Computed, not editable: whether WEBUNTIS_SERVER is the hidden mock/demo
+    # server (see mock_webuntis.py), which never needs a username or
+    # password/secret - so the frontend can treat WebUntis as "configured"
+    # from the server URL alone.
+    exposed['WEBUNTIS_MOCK_MODE'] = bool(mock_webuntis.detect_mode(config.WEBUNTIS_SERVER))
     return exposed
 
 

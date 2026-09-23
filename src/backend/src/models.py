@@ -265,7 +265,7 @@ class Party:
     driver: str  # initials
     time: int  # HHMM format
     passengers: List[str]  # list of initials
-    is_designated_driver: bool
+    is_designated_driver: bool  # True if needsCar, or if no one else was a viable ride (no rides_with option existed)
     drives_despite_custom_prefs: bool
     schoolbound: bool
     is_lonely_driver: bool = False  # True if driver has skipMorning/skipAfternoon

@@ -7,6 +7,7 @@ from typing import Dict, List, Tuple
 
 import config
 import diskcache
+import mock_webuntis
 import requests
 import webuntis_client
 from webuntis_client import AuthError, BadCredentialsError, RemoteError
@@ -52,13 +53,16 @@ class TimetableService:
         self.use_cache = use_cache
         self.cache = diskcache.Cache(config.CACHE_DIR) if use_cache else None
     
-    def connect(self, username: str, password: str) -> bool:
+    def connect(self, username: str, password: str = None, secret: str = None) -> bool:
         """
         Connect to WebUntis using credentials.
 
         Args:
             username: WebUntis username
-            password: WebUntis password (hashed)
+            password: WebUntis password (hashed). Mutually exclusive with secret.
+            secret: The shared secret from WebUntis profile > Freigaben, for
+                accounts (e.g. IServ/SSO logins) that have no WebUntis
+                password of their own. Mutually exclusive with password.
 
         Returns:
             True if connection successful
@@ -68,11 +72,19 @@ class TimetableService:
                 why login failed (bad credentials, wrong server/school,
                 unreachable server, etc.) - see _describe_login_error.
         """
+        mock_mode = mock_webuntis.detect_mode(self.server)
+        if mock_mode:
+            self.session = mock_webuntis.MockSession(mock_mode, cache=self.cache)
+            self.session.login()
+            logger.info(f"Connected to the mock WebUntis server ({mock_mode} mode)")
+            return True
+
         self.session = webuntis_client.Session(
             server=self.server,
             school=self.school,
             username=username,
             password=password,
+            secret=secret,
             useragent=self.useragent
         )
         try:
@@ -86,7 +98,7 @@ class TimetableService:
         logger.info(f"Successfully connected to WebUntis for user {username}")
         return True
 
-    def test_connection(self, username: str, password: str) -> Tuple[bool, str]:
+    def test_connection(self, username: str, password: str = None, secret: str = None) -> Tuple[bool, str]:
         """
         Attempt a login + logout against this instance's server/school,
         without keeping the session around, and classify the outcome for
@@ -96,11 +108,15 @@ class TimetableService:
             (success, message) - message is a user-facing description of the
             failure (or a success confirmation).
         """
+        if mock_webuntis.detect_mode(self.server):
+            return True, 'Connection successful.'
+
         session = webuntis_client.Session(
             server=self.server,
             school=self.school,
             username=username,
             password=password,
+            secret=secret,
             useragent=self.useragent,
         )
         try:
@@ -260,6 +276,7 @@ class TimetableService:
                 end=end_int,
                 teacher=member.initials,
                 teacher_fields=["id", "name", "externalkey"],
+                is_part_time=member.is_part_time,
             )
 
             logger.info(f"Retrieved {len(periods)} periods for {member.initials}")
@@ -271,6 +288,13 @@ class TimetableService:
     
     def _query_timetable(self, member: Member, start_date: datetime, end_date: datetime) -> List[dict]:
         """Query timetable with caching support."""
+        # The dynamic mock server fabricates a brand new schedule on every
+        # query by design (see mock_webuntis.py) - caching it would defeat
+        # that entirely, returning the same stale schedule until the TTL
+        # expires.
+        if mock_webuntis.detect_mode(self.server) == 'dynamic':
+            return self._query_timetable_raw(member, start_date, end_date)
+
         # Check cache first
         if self.cache is not None:
             cache_key = self._get_cache_key(member.initials, start_date, end_date)

@@ -13,6 +13,13 @@ WEBUNTIS_USERAGENT = "github-carpoolparty-python"
 # their own username/hash to override these for a one-off login.
 WEBUNTIS_USERNAME = ""
 WEBUNTIS_PASSWORD = ""
+# Which of WEBUNTIS_PASSWORD / WEBUNTIS_SECRET to log in with ('password' or
+# 'secret'). Needed for schools where teachers sign in via SSO (e.g. IServ's
+# "Anmelden über iserv") and never have a WebUntis password of their own -
+# they can instead use the shared secret from WebUntis profile > Freigaben >
+# "Kennwort" for the mobile app, which authenticates independently of SSO.
+WEBUNTIS_AUTH_MODE = "password"
+WEBUNTIS_SECRET = ""
 
 # Template for the "open timetable" link handed to the frontend, built from
 # WEBUNTIS_SERVER so there's a single source of truth for the school's domain.
@@ -31,8 +38,8 @@ ROOM_NAME_FALLBACKS = {
 
 # Algorithm Configuration
 TIME_TOLERANCE_MINUTES = 30  # Maximum time deviation to group members together
-MAX_DRIVES_FULLTIME = 4  # Maximum drives for full-time members in 2-week cycle
-MAX_DRIVES_PARTTIME = 3  # Maximum drives for part-time members in 2-week cycle
+MAX_DRIVES_FULLTIME = 4  # Drive quota for full-time members in 2-week cycle (floor and soft ceiling)
+MAX_DRIVES_PARTTIME = 3  # Drive quota for part-time members in 2-week cycle (floor and soft ceiling)
 
 # Server Configuration
 # Both are overridable so the Tauri shell can hand the sidecar a free port and
@@ -92,7 +99,7 @@ CAPTURE_DIR = paths.data_path("captures")
 # to the client, which runs the countdown and calls /drivingplan/stop, so the UI
 # can show how long is left and let the user switch the auto-stop off mid-solve
 # without racing a server-side timer.
-SOLVER_STOP_AFTER_NO_IMPROVEMENT_SECONDS = 10.0
+SOLVER_STOP_AFTER_NO_IMPROVEMENT_SECONDS = 20.0
 
 # Wall-clock safety net for a single CP-SAT solve, on top of the no-improvement
 # stall timeout above - this limit only exists so a pathological input can't
@@ -127,17 +134,32 @@ SOLVER_RANDOM_SEED = 0
 # Tune here rather than in solver_service.py.
 #
 # Note what is deliberately *absent*: there is no term rewarding fewer total
-# drives or fewer cars on the road. A good plan is the one where the fewest
-# members exceed their MAX_DRIVES - not the one with the least driving. Members
-# driving noticeably less than their MAX_DRIVES is not a win, it is a source of
-# friction within the group, so the solver is left indifferent between two plans
-# that keep everyone inside their quota.
+# drives or fewer cars on the road. MAX_DRIVES is a quota, not just a ceiling -
+# solver_service.py enforces driving *at least* that often (capped at a
+# member's available days) as a hard constraint, since driving noticeably less
+# than MAX_DRIVES is a source of friction within the group, not a win. A good
+# plan is the one where the fewest members exceed the quota on the high side,
+# so the solver is left indifferent between two plans that both keep everyone
+# exactly at their quota.
+#
+# Priority order (highest first):
+#   1. drives_despite_prefs - never force someone to drive on a day they
+#      marked drivingSkip if it can be avoided, even at the cost of pushing
+#      someone else over quota.
+#   2. overflow - how much a member exceeds max_drives, weighted per member
+#      by 1/max_drives (solver_service divides this weight by the member's
+#      max_drives), so the same absolute overflow counts for more against a
+#      part-time member than a full-time one.
+#   3. overMax - a convex (squared) penalty on each member's overflow amount,
+#      which prefers spreading unavoidable overflow across several members
+#      over dumping it all on one (replaces the old discrete over_4/5/6
+#      thresholds with a single smooth tier).
+#   4. week_ab_mismatch / week_ab_count_imbalance - week-to-week regularity,
+#      never allowed to be bought at the price of a higher tier above.
 SOLVER_OBJECTIVE_WEIGHTS = {
-    'overflow': 10_000_000_000_000_000,   # exceeding a member's max_drives
-    'drives_despite_prefs': 10_000_000_000_000,  # driving on a drivingSkip day
-    'over_6': 100_000_000_000,            # members driving more than 6x
-    'over_5': 1_000_000_000,              # members driving more than 5x
-    'over_4': 10_000_000,                 # members driving more than 4x
+    'drives_despite_prefs': 10_000_000_000_000_000,  # driving on a drivingSkip day
+    'overflow': 1_000_000_000_000,        # exceeding a member's max_drives, scaled by 1/max_drives
+    'overMax': 1_000_000,                 # convex penalty on overflow amount, favors spreading it out
     'week_ab_mismatch': 1_000,            # weekdays driven in only one of the two weeks
     'week_ab_count_imbalance': 1,         # week A/B drive-count swing beyond the unavoidable 1
 }

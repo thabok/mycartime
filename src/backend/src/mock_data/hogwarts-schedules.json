@@ -1,0 +1,5266 @@
+[
+  {
+    "scheduleId": 0,
+    "isPartTime": false,
+    "days": {
+      "0": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "CoMC"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "DADA"
+        }
+      ],
+      "1": [
+        {
+          "start": "07:45",
+          "end": "08:00",
+          "type": "supervision",
+          "short": "EnHW"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Pot"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "MgSt"
+        }
+      ],
+      "2": [],
+      "3": [
+        {
+          "start": "11:15",
+          "end": "11:45",
+          "type": "supervision",
+          "short": "EnHW"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "DADA"
+        }
+      ],
+      "4": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "MgSt"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Div"
+        }
+      ],
+      "5": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "CoMC"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "DADA"
+        }
+      ],
+      "6": [
+        {
+          "start": "07:45",
+          "end": "08:00",
+          "type": "supervision",
+          "short": "EnHW"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Pot"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "MgSt"
+        }
+      ],
+      "7": [],
+      "8": [
+        {
+          "start": "11:15",
+          "end": "11:45",
+          "type": "supervision",
+          "short": "EnHW"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "DADA"
+        }
+      ],
+      "9": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "MgSt"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Div"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 1,
+    "isPartTime": false,
+    "days": {
+      "0": [
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "CoMC"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Arth"
+        }
+      ],
+      "1": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "CoMC"
+        }
+      ],
+      "2": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "09:30",
+          "end": "09:45",
+          "type": "supervision",
+          "short": "CorP"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Alch"
+        }
+      ],
+      "3": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Ast"
+        }
+      ],
+      "4": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Trf"
+        }
+      ],
+      "5": [
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "CoMC"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Arth"
+        }
+      ],
+      "6": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "CoMC"
+        }
+      ],
+      "7": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "09:30",
+          "end": "09:45",
+          "type": "supervision",
+          "short": "CorP"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Alch"
+        }
+      ],
+      "8": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Ast"
+        }
+      ],
+      "9": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Trf"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 2,
+    "isPartTime": false,
+    "days": {
+      "0": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Arth"
+        },
+        {
+          "start": "11:15",
+          "end": "11:45",
+          "type": "supervision",
+          "short": "CtyW"
+        },
+        {
+          "start": "13:15",
+          "end": "14:00",
+          "type": "supervision",
+          "short": "EnHW"
+        }
+      ],
+      "1": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Div"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Trf"
+        }
+      ],
+      "2": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Arth"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "MgSt"
+        }
+      ],
+      "3": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "4": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "CoMC"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Alch"
+        }
+      ],
+      "5": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Arth"
+        },
+        {
+          "start": "11:15",
+          "end": "11:45",
+          "type": "supervision",
+          "short": "CtyW"
+        },
+        {
+          "start": "13:15",
+          "end": "14:00",
+          "type": "supervision",
+          "short": "EnHW"
+        }
+      ],
+      "6": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Div"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Trf"
+        }
+      ],
+      "7": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Arth"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "MgSt"
+        }
+      ],
+      "8": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "9": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "CoMC"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "MgSt"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Alch"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 3,
+    "isPartTime": true,
+    "days": {
+      "0": [
+        {
+          "start": "09:30",
+          "end": "09:45",
+          "type": "supervision",
+          "short": "LibD"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "AnRu"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Chm"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "CoMC"
+        }
+      ],
+      "1": [
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "CoMC"
+        }
+      ],
+      "2": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "CoMC"
+        }
+      ],
+      "3": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Pot"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "4": [],
+      "5": [
+        {
+          "start": "09:30",
+          "end": "09:45",
+          "type": "supervision",
+          "short": "LibD"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "AnRu"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Chm"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "CoMC"
+        }
+      ],
+      "6": [
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "CoMC"
+        }
+      ],
+      "7": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "CoMC"
+        }
+      ],
+      "8": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "9": []
+    }
+  },
+  {
+    "scheduleId": 4,
+    "isPartTime": false,
+    "days": {
+      "0": [
+        {
+          "start": "07:45",
+          "end": "08:00",
+          "type": "supervision",
+          "short": "GHD"
+        },
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Pot"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "MgSt"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Qdd"
+        }
+      ],
+      "1": [
+        {
+          "start": "11:15",
+          "end": "11:45",
+          "type": "supervision",
+          "short": "PrfB"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Hrb"
+        }
+      ],
+      "2": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Div"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Hrb"
+        }
+      ],
+      "3": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Pot"
+        }
+      ],
+      "4": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "CoMC"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Trf"
+        }
+      ],
+      "5": [
+        {
+          "start": "07:45",
+          "end": "08:00",
+          "type": "supervision",
+          "short": "GHD"
+        },
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Pot"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "MgSt"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Qdd"
+        }
+      ],
+      "6": [
+        {
+          "start": "11:15",
+          "end": "11:45",
+          "type": "supervision",
+          "short": "PrfB"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Hrb"
+        }
+      ],
+      "7": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Div"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Hrb"
+        }
+      ],
+      "8": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Pot"
+        }
+      ],
+      "9": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "CoMC"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Trf"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 5,
+    "isPartTime": false,
+    "days": {
+      "0": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Arth"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "DADA"
+        }
+      ],
+      "1": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Div"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "15:30",
+          "end": "15:40",
+          "type": "supervision",
+          "short": "OwlW"
+        }
+      ],
+      "2": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Fly"
+        }
+      ],
+      "3": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "4": [
+        {
+          "start": "09:30",
+          "end": "09:45",
+          "type": "supervision",
+          "short": "PrfB"
+        }
+      ],
+      "5": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Arth"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "DADA"
+        }
+      ],
+      "6": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Pot"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "15:30",
+          "end": "15:40",
+          "type": "supervision",
+          "short": "OwlW"
+        }
+      ],
+      "7": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Fly"
+        }
+      ],
+      "8": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "9": [
+        {
+          "start": "09:30",
+          "end": "09:45",
+          "type": "supervision",
+          "short": "PrfB"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 6,
+    "isPartTime": false,
+    "days": {
+      "0": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Div"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Alch"
+        }
+      ],
+      "1": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Fly"
+        }
+      ],
+      "2": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "11:15",
+          "end": "11:45",
+          "type": "supervision",
+          "short": "OwlW"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Arth"
+        }
+      ],
+      "3": [
+        {
+          "start": "07:45",
+          "end": "08:00",
+          "type": "supervision",
+          "short": "OwlW"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Fly"
+        }
+      ],
+      "4": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Pot"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Trf"
+        }
+      ],
+      "5": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Div"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Alch"
+        }
+      ],
+      "6": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Fly"
+        }
+      ],
+      "7": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "11:15",
+          "end": "11:45",
+          "type": "supervision",
+          "short": "OwlW"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Arth"
+        }
+      ],
+      "8": [
+        {
+          "start": "07:45",
+          "end": "08:00",
+          "type": "supervision",
+          "short": "OwlW"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Fly"
+        }
+      ],
+      "9": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Pot"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Trf"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 7,
+    "isPartTime": true,
+    "days": {
+      "0": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "AnRu"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "1": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "DADA"
+        }
+      ],
+      "2": [
+        {
+          "start": "07:45",
+          "end": "08:00",
+          "type": "supervision",
+          "short": "LibD"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "MgSt"
+        }
+      ],
+      "3": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Pot"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Hrb"
+        }
+      ],
+      "4": [],
+      "5": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "AnRu"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "6": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "DADA"
+        }
+      ],
+      "7": [
+        {
+          "start": "07:45",
+          "end": "08:00",
+          "type": "supervision",
+          "short": "LibD"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "MgSt"
+        }
+      ],
+      "8": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Pot"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Hrb"
+        }
+      ],
+      "9": []
+    }
+  },
+  {
+    "scheduleId": 8,
+    "isPartTime": false,
+    "days": {
+      "0": [
+        {
+          "start": "15:30",
+          "end": "15:40",
+          "type": "supervision",
+          "short": "OwlW"
+        }
+      ],
+      "1": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "HoM"
+        }
+      ],
+      "2": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Chm"
+        }
+      ],
+      "3": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Alch"
+        }
+      ],
+      "4": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "15:30",
+          "end": "15:40",
+          "type": "supervision",
+          "short": "CtyW"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Trf"
+        }
+      ],
+      "5": [
+        {
+          "start": "15:30",
+          "end": "15:40",
+          "type": "supervision",
+          "short": "OwlW"
+        }
+      ],
+      "6": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "HoM"
+        }
+      ],
+      "7": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Chm"
+        }
+      ],
+      "8": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Hrb"
+        }
+      ],
+      "9": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "15:30",
+          "end": "15:40",
+          "type": "supervision",
+          "short": "CtyW"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Ast"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 9,
+    "isPartTime": false,
+    "days": {
+      "0": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "MgSt"
+        }
+      ],
+      "1": [
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "DADA"
+        }
+      ],
+      "2": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "AnRu"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Chm"
+        },
+        {
+          "start": "13:15",
+          "end": "14:00",
+          "type": "supervision",
+          "short": "GHD"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "3": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Arth"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Chm"
+        }
+      ],
+      "4": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Div"
+        }
+      ],
+      "5": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "MgSt"
+        }
+      ],
+      "6": [
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "DADA"
+        }
+      ],
+      "7": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "AnRu"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Chm"
+        },
+        {
+          "start": "13:15",
+          "end": "14:00",
+          "type": "supervision",
+          "short": "GHD"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "8": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Arth"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Chm"
+        }
+      ],
+      "9": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Div"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 10,
+    "isPartTime": false,
+    "days": {
+      "0": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "MgSt"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Trf"
+        }
+      ],
+      "1": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Fly"
+        }
+      ],
+      "2": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "CoMC"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Chm"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Qdd"
+        }
+      ],
+      "3": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Chm"
+        }
+      ],
+      "4": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Pot"
+        },
+        {
+          "start": "11:15",
+          "end": "11:45",
+          "type": "supervision",
+          "short": "PrfB"
+        }
+      ],
+      "5": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "MgSt"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Trf"
+        }
+      ],
+      "6": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Fly"
+        }
+      ],
+      "7": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "CoMC"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Chm"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Qdd"
+        }
+      ],
+      "8": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Chm"
+        }
+      ],
+      "9": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Pot"
+        },
+        {
+          "start": "11:15",
+          "end": "11:45",
+          "type": "supervision",
+          "short": "PrfB"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 11,
+    "isPartTime": true,
+    "days": {
+      "0": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "CoMC"
+        }
+      ],
+      "1": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "13:15",
+          "end": "14:00",
+          "type": "supervision",
+          "short": "LibD"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "HoM"
+        }
+      ],
+      "2": [],
+      "3": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Pot"
+        }
+      ],
+      "4": [
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Chm"
+        }
+      ],
+      "5": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "MgSt"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "CoMC"
+        }
+      ],
+      "6": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "13:15",
+          "end": "14:00",
+          "type": "supervision",
+          "short": "LibD"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "HoM"
+        }
+      ],
+      "7": [],
+      "8": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Pot"
+        }
+      ],
+      "9": [
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Chm"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 12,
+    "isPartTime": false,
+    "days": {
+      "0": [
+        {
+          "start": "07:45",
+          "end": "08:00",
+          "type": "supervision",
+          "short": "EnHW"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Chm"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Qdd"
+        }
+      ],
+      "1": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "13:15",
+          "end": "14:00",
+          "type": "supervision",
+          "short": "GHD"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Alch"
+        }
+      ],
+      "2": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "CoMC"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "DADA"
+        }
+      ],
+      "3": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "4": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Div"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "CoMC"
+        }
+      ],
+      "5": [
+        {
+          "start": "07:45",
+          "end": "08:00",
+          "type": "supervision",
+          "short": "EnHW"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Chm"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Qdd"
+        }
+      ],
+      "6": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "13:15",
+          "end": "14:00",
+          "type": "supervision",
+          "short": "GHD"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Alch"
+        }
+      ],
+      "7": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "CoMC"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "DADA"
+        }
+      ],
+      "8": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "9": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Div"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "CoMC"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 13,
+    "isPartTime": false,
+    "days": {
+      "0": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "1": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "MgSt"
+        }
+      ],
+      "2": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "AnRu"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "HoM"
+        }
+      ],
+      "3": [
+        {
+          "start": "07:45",
+          "end": "08:00",
+          "type": "supervision",
+          "short": "EnHW"
+        },
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "09:30",
+          "end": "09:45",
+          "type": "supervision",
+          "short": "CorP"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "4": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Chm"
+        }
+      ],
+      "5": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "6": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "MgSt"
+        }
+      ],
+      "7": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "AnRu"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "HoM"
+        }
+      ],
+      "8": [
+        {
+          "start": "07:45",
+          "end": "08:00",
+          "type": "supervision",
+          "short": "EnHW"
+        },
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "09:30",
+          "end": "09:45",
+          "type": "supervision",
+          "short": "CorP"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "9": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Chm"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 14,
+    "isPartTime": false,
+    "days": {
+      "0": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Chm"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "CoMC"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "HoM"
+        }
+      ],
+      "1": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Pot"
+        }
+      ],
+      "2": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "HoM"
+        }
+      ],
+      "3": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "CoMC"
+        }
+      ],
+      "4": [
+        {
+          "start": "07:45",
+          "end": "08:00",
+          "type": "supervision",
+          "short": "CtyW"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "CoMC"
+        }
+      ],
+      "5": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Chm"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "CoMC"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "HoM"
+        }
+      ],
+      "6": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Pot"
+        }
+      ],
+      "7": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "HoM"
+        }
+      ],
+      "8": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Div"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "CoMC"
+        }
+      ],
+      "9": [
+        {
+          "start": "07:45",
+          "end": "08:00",
+          "type": "supervision",
+          "short": "CtyW"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "CoMC"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 15,
+    "isPartTime": true,
+    "days": {
+      "0": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Ast"
+        }
+      ],
+      "1": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "15:30",
+          "end": "15:40",
+          "type": "supervision",
+          "short": "LibD"
+        }
+      ],
+      "2": [],
+      "3": [
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Alch"
+        }
+      ],
+      "4": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Arth"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Trf"
+        }
+      ],
+      "5": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Ast"
+        }
+      ],
+      "6": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "15:30",
+          "end": "15:40",
+          "type": "supervision",
+          "short": "LibD"
+        }
+      ],
+      "7": [],
+      "8": [
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Alch"
+        }
+      ],
+      "9": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Arth"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Trf"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 16,
+    "isPartTime": false,
+    "days": {
+      "0": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "HoM"
+        }
+      ],
+      "1": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "13:15",
+          "end": "14:00",
+          "type": "supervision",
+          "short": "OwlW"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Hrb"
+        }
+      ],
+      "2": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "DADA"
+        }
+      ],
+      "3": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "13:15",
+          "end": "14:00",
+          "type": "supervision",
+          "short": "OwlW"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Arth"
+        }
+      ],
+      "4": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Qdd"
+        }
+      ],
+      "5": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "HoM"
+        }
+      ],
+      "6": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "13:15",
+          "end": "14:00",
+          "type": "supervision",
+          "short": "OwlW"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Chm"
+        }
+      ],
+      "7": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Hrb"
+        }
+      ],
+      "8": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "13:15",
+          "end": "14:00",
+          "type": "supervision",
+          "short": "OwlW"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Arth"
+        }
+      ],
+      "9": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Qdd"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 17,
+    "isPartTime": false,
+    "days": {
+      "0": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "AnRu"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "CoMC"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Chm"
+        }
+      ],
+      "1": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "15:30",
+          "end": "15:40",
+          "type": "supervision",
+          "short": "GHD"
+        }
+      ],
+      "2": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Div"
+        },
+        {
+          "start": "11:15",
+          "end": "11:45",
+          "type": "supervision",
+          "short": "GHD"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Div"
+        }
+      ],
+      "3": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Div"
+        }
+      ],
+      "4": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Chm"
+        }
+      ],
+      "5": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "AnRu"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "CoMC"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Chm"
+        }
+      ],
+      "6": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "15:30",
+          "end": "15:40",
+          "type": "supervision",
+          "short": "GHD"
+        }
+      ],
+      "7": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Div"
+        },
+        {
+          "start": "11:15",
+          "end": "11:45",
+          "type": "supervision",
+          "short": "GHD"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Chm"
+        }
+      ],
+      "8": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Chm"
+        }
+      ],
+      "9": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "AnRu"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Chm"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 18,
+    "isPartTime": false,
+    "days": {
+      "0": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Pot"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Pot"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Div"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Arth"
+        }
+      ],
+      "1": [
+        {
+          "start": "07:45",
+          "end": "08:00",
+          "type": "supervision",
+          "short": "CtyW"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Div"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "HoM"
+        }
+      ],
+      "2": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "HoM"
+        }
+      ],
+      "3": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Trf"
+        }
+      ],
+      "4": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "15:30",
+          "end": "15:40",
+          "type": "supervision",
+          "short": "LibD"
+        }
+      ],
+      "5": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Pot"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Pot"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Div"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Arth"
+        }
+      ],
+      "6": [
+        {
+          "start": "07:45",
+          "end": "08:00",
+          "type": "supervision",
+          "short": "CtyW"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Div"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "HoM"
+        }
+      ],
+      "7": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Ast"
+        }
+      ],
+      "8": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Chm"
+        }
+      ],
+      "9": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Chm"
+        },
+        {
+          "start": "15:30",
+          "end": "15:40",
+          "type": "supervision",
+          "short": "LibD"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 19,
+    "isPartTime": true,
+    "days": {
+      "0": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Chm"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Hrb"
+        }
+      ],
+      "1": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Arth"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "2": [],
+      "3": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Pot"
+        }
+      ],
+      "4": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Div"
+        },
+        {
+          "start": "09:30",
+          "end": "09:45",
+          "type": "supervision",
+          "short": "EnHW"
+        }
+      ],
+      "5": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Chm"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Hrb"
+        }
+      ],
+      "6": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Arth"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "7": [],
+      "8": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Pot"
+        }
+      ],
+      "9": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Div"
+        },
+        {
+          "start": "09:30",
+          "end": "09:45",
+          "type": "supervision",
+          "short": "EnHW"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 20,
+    "isPartTime": false,
+    "days": {
+      "0": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Chm"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Div"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "1": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "15:30",
+          "end": "15:40",
+          "type": "supervision",
+          "short": "GHD"
+        }
+      ],
+      "2": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Pot"
+        }
+      ],
+      "3": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "CoMC"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Ast"
+        }
+      ],
+      "4": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Ast"
+        }
+      ],
+      "5": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Chm"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Div"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "6": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "15:30",
+          "end": "15:40",
+          "type": "supervision",
+          "short": "GHD"
+        }
+      ],
+      "7": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Pot"
+        }
+      ],
+      "8": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "CoMC"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Ast"
+        }
+      ],
+      "9": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Ast"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 21,
+    "isPartTime": false,
+    "days": {
+      "0": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Ast"
+        }
+      ],
+      "1": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Div"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Pot"
+        }
+      ],
+      "2": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Trf"
+        }
+      ],
+      "3": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "11:15",
+          "end": "11:45",
+          "type": "supervision",
+          "short": "PrfB"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Pot"
+        }
+      ],
+      "4": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Div"
+        }
+      ],
+      "5": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Ast"
+        }
+      ],
+      "6": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Div"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Pot"
+        }
+      ],
+      "7": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Trf"
+        }
+      ],
+      "8": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "CoMC"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "11:15",
+          "end": "11:45",
+          "type": "supervision",
+          "short": "PrfB"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Pot"
+        }
+      ],
+      "9": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Div"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 22,
+    "isPartTime": false,
+    "days": {
+      "0": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Arth"
+        },
+        {
+          "start": "13:15",
+          "end": "14:00",
+          "type": "supervision",
+          "short": "PrfB"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Chm"
+        }
+      ],
+      "1": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Div"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Div"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "AnRu"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Pot"
+        }
+      ],
+      "2": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "MgSt"
+        }
+      ],
+      "3": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Div"
+        }
+      ],
+      "4": [
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "HoM"
+        }
+      ],
+      "5": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Arth"
+        },
+        {
+          "start": "13:15",
+          "end": "14:00",
+          "type": "supervision",
+          "short": "PrfB"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Chm"
+        }
+      ],
+      "6": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "MgSt"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "AnRu"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Pot"
+        }
+      ],
+      "7": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "MgSt"
+        }
+      ],
+      "8": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Div"
+        }
+      ],
+      "9": [
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "HoM"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 23,
+    "isPartTime": true,
+    "days": {
+      "0": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Alch"
+        }
+      ],
+      "1": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "HoM"
+        }
+      ],
+      "2": [
+        {
+          "start": "11:15",
+          "end": "11:45",
+          "type": "supervision",
+          "short": "EnHW"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "3": [],
+      "4": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Qdd"
+        }
+      ],
+      "5": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Alch"
+        }
+      ],
+      "6": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "HoM"
+        }
+      ],
+      "7": [
+        {
+          "start": "11:15",
+          "end": "11:45",
+          "type": "supervision",
+          "short": "EnHW"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "8": [],
+      "9": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Fly"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 24,
+    "isPartTime": false,
+    "days": {
+      "0": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Pot"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Trf"
+        }
+      ],
+      "1": [
+        {
+          "start": "07:45",
+          "end": "08:00",
+          "type": "supervision",
+          "short": "PrfB"
+        },
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "AnRu"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "MgSt"
+        }
+      ],
+      "2": [
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Qdd"
+        }
+      ],
+      "3": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "HoM"
+        }
+      ],
+      "4": [
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Pot"
+        }
+      ],
+      "5": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "DADA"
+        }
+      ],
+      "6": [
+        {
+          "start": "07:45",
+          "end": "08:00",
+          "type": "supervision",
+          "short": "PrfB"
+        },
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "MgSt"
+        }
+      ],
+      "7": [
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Qdd"
+        }
+      ],
+      "8": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "HoM"
+        }
+      ],
+      "9": [
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Pot"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 25,
+    "isPartTime": false,
+    "days": {
+      "0": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Pot"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "1": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Arth"
+        }
+      ],
+      "2": [
+        {
+          "start": "07:45",
+          "end": "08:00",
+          "type": "supervision",
+          "short": "EnHW"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Pot"
+        }
+      ],
+      "3": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Chm"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Fly"
+        }
+      ],
+      "4": [
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "5": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Pot"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "6": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Arth"
+        }
+      ],
+      "7": [
+        {
+          "start": "07:45",
+          "end": "08:00",
+          "type": "supervision",
+          "short": "EnHW"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Pot"
+        }
+      ],
+      "8": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Chm"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Fly"
+        }
+      ],
+      "9": [
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 26,
+    "isPartTime": false,
+    "days": {
+      "0": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "MgSt"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Div"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "HoM"
+        }
+      ],
+      "1": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Arth"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Ast"
+        }
+      ],
+      "2": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Chm"
+        },
+        {
+          "start": "11:15",
+          "end": "11:45",
+          "type": "supervision",
+          "short": "CorP"
+        }
+      ],
+      "3": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Chm"
+        }
+      ],
+      "4": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Chm"
+        }
+      ],
+      "5": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "MgSt"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "HoM"
+        }
+      ],
+      "6": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Arth"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Ast"
+        }
+      ],
+      "7": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Ast"
+        },
+        {
+          "start": "11:15",
+          "end": "11:45",
+          "type": "supervision",
+          "short": "CorP"
+        }
+      ],
+      "8": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Chm"
+        }
+      ],
+      "9": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Chm"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 27,
+    "isPartTime": true,
+    "days": {
+      "0": [],
+      "1": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "AnRu"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Hrb"
+        }
+      ],
+      "2": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Ast"
+        }
+      ],
+      "3": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Arth"
+        }
+      ],
+      "4": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Arth"
+        },
+        {
+          "start": "13:15",
+          "end": "14:00",
+          "type": "supervision",
+          "short": "LibD"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "CoMC"
+        }
+      ],
+      "5": [],
+      "6": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "AnRu"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Hrb"
+        }
+      ],
+      "7": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Ast"
+        }
+      ],
+      "8": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Arth"
+        }
+      ],
+      "9": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Fly"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Arth"
+        },
+        {
+          "start": "13:15",
+          "end": "14:00",
+          "type": "supervision",
+          "short": "LibD"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "CoMC"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 28,
+    "isPartTime": false,
+    "days": {
+      "0": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Ast"
+        }
+      ],
+      "1": [
+        {
+          "start": "07:45",
+          "end": "08:00",
+          "type": "supervision",
+          "short": "GHD"
+        },
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Chm"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "2": [
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "15:30",
+          "end": "15:40",
+          "type": "supervision",
+          "short": "OwlW"
+        }
+      ],
+      "3": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "MgSt"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "CoMC"
+        }
+      ],
+      "4": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Arth"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Trf"
+        }
+      ],
+      "5": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "DADA"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Trf"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Ast"
+        }
+      ],
+      "6": [
+        {
+          "start": "07:45",
+          "end": "08:00",
+          "type": "supervision",
+          "short": "GHD"
+        },
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Chm"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ],
+      "7": [
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "15:30",
+          "end": "15:40",
+          "type": "supervision",
+          "short": "OwlW"
+        }
+      ],
+      "8": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Qdd"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "CoMC"
+        }
+      ],
+      "9": [
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Hrb"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "Arth"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "AnRu"
+        }
+      ]
+    }
+  },
+  {
+    "scheduleId": 29,
+    "isPartTime": false,
+    "days": {
+      "0": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Chm"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Pot"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Pot"
+        }
+      ],
+      "1": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "AnRu"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Alch"
+        }
+      ],
+      "2": [
+        {
+          "start": "07:45",
+          "end": "08:00",
+          "type": "supervision",
+          "short": "CorP"
+        },
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Arth"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Chm"
+        }
+      ],
+      "3": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "09:30",
+          "end": "09:45",
+          "type": "supervision",
+          "short": "PrfB"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "MgSt"
+        }
+      ],
+      "4": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Pot"
+        }
+      ],
+      "5": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Chm"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "Pot"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Pot"
+        }
+      ],
+      "6": [
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "AnRu"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Alch"
+        }
+      ],
+      "7": [
+        {
+          "start": "07:45",
+          "end": "08:00",
+          "type": "supervision",
+          "short": "CorP"
+        },
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Arth"
+        },
+        {
+          "start": "15:40",
+          "end": "17:10",
+          "type": "lesson",
+          "short": "Ast"
+        }
+      ],
+      "8": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "09:30",
+          "end": "09:45",
+          "type": "supervision",
+          "short": "PrfB"
+        },
+        {
+          "start": "14:00",
+          "end": "15:30",
+          "type": "lesson",
+          "short": "MgSt"
+        }
+      ],
+      "9": [
+        {
+          "start": "08:00",
+          "end": "09:30",
+          "type": "lesson",
+          "short": "Alch"
+        },
+        {
+          "start": "09:45",
+          "end": "11:15",
+          "type": "lesson",
+          "short": "HoM"
+        },
+        {
+          "start": "11:45",
+          "end": "13:15",
+          "type": "lesson",
+          "short": "Pot"
+        }
+      ]
+    }
+  }
+]

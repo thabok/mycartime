@@ -61,10 +61,10 @@ it's a different kind of algorithm.
 `solver_service.py` models the whole 10-day cycle as a single constraint
 program: who drives each leg, who rides with whom, and an explicit objective
 function that mirrors the same fairness/quality metrics the greedy engine
-was informally trying to approximate (never exceed `max_drives` unless
-truly unavoidable; minimize the number of people driving more than 6, then
-5, then 4 times; minimize total drives; prefer fewer, fuller cars). See
-`algorithm-with-solver.md` for the full modeling writeup.
+was informally trying to approximate (treat `max_drives` as a quota - never
+under it, and never over it unless truly unavoidable; minimize the number of
+people driving more than 6, then 5, then 4 times; prefer fewer, fuller cars).
+See `algorithm-with-solver.md` for the full modeling writeup.
 
 This isn't a smarter heuristic bolted onto the same approach - it replaces
 tie-break guesswork with a solver that can consider the entire assignment at

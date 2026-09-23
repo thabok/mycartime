@@ -40,6 +40,7 @@ from datetime import datetime
 
 import assistant_service
 import config
+import mock_webuntis
 import paths
 import requests
 import user_settings
@@ -129,28 +130,48 @@ _plan_jobs_lock = threading.Lock()
 
 def _resolve_webuntis_credentials(data: dict):
     """
-    Username/password for a WebUntis-backed request: an explicit
-    username/hash in the payload takes priority, falling back to whatever is
-    saved via the Settings dialog (see user_settings.py) so the frontend
-    doesn't have to resend them once stored there.
+    Username + password-or-secret for a WebUntis-backed request: an explicit
+    username/hash (or username/secretHash, for IServ/SSO accounts using the
+    WebUntis mobile secret instead of a password) in the payload takes
+    priority, falling back to whatever is saved via the Settings dialog (see
+    user_settings.py) so the frontend doesn't have to resend them once
+    stored there.
 
     Returns:
-        (username, password)
+        (username, password, secret) - exactly one of password/secret is set
 
     Raises:
         ValueError: no credentials were supplied in the request and none are stored
     """
     username = (data.get('username') or '').strip()
     hash_value = data.get('hash')
+    secret_hash = data.get('secretHash')
+
     if username and hash_value:
         try:
             password = base64.b64decode(hash_value).decode('utf-8')
         except Exception:
             raise ValueError('Invalid hash: expected base64-encoded password')
-        return username, password
+        return username, password, None
+
+    if username and secret_hash:
+        try:
+            secret = base64.b64decode(secret_hash).decode('utf-8')
+        except Exception:
+            raise ValueError('Invalid secretHash: expected base64-encoded secret key')
+        return username, None, secret
+
+    # The hidden mock/demo server (see mock_webuntis.py) never checks a
+    # password or secret - TimetableService.connect()/test_connection() skip
+    # Session/login entirely for it - so it works with no stored credentials.
+    if mock_webuntis.detect_mode(config.WEBUNTIS_SERVER):
+        return username or config.WEBUNTIS_USERNAME or 'mock-user', None, None
+
+    if config.WEBUNTIS_USERNAME and config.WEBUNTIS_AUTH_MODE == 'secret' and config.WEBUNTIS_SECRET:
+        return config.WEBUNTIS_USERNAME, None, config.WEBUNTIS_SECRET
 
     if config.WEBUNTIS_USERNAME and config.WEBUNTIS_PASSWORD:
-        return config.WEBUNTIS_USERNAME, config.WEBUNTIS_PASSWORD
+        return config.WEBUNTIS_USERNAME, config.WEBUNTIS_PASSWORD, None
 
     raise ValueError('WebUntis credentials required: none were supplied and none are stored')
 
@@ -218,7 +239,9 @@ def test_webuntis_connection():
         "server": "...",
         "school": "...",
         "username": "...",
-        "password": "..."
+        "authMode": "password" | "secret",
+        "password": "...",
+        "secret": "..."
     }
 
     Returns:
@@ -229,15 +252,26 @@ def test_webuntis_connection():
     server = (data.get('server') if 'server' in data else config.WEBUNTIS_SERVER) or ''
     school = data.get('school') if 'school' in data else config.WEBUNTIS_SCHOOL
     username = (data.get('username') or config.WEBUNTIS_USERNAME or '').strip()
-    password = data.get('password') or config.WEBUNTIS_PASSWORD or ''
+    auth_mode = data.get('authMode') or config.WEBUNTIS_AUTH_MODE
+    password = data.get('password') if 'password' in data else config.WEBUNTIS_PASSWORD
+    secret = data.get('secret') if 'secret' in data else config.WEBUNTIS_SECRET
 
     if not server.strip():
         return jsonify({'success': False, 'error': 'Server URL is required.'}), 200
-    if not username or not password:
-        return jsonify({'success': False, 'error': 'Username and password are required.'}), 200
+    if mock_webuntis.detect_mode(server.strip()):
+        password = None
+        secret = None
+    elif auth_mode == 'secret':
+        password = None
+        if not username or not secret:
+            return jsonify({'success': False, 'error': 'Username and secret key are required.'}), 200
+    else:
+        secret = None
+        if not username or not password:
+            return jsonify({'success': False, 'error': 'Username and password are required.'}), 200
 
     with TimetableService(server=server.strip(), school=school, use_cache=False) as timetable_service:
-        success, message = timetable_service.test_connection(username, password)
+        success, message = timetable_service.test_connection(username, password=password, secret=secret)
 
     return jsonify({'success': success, 'error': None if success else message}), 200
 
@@ -266,13 +300,13 @@ def suggested_reference_date():
             return jsonify({'error': 'No JSON data provided'}), 400
 
         try:
-            username, password = _resolve_webuntis_credentials(data)
+            username, password, secret = _resolve_webuntis_credentials(data)
         except ValueError as e:
             return jsonify({'error': str(e)}), 400
 
         with TimetableService() as timetable_service:
             try:
-                timetable_service.connect(username, password)
+                timetable_service.connect(username, password=password, secret=secret)
             except WebUntisConnectionError as e:
                 return jsonify({'error': str(e)}), 502
 
@@ -316,7 +350,7 @@ def member_timetable_detail():
                 return jsonify({'error': f'Missing required field: {field}'}), 400
 
         try:
-            username, password = _resolve_webuntis_credentials(data)
+            username, password, secret = _resolve_webuntis_credentials(data)
         except ValueError as e:
             return jsonify({'error': str(e)}), 400
 
@@ -337,7 +371,7 @@ def member_timetable_detail():
 
         with TimetableService() as timetable_service:
             try:
-                timetable_service.connect(username, password)
+                timetable_service.connect(username, password=password, secret=secret)
             except WebUntisConnectionError as e:
                 return jsonify({'error': str(e)}), 502
 
@@ -384,14 +418,15 @@ def calculate_drivingplan():
             if field not in data:
                 return jsonify({'error': f'Missing required field: {field}'}), 400
 
-        username, password = _resolve_webuntis_credentials(data)
+        username, password, secret = _resolve_webuntis_credentials(data)
 
         # Call core business logic
         driving_plan = calculate_driving_plan_logic(
             persons_data=data['persons'],
             start_date_str=data['scheduleReferenceStartDate'],
             username=username,
-            password=password
+            password=password,
+            secret=secret,
         )
         
         # Convert to JSON and return
@@ -441,7 +476,7 @@ def calculate_drivingplan_stream():
             return jsonify({'error': f'Missing required field: {field}'}), 400
 
     try:
-        username, password = _resolve_webuntis_credentials(data)
+        username, password, secret = _resolve_webuntis_credentials(data)
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
 
@@ -463,6 +498,7 @@ def calculate_drivingplan_stream():
                 start_date_str=start_date_str,
                 username=username,
                 password=password,
+                secret=secret,
                 progress=events.put,
                 stop_event=stop_event,
             )
@@ -577,17 +613,19 @@ def _solve_stats_payload(stats):
     }
 
 
-def calculate_driving_plan_logic(persons_data, start_date_str, username, password,
+def calculate_driving_plan_logic(persons_data, start_date_str, username, password=None, secret=None,
                                  progress=None, stop_event=None):
     """
     Core business logic for calculating driving plan.
     Separated from HTTP layer to allow direct invocation.
-    
+
     Args:
         persons_data: List of person dictionaries
         start_date_str: Date string in YYYYMMDD format
         username: WebUntis username
-        password: WebUntis password (decoded)
+        password: WebUntis password (decoded). Mutually exclusive with secret.
+        secret: WebUntis mobile secret (see webuntis_client._totp). Mutually
+            exclusive with password.
         progress: Optional callable taking a JSON-serializable event dict, used
             by the streaming endpoint to report phases and intermediate solver
             solutions. None for the plain (blocking) endpoint.
@@ -637,7 +675,7 @@ def calculate_driving_plan_logic(persons_data, start_date_str, username, passwor
     # Connect to timetable provider and get schedules
     with TimetableService() as timetable_service:
         try:
-            timetable_service.connect(username, password)
+            timetable_service.connect(username, password=password, secret=secret)
         except WebUntisConnectionError as e:
             # Surfaced to the user as-is (see ValueError handling in both
             # /drivingplan and /drivingplan/stream): a user-facing message

@@ -7,7 +7,11 @@ schoolyears, subject/room/class name lookups, and a teacher's timetable
 queried by name (the one feature the fork added on top of upstream
 python-webuntis, since upstream only supported numeric teacher IDs).
 """
+import base64
+import hashlib
+import hmac
 import re
+import struct
 import time
 from dataclasses import dataclass
 from datetime import datetime
@@ -86,14 +90,37 @@ def _parse_date(value: int) -> datetime:
     return datetime.strptime(str(value), '%Y%m%d')
 
 
+def _totp(secret: str, digits: int = 6, period: int = 30) -> int:
+    """
+    RFC 6238 TOTP, computed from the Base32 "Schlüssel" shown alongside the
+    WebUntis mobile app QR code (profile > Freigaben). This is the same
+    secret WebUntis's own mobile app uses, so it authenticates independently
+    of however the user signs into the web page (password or an SSO
+    provider like IServ's "Anmelden über iserv", which has no equivalent
+    JSON-RPC login).
+    """
+    padded = secret.strip().upper()
+    padded += '=' * (-len(padded) % 8)
+    key = base64.b32decode(padded)
+    counter = struct.pack('>Q', int(time.time()) // period)
+    digest = hmac.new(key, counter, hashlib.sha1).digest()
+    offset = digest[-1] & 0x0F
+    code = (struct.unpack('>I', digest[offset:offset + 4])[0] & 0x7fffffff) % (10 ** digits)
+    return code
+
+
 class Session:
     """A WebUntis JSON-RPC 2.0 session (login, query, logout)."""
 
-    def __init__(self, server: str, school: str, username: str, password: str, useragent: str):
+    def __init__(self, server: str, school: str, username: str, useragent: str,
+                 password: Optional[str] = None, secret: Optional[str] = None):
+        if not password and not secret:
+            raise ValueError('Session requires either a password or a secret')
         self.url = _normalize_server_url(server) + '?school=' + school
         self.useragent = useragent
         self.username = username
         self.password = password
+        self.secret = secret
         self._jsessionid: Optional[str] = None
         self._http = requests.Session()
 
@@ -103,6 +130,9 @@ class Session:
             BadCredentialsError, AuthError, RemoteError: see _request.
             requests.exceptions.RequestException: on network-level failures.
         """
+        if self.secret:
+            return self._login_with_secret()
+
         result = self._request('authenticate', {
             'user': self.username,
             'password': self.password,
@@ -112,6 +142,50 @@ class Session:
         if 'sessionId' not in result:
             raise AuthError('Something went wrong while authenticating')
         self._jsessionid = result['sessionId']
+        return self
+
+    def _login_with_secret(self) -> 'Session':
+        """
+        Logs in via the shared secret from WebUntis profile > Freigaben,
+        using a TOTP the same way the official mobile app does (see
+        _totp). Unlike the password login, the session id comes back as a
+        Set-Cookie header rather than in the JSON body.
+        """
+        url = self.url.replace('/WebUntis/jsonrpc.do', '/WebUntis/jsonrpc_intern.do')
+        url += '&m=getUserData2017&v=i2.2'
+        body = {
+            'id': str(time.time()),
+            'method': 'getUserData2017',
+            'params': [{
+                'auth': {
+                    'clientTime': int(time.time() * 1000),
+                    'user': self.username,
+                    'otp': _totp(self.secret),
+                },
+            }],
+            'jsonrpc': '2.0',
+        }
+        headers = {
+            'User-Agent': self.useragent,
+            'Content-Type': 'application/json',
+        }
+        response = self._http.post(url, json=body, headers=headers)
+
+        try:
+            result = response.json()
+        except ValueError:
+            raise RemoteError(f'Invalid JSON: {response.text[:200]}')
+
+        if 'error' in result:
+            error = result['error']
+            code = error.get('code')
+            message = error.get('message', 'Login with the secret key failed.')
+            raise _ERROR_CODES.get(code, RemoteError)(message, code)
+
+        session_id = self._http.cookies.get('JSESSIONID')
+        if not session_id:
+            raise AuthError('Something went wrong while authenticating with the secret key')
+        self._jsessionid = session_id
         return self
 
     def logout(self):
@@ -150,10 +224,16 @@ class Session:
             for e in result
         ]
 
-    def timetable_extended(self, start: int, end: int, teacher: str, teacher_fields: List[str]) -> List[dict]:
+    def timetable_extended(self, start: int, end: int, teacher: str, teacher_fields: List[str],
+                            is_part_time: bool = False) -> List[dict]:
         """
         Fetch a teacher's timetable, looked up by name (not numeric ID),
         for the given date range (as YYYYMMDD ints).
+
+        `is_part_time` is ignored here - WebUntis has no concept of it, it's
+        purely local mycartime app state. It's only accepted so callers can
+        pass it uniformly to a real or mock Session (see MockSession, which
+        uses it to fabricate a plausible part-time schedule).
 
         Returns:
             The raw list of period dicts, exactly as WebUntis sends them

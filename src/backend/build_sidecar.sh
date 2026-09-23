@@ -90,6 +90,7 @@ python -m nuitka \
   --include-package=flask_cors \
   --include-data-dir=src/assistant/skill=assistant/skill \
   --include-data-files=src/assistant/hp-spinning-verbs.txt=assistant/hp-spinning-verbs.txt \
+  --include-data-dir=src/mock_data=mock_data \
   --include-data-files=../../doc/internal_doc.md=doc/internal_doc.md \
   "${WINDOWS_ONLY_FLAGS[@]+"${WINDOWS_ONLY_FLAGS[@]}"}" \
   src/app.py
