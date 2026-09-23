@@ -142,11 +142,11 @@ SOLVER_RANDOM_SEED = 0
 # so the solver is left indifferent between two plans that both keep everyone
 # exactly at their quota.
 SOLVER_OBJECTIVE_WEIGHTS = {
-    'overflow': 10_000_000_000_000_000,   # exceeding a member's max_drives
-    'drives_despite_prefs': 10_000_000_000_000,  # driving on a drivingSkip day
-    'over_6': 100_000_000_000,            # members driving more than 6x
-    'over_5': 1_000_000_000,              # members driving more than 5x
-    'over_4': 10_000_000,                 # members driving more than 4x
+    'drives_despite_prefs': 10_000_000_000_000_000,  # driving on a drivingSkip day
+    'overflow': 10_000_000_000_000,       # exceeding a member's max_drives
+    'overflow3': 100_000_000_000,         # members driving 3+ times over their own max_drives
+    'overflow2': 1_000_000_000,           # members driving 2+ times over their own max_drives
+    'overflow1': 10_000_000,              # members driving 1+ times over their own max_drives
     'week_ab_mismatch': 1_000,            # weekdays driven in only one of the two weeks
     'week_ab_count_imbalance': 1,         # week A/B drive-count swing beyond the unavoidable 1
 }

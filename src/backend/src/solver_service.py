@@ -80,16 +80,15 @@ class _ProgressReporter(cp_model.CpSolverSolutionCallback):
         self.solution_count += 1
         self.last_improvement_at = time.monotonic()
         drive_count = self._variables['drive_count']
-        over_n = self._variables['over_n']
         counts = [self.Value(drive_count[i]) for i in sorted(drive_count)]
 
         self.last_metrics = {
             'solutionCount': self.solution_count,
             'totalDrives': sum(counts),
             'maxDrives': max(counts) if counts else 0,
-            'numDrivingMoreThan4': sum(self.Value(over_n[(i, 4)]) for i in sorted(drive_count)),
-            'numDrivingMoreThan5': sum(self.Value(over_n[(i, 5)]) for i in sorted(drive_count)),
-            'numDrivingMoreThan6': sum(self.Value(over_n[(i, 6)]) for i in sorted(drive_count)),
+            'numDrivingMoreThan4': sum(1 for c in counts if c > 4),
+            'numDrivingMoreThan5': sum(1 for c in counts if c > 5),
+            'numDrivingMoreThan6': sum(1 for c in counts if c > 6),
             'numOverMaxDrives': sum(
                 1 for i in sorted(self._variables['overflow'])
                 if self.Value(self._variables['overflow'][i]) > 0
@@ -368,13 +367,16 @@ class SolverService:
             model.Add(over >= count - member.max_drives)
             overflow[initials] = over
 
-            for threshold in (4, 5, 6):
-                flag = model.NewBoolVar(f"over_{threshold}_{initials}")
-                model.Add(count >= threshold + 1).OnlyEnforceIf(flag)
-                model.Add(count <= threshold).OnlyEnforceIf(flag.Not())
-                over_n[(initials, threshold)] = flag
+            # Relative to this member's own quota (not a fixed absolute count),
+            # so it works the same for part-time members and stays correct if
+            # MAX_DRIVES_FULLTIME/PARTTIME are ever tuned.
+            for offset in (1, 2, 3):
+                flag = model.NewBoolVar(f"overflow{offset}_{initials}")
+                model.Add(count >= member.max_drives + offset).OnlyEnforceIf(flag)
+                model.Add(count <= member.max_drives + offset - 1).OnlyEnforceIf(flag.Not())
+                over_n[(initials, offset)] = flag
 
-        # Not part of the objective (the over-4/5/6 tiers already drive fairness);
+        # Not part of the objective (the overflow3/2/1 tiers already drive fairness);
         # kept so the busiest member's load can be logged after each solve.
         max_drives_var = model.NewIntVar(0, 10, "max_drives")
         for initials in sorted(drive_count):
@@ -487,9 +489,12 @@ class SolverService:
                        week_ab_mismatch, week_ab_excess) -> None:
         """
         One weighted sum whose weights are separated by large enough gaps that the
-        terms behave lexicographically, ordered to match `analyze_plans.py`'s
-        `score()`: over-6, over-5, over-4, then week A/B similarity - with
-        hard-ish preferences (max_drives overflow, drivingSkip) on top.
+        terms behave lexicographically: drivingSkip preferences and max_drives
+        overflow first, then overflow3/2/1 (members driving 3+/2+/1+ times over
+        their own quota - relative to each member's max_drives rather than a
+        fixed absolute count, so it stays meaningful for part-time members and
+        for whatever MAX_DRIVES_FULLTIME/PARTTIME happen to be), then week A/B
+        similarity.
 
         Nothing here rewards driving *more* than the quota. The quota itself
         (both the "at least" floor and the "at most" ceiling) is enforced as a
@@ -501,8 +506,6 @@ class SolverService:
         w = self.weights
         # Each tier is (weight_key, [vars]); tiers are listed highest priority first.
         tiers: List[Tuple[str, list]] = []
-
-        tiers.append(('overflow', [overflow[i] for i in sorted(overflow)]))
 
         # Driving on a day the member asked to skip is a last resort. It stays a
         # penalty rather than a hard constraint because forbidding it outright can
@@ -516,10 +519,12 @@ class SolverService:
                 despite_prefs.append(is_driver[key])
         tiers.append(('drives_despite_prefs', despite_prefs))
 
-        for threshold, weight_key in ((6, 'over_6'), (5, 'over_5'), (4, 'over_4')):
-            tiers.append((weight_key, [over_n[(i, threshold)] for i in sorted(drive_count)]))
+        tiers.append(('overflow', [overflow[i] for i in sorted(overflow)]))
 
-        # Same weekdays in both weeks, ranked below over-4/5/6 so week-to-week
+        for offset, weight_key in ((3, 'overflow3'), (2, 'overflow2'), (1, 'overflow1')):
+            tiers.append((weight_key, [over_n[(i, offset)] for i in sorted(drive_count)]))
+
+        # Same weekdays in both weeks, ranked below overflow3/2/1 so week-to-week
         # regularity can never be bought at the price of an extra frequent driver.
         tiers.append(('week_ab_mismatch',
                       [week_ab_mismatch[key] for key in sorted(week_ab_mismatch)]))
