@@ -141,25 +141,12 @@ SOLVER_RANDOM_SEED = 0
 # plan is the one where the fewest members exceed the quota on the high side,
 # so the solver is left indifferent between two plans that both keep everyone
 # exactly at their quota.
-#
-# Priority order (highest first):
-#   1. drives_despite_prefs - never force someone to drive on a day they
-#      marked drivingSkip if it can be avoided, even at the cost of pushing
-#      someone else over quota.
-#   2. overflow - how much a member exceeds max_drives, weighted per member
-#      by 1/max_drives (solver_service divides this weight by the member's
-#      max_drives), so the same absolute overflow counts for more against a
-#      part-time member than a full-time one.
-#   3. overMax - a convex (squared) penalty on each member's overflow amount,
-#      which prefers spreading unavoidable overflow across several members
-#      over dumping it all on one (replaces the old discrete over_4/5/6
-#      thresholds with a single smooth tier).
-#   4. week_ab_mismatch / week_ab_count_imbalance - week-to-week regularity,
-#      never allowed to be bought at the price of a higher tier above.
 SOLVER_OBJECTIVE_WEIGHTS = {
-    'drives_despite_prefs': 10_000_000_000_000_000,  # driving on a drivingSkip day
-    'overflow': 1_000_000_000_000,        # exceeding a member's max_drives, scaled by 1/max_drives
-    'overMax': 1_000_000,                 # convex penalty on overflow amount, favors spreading it out
+    'overflow': 10_000_000_000_000_000,   # exceeding a member's max_drives
+    'drives_despite_prefs': 10_000_000_000_000,  # driving on a drivingSkip day
+    'over_6': 100_000_000_000,            # members driving more than 6x
+    'over_5': 1_000_000_000,              # members driving more than 5x
+    'over_4': 10_000_000,                 # members driving more than 4x
     'week_ab_mismatch': 1_000,            # weekdays driven in only one of the two weeks
     'week_ab_count_imbalance': 1,         # week A/B drive-count swing beyond the unavoidable 1
 }

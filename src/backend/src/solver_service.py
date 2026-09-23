@@ -80,15 +80,16 @@ class _ProgressReporter(cp_model.CpSolverSolutionCallback):
         self.solution_count += 1
         self.last_improvement_at = time.monotonic()
         drive_count = self._variables['drive_count']
+        over_n = self._variables['over_n']
         counts = [self.Value(drive_count[i]) for i in sorted(drive_count)]
 
         self.last_metrics = {
             'solutionCount': self.solution_count,
             'totalDrives': sum(counts),
             'maxDrives': max(counts) if counts else 0,
-            'numDrivingMoreThan4': sum(1 for c in counts if c > 4),
-            'numDrivingMoreThan5': sum(1 for c in counts if c > 5),
-            'numDrivingMoreThan6': sum(1 for c in counts if c > 6),
+            'numDrivingMoreThan4': sum(self.Value(over_n[(i, 4)]) for i in sorted(drive_count)),
+            'numDrivingMoreThan5': sum(self.Value(over_n[(i, 5)]) for i in sorted(drive_count)),
+            'numDrivingMoreThan6': sum(self.Value(over_n[(i, 6)]) for i in sorted(drive_count)),
             'numOverMaxDrives': sum(
                 1 for i in sorted(self._variables['overflow'])
                 if self.Value(self._variables['overflow'][i]) > 0
@@ -330,7 +331,7 @@ class SolverService:
         # drives_on_day / drive_count / quota variables
         drive_count: Dict[str, cp_model.IntVar] = {}
         overflow: Dict[str, cp_model.IntVar] = {}
-        overflow_sq: Dict[str, cp_model.IntVar] = {}
+        over_n: Dict[Tuple[str, int], cp_model.IntVar] = {}
 
         for initials in sorted(self.members):
             member = self.members[initials]
@@ -367,14 +368,13 @@ class SolverService:
             model.Add(over >= count - member.max_drives)
             overflow[initials] = over
 
-            # Convex (squared) shape so the objective prefers spreading any
-            # unavoidable overflow across several members over concentrating
-            # it on one - see 'overMax' in SOLVER_OBJECTIVE_WEIGHTS.
-            over_sq = model.NewIntVar(0, 100, f"overflow_sq_{initials}")
-            model.AddMultiplicationEquality(over_sq, over, over)
-            overflow_sq[initials] = over_sq
+            for threshold in (4, 5, 6):
+                flag = model.NewBoolVar(f"over_{threshold}_{initials}")
+                model.Add(count >= threshold + 1).OnlyEnforceIf(flag)
+                model.Add(count <= threshold).OnlyEnforceIf(flag.Not())
+                over_n[(initials, threshold)] = flag
 
-        # Not part of the objective (overflow/overMax already drive fairness);
+        # Not part of the objective (the over-4/5/6 tiers already drive fairness);
         # kept so the busiest member's load can be logged after each solve.
         max_drives_var = model.NewIntVar(0, 10, "max_drives")
         for initials in sorted(drive_count):
@@ -382,7 +382,7 @@ class SolverService:
 
         week_ab_mismatch, week_ab_excess = self._build_week_ab_similarity(model, drives_on_day)
 
-        self._add_objective(model, is_driver, overflow, overflow_sq,
+        self._add_objective(model, is_driver, drive_count, over_n, overflow,
                             week_ab_mismatch, week_ab_excess)
 
         variables = {
@@ -391,7 +391,7 @@ class SolverService:
             'drives_on_day': drives_on_day,
             'drive_count': drive_count,
             'overflow': overflow,
-            'overflow_sq': overflow_sq,
+            'over_n': over_n,
             'week_ab_mismatch': week_ab_mismatch,
             'week_ab_excess': week_ab_excess,
             'max_drives': max_drives_var,
@@ -483,15 +483,13 @@ class SolverService:
 
         return mismatch, excess
 
-    def _add_objective(self, model, is_driver, overflow, overflow_sq,
+    def _add_objective(self, model, is_driver, drive_count, over_n, overflow,
                        week_ab_mismatch, week_ab_excess) -> None:
         """
         One weighted sum whose weights are separated by large enough gaps that the
-        terms behave lexicographically: drivingSkip preferences first, then
-        max_drives overflow (scaled per member by 1/max_drives, so the same
-        absolute overflow costs more for a part-time member), then a convex
-        penalty on that overflow that prefers spreading it across members
-        rather than concentrating it on one, then week A/B similarity.
+        terms behave lexicographically, ordered to match `analyze_plans.py`'s
+        `score()`: over-6, over-5, over-4, then week A/B similarity - with
+        hard-ish preferences (max_drives overflow, drivingSkip) on top.
 
         Nothing here rewards driving *more* than the quota. The quota itself
         (both the "at least" floor and the "at most" ceiling) is enforced as a
@@ -501,10 +499,10 @@ class SolverService:
         equal (see config's note).
         """
         w = self.weights
-        # Each tier is (name, [(var, coef)]); tiers are listed highest priority
-        # first. Most tiers share one coefficient per var (the tier's weight),
-        # but 'overflow' varies per member - see below.
-        tiers: List[Tuple[str, List[Tuple[cp_model.IntVar, int]]]] = []
+        # Each tier is (weight_key, [vars]); tiers are listed highest priority first.
+        tiers: List[Tuple[str, list]] = []
+
+        tiers.append(('overflow', [overflow[i] for i in sorted(overflow)]))
 
         # Driving on a day the member asked to skip is a last resort. It stays a
         # penalty rather than a hard constraint because forbidding it outright can
@@ -516,57 +514,41 @@ class SolverService:
             custom = self.members[initials].get_custom_day(day_num)
             if custom and custom.driving_skip and not custom.needs_car:
                 despite_prefs.append(is_driver[key])
-        tiers.append(('drives_despite_prefs',
-                      [(var, w['drives_despite_prefs']) for var in despite_prefs]))
+        tiers.append(('drives_despite_prefs', despite_prefs))
 
-        # Per-member coefficient so exceeding max_drives costs proportionally
-        # more for a low-quota (part-time) member than a high-quota one, e.g.
-        # 6-of-4 (50% over) outweighs 5-of-4 (25% over) even though the raw
-        # overflow difference is only one drive.
-        tiers.append(('overflow', [
-            (overflow[i], w['overflow'] // max(self.members[i].max_drives, 1))
-            for i in sorted(overflow)
-        ]))
+        for threshold, weight_key in ((6, 'over_6'), (5, 'over_5'), (4, 'over_4')):
+            tiers.append((weight_key, [over_n[(i, threshold)] for i in sorted(drive_count)]))
 
-        # Convex shape (squared overflow) so the solver prefers several members
-        # slightly over quota to one member far over it - replaces the old
-        # discrete over_4/5/6 thresholds with a single smooth tier.
-        tiers.append(('overMax',
-                      [(overflow_sq[i], w['overMax']) for i in sorted(overflow_sq)]))
-
-        # Same weekdays in both weeks, ranked below overMax so week-to-week
+        # Same weekdays in both weeks, ranked below over-4/5/6 so week-to-week
         # regularity can never be bought at the price of an extra frequent driver.
-        tiers.append(('week_ab_mismatch', [
-            (week_ab_mismatch[key], w['week_ab_mismatch']) for key in sorted(week_ab_mismatch)
-        ]))
-        tiers.append(('week_ab_count_imbalance', [
-            (week_ab_excess[i], w['week_ab_count_imbalance']) for i in sorted(week_ab_excess)
-        ]))
+        tiers.append(('week_ab_mismatch',
+                      [week_ab_mismatch[key] for key in sorted(week_ab_mismatch)]))
+        tiers.append(('week_ab_count_imbalance',
+                      [week_ab_excess[i] for i in sorted(week_ab_excess)]))
 
         self._warn_if_tiers_not_lexicographic(tiers)
 
-        model.Minimize(sum(coef * var for _key, tier in tiers for var, coef in tier))
+        model.Minimize(sum(w[key] * var for key, tier in tiers for var in tier))
 
     def _warn_if_tiers_not_lexicographic(self, tiers) -> None:
         """
-        The weighted sum only *behaves* lexicographically while each tier's
-        smallest coefficient exceeds the worst-case total of every tier below
-        it. That holds for realistic member counts but not for arbitrarily
-        large ones, so check it against this instance's actual variable bounds
-        instead of assuming.
+        The weighted sum only *behaves* lexicographically while each tier's weight
+        exceeds the worst-case total of every tier below it. That holds for
+        realistic member counts but not for arbitrarily large ones, so check it
+        against this instance's actual variable bounds instead of assuming.
         """
+        w = self.weights
         worst_below = 0
         for key, tier in reversed(tiers):
-            min_coef = min((coef for _var, coef in tier), default=0)
-            if tier and min_coef <= worst_below:
+            weight = w[key]
+            if tier and weight <= worst_below:
                 logger.warning(
-                    f"Objective tier '{key}' (min coefficient {min_coef}) does not "
-                    f"dominate the worst-case total of lower-priority tiers "
-                    f"({worst_below}) for this input size - plan quality ordering "
-                    f"may not be strictly lexicographic. Consider raising "
-                    f"config.SOLVER_OBJECTIVE_WEIGHTS."
+                    f"Objective tier '{key}' (weight {weight}) does not dominate the "
+                    f"worst-case total of lower-priority tiers ({worst_below}) for this "
+                    f"input size - plan quality ordering may not be strictly "
+                    f"lexicographic. Consider raising config.SOLVER_OBJECTIVE_WEIGHTS."
                 )
-            worst_below += sum(coef * var.proto.domain[-1] for var, coef in tier)
+            worst_below += weight * sum(var.proto.domain[-1] for var in tier)
         if worst_below > 2 ** 62:
             logger.warning(
                 f"Objective upper bound {worst_below} is approaching CP-SAT's int64 "
