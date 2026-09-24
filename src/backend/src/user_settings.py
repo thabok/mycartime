@@ -31,6 +31,7 @@ EDITABLE_SETTINGS = {
     'MAX_DRIVES_FULLTIME': lambda v: isinstance(v, int) and not isinstance(v, bool) and v >= 0,
     'MAX_DRIVES_PARTTIME': lambda v: isinstance(v, int) and not isinstance(v, bool) and v >= 0,
     'CLAUDE_CLI_PATH': lambda v: isinstance(v, str),
+    'ASSISTANT_ENABLED': lambda v: isinstance(v, bool),
 }
 
 # Persisted like everything else, but never sent back to the client - callers

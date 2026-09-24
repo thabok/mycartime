@@ -294,9 +294,9 @@ def suggested_reference_date():
         user pick a date manually).
     """
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True)
 
-        if not data:
+        if data is None:
             return jsonify({'error': 'No JSON data provided'}), 400
 
         try:
@@ -884,7 +884,13 @@ def assistant_availability():
     claude CLI). Checked once by the frontend at startup to decide whether to
     show the assistant button at all - see assistant_service.test_connection
     for what "usable" means.
+
+    The assistant is off by default (config.ASSISTANT_ENABLED) - while
+    disabled, this skips the actual CLI invocation entirely, since that's a
+    real subprocess call and should only happen when the user opted in.
     """
+    if not config.ASSISTANT_ENABLED:
+        return jsonify({'available': False}), 200
     result = assistant_service.test_connection()
     return jsonify({'available': result['success']}), 200
 

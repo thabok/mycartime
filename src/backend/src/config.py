@@ -66,6 +66,8 @@ ALLOWED_ORIGINS = [
 ]
 
 # AI Assistant Configuration
+# Off by default - the user has to opt in via the Settings dialog.
+ASSISTANT_ENABLED = False
 # Set through the Settings dialog. Defaults to the bare command name so a
 # normal install (on PATH) works out of the box - see
 # assistant_service._resolve_cli_executable for how a bare name is looked up

@@ -14,7 +14,6 @@ from webuntis_client import AuthError, BadCredentialsError, RemoteError
 from models import DayOfWeekABCombo, Member, Timetable
 from utils import (
     get_term_slot_dates,
-    is_week_a_by_schoolyear,
     parse_time_to_hhmm,
     is_period_relevant,
     summarize_period_variants,
@@ -226,25 +225,20 @@ class TimetableService:
 
     def get_suggested_reference_date(self, from_date: datetime = None) -> datetime:
         """
-        Suggest a default reference date for the UI: the next date (today
-        included) that falls in an A week, based on the school's own week
-        numbering (first ISO week of the schoolyear is an A week).
+        Suggest a default reference date for the UI: the Monday of the
+        schoolyear's first A week, based on the school's own week numbering
+        (first ISO week of the schoolyear is always an A week).
 
         Args:
-            from_date: Date to search forward from (defaults to now)
+            from_date: Date used to pick which schoolyear to suggest a
+                reference date for (defaults to now)
 
         Returns:
             The suggested date
         """
         from_date = from_date or datetime.now()
         schoolyear = self._get_schoolyear(from_date)
-
-        candidate = from_date
-        for _ in range(14):
-            if is_week_a_by_schoolyear(candidate, schoolyear.start):
-                return candidate
-            candidate += timedelta(days=1)
-        return candidate
+        return schoolyear.start - timedelta(days=schoolyear.start.weekday())
 
     def clear_cache(self):
         """Clear all cached timetable data."""

@@ -41,6 +41,8 @@ testdata/request.json
 !doc/demo/screenshots/*.png
 # App icons are build inputs (see src/src-tauri/tauri.conf.json), not screenshots.
 !src/src-tauri/icons/*.png
+# Static assets served as-is by the frontend (favicon, QR codes, etc.), not screenshots.
+!src/frontend/public/*.png
 *.DS_Store
 **/.pytest_cache/
 
