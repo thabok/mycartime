@@ -38,8 +38,8 @@ ROOM_NAME_FALLBACKS = {
 
 # Algorithm Configuration
 TIME_TOLERANCE_MINUTES = 30  # Maximum time deviation to group members together
-MAX_DRIVES_FULLTIME = 4  # Drive quota for full-time members in 2-week cycle (floor and soft ceiling)
-MAX_DRIVES_PARTTIME = 3  # Drive quota for part-time members in 2-week cycle (floor and soft ceiling)
+DEFAULT_TARGET_DRIVE_COUNT_FULLTIME = 4  # Target drive count for full-time members with no per-member override (floor and soft ceiling)
+DEFAULT_TARGET_DRIVE_COUNT_PARTTIME = 2  # Target drive count for part-time members with no per-member override (floor and soft ceiling)
 
 # Server Configuration
 # Both are overridable so the Tauri shell can hand the sidecar a free port and
@@ -136,16 +136,16 @@ SOLVER_RANDOM_SEED = 0
 # Tune here rather than in solver_service.py.
 #
 # Note what is deliberately *absent*: there is no term rewarding fewer total
-# drives or fewer cars on the road. MAX_DRIVES is a quota, not just a ceiling -
-# solver_service.py enforces driving *at least* that often (capped at a
-# member's available days) as a hard constraint, since driving noticeably less
-# than MAX_DRIVES is a source of friction within the group, not a win. A good
-# plan is the one where the fewest members exceed the quota on the high side,
-# so the solver is left indifferent between two plans that both keep everyone
-# exactly at their quota.
+# drives or fewer cars on the road. Target drive count is a quota, not just a
+# ceiling - solver_service.py enforces driving *at least* that often (capped
+# at a member's available days) as a hard constraint, since driving noticeably
+# less than the target is a source of friction within the group, not a win. A
+# good plan is the one where the fewest members exceed the quota on the high
+# side, so the solver is left indifferent between two plans that both keep
+# everyone exactly at their quota.
 SOLVER_OBJECTIVE_WEIGHTS = {
     'drives_despite_prefs': 10_000_000_000_000_000,  # driving on a drivingSkip day
-    'overflow': 10_000_000_000_000,       # exceeding a member's max_drives
+    'overflow': 10_000_000_000_000,       # exceeding a member's target drive count
     'overflow3': 100_000_000_000,         # members driving 3+ times over their own max_drives
     'overflow2': 1_000_000_000,           # members driving 2+ times over their own max_drives
     'overflow1': 10_000_000,              # members driving 1+ times over their own max_drives

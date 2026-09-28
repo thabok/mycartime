@@ -90,12 +90,17 @@ class Member:
     number_of_seats: int
     is_part_time: bool = False
     custom_days: Dict[int, CustomDay] = field(default_factory=dict)
-    
+    # How many times this member should be asked to drive over the 2-week
+    # cycle. None means "use the type-based default" (see solver_service.py),
+    # so existing members saved before this field existed still behave the
+    # same way.
+    target_drive_count: Optional[int] = None
+
     # Runtime fields (populated during algorithm execution)
     drive_count: int = 0
     max_drives: int = 0
     timetable: Dict[int, 'Timetable'] = field(default_factory=dict)  # Populated by timetable_service
-    
+
     @classmethod
     def from_dict(cls, data: dict) -> 'Member':
         """Create Member from dictionary."""
@@ -103,14 +108,15 @@ class Member:
         if 'customDays' in data:
             for day_num, day_data in data['customDays'].items():
                 custom_days[int(day_num)] = CustomDay.from_dict(day_data)
-        
+
         return cls(
             first_name=data['firstName'],
             last_name=data['lastName'],
             initials=data['initials'],
             number_of_seats=data['numberOfSeats'],
             is_part_time=data.get('isPartTime', False),
-            custom_days=custom_days
+            custom_days=custom_days,
+            target_drive_count=data.get('targetDriveCount')
         )
     
     def get_custom_day(self, day_num: int) -> Optional[CustomDay]:

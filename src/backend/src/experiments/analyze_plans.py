@@ -9,7 +9,7 @@ Quality criteria (per user request), in ranking order:
   - how similar each member's driving weekdays are between week A and week B
 
 Total drives and party tightness are still reported, but deliberately do *not*
-rank plans: MAX_DRIVES is a quota the solver enforces as a hard floor and a
+rank plans: target drive count is a quota the solver enforces as a hard floor and a
 soft ceiling, so a plan with a different total-drives count than another
 isn't better or worse as long as both keep everyone at quota (see
 config.SOLVER_OBJECTIVE_WEIGHTS and solver_service.py's per-member floor).

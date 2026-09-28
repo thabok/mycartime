@@ -205,7 +205,7 @@ def update_settings():
 
     Expected JSON payload: a partial or full object of
     {WEBUNTIS_SERVER, WEBUNTIS_SCHOOL, WEBUNTIS_USERNAME, WEBUNTIS_PASSWORD,
-     TIME_TOLERANCE_MINUTES, MAX_DRIVES_FULLTIME, MAX_DRIVES_PARTTIME}.
+     TIME_TOLERANCE_MINUTES}.
 
     Returns:
         JSON response with the full set of current settings after the update
@@ -740,6 +740,7 @@ def _capture_plan_input(members, start_date_str):
                     'initials': m.initials,
                     'numberOfSeats': m.number_of_seats,
                     'isPartTime': m.is_part_time,
+                    'targetDriveCount': m.target_drive_count,
                     'customDays': {str(k): v.to_dict() for k, v in m.custom_days.items()},
                 }
                 for m in members

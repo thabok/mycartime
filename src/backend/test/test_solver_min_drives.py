@@ -1,8 +1,9 @@
 """
-Unit tests for the CP-SAT solver's max_drives *floor*: a member must drive at
-least their quota (MAX_DRIVES_FULLTIME/PARTTIME), not just stay under it, so
-that under-used members get extra driver parties rather than free-riding
-below quota. See solver_service.py's `min_drives` constraint.
+Unit tests for the CP-SAT solver's target-drive-count *floor*: a member must
+drive at least their quota (DEFAULT_TARGET_DRIVE_COUNT_FULLTIME/PARTTIME, or
+their own per-member override), not just stay under it, so that under-used
+members get extra driver parties rather than free-riding below quota. See
+solver_service.py's `min_drives` constraint.
 """
 import sys
 from pathlib import Path
@@ -37,8 +38,9 @@ def _present_every_day(member, days=range(10)):
 
 def test_every_member_drives_at_least_their_quota_when_enough_days_present():
     # Three full-time members present all 10 days: each has a full week's worth
-    # of days to draw from, well above MAX_DRIVES_FULLTIME (4), so the floor
-    # must be hit exactly through solver-chosen extra driver assignments.
+    # of days to draw from, well above DEFAULT_TARGET_DRIVE_COUNT_FULLTIME (4),
+    # so the floor must be hit exactly through solver-chosen extra driver
+    # assignments.
     members = [_member(i) for i in ('AA', 'BB', 'CC')]
     for m in members:
         _present_every_day(m)
@@ -47,16 +49,16 @@ def test_every_member_drives_at_least_their_quota_when_enough_days_present():
 
     drive_counts = {m.initials: m.drive_count for m in members}
     for initials, count in drive_counts.items():
-        assert count >= config.MAX_DRIVES_FULLTIME, (
+        assert count >= config.DEFAULT_TARGET_DRIVE_COUNT_FULLTIME, (
             f"{initials} drove only {count} times, below quota "
-            f"{config.MAX_DRIVES_FULLTIME}"
+            f"{config.DEFAULT_TARGET_DRIVE_COUNT_FULLTIME}"
         )
     assert plan is not None
 
 
 def test_part_time_member_hits_lower_quota_not_fulltime_one():
     # A part-time member mixed with full-time members should be held to the
-    # lower part-time quota (3), not silently promoted to the full-time one.
+    # lower part-time quota (2), not silently promoted to the full-time one.
     full_a, full_b = _member('AA'), _member('BB')
     part = _member('PT', is_part_time=True)
     members = [full_a, full_b, part]
@@ -65,9 +67,25 @@ def test_part_time_member_hits_lower_quota_not_fulltime_one():
 
     SolverService().calculate_driving_plan(members)
 
-    assert part.drive_count >= config.MAX_DRIVES_PARTTIME
+    assert part.drive_count >= config.DEFAULT_TARGET_DRIVE_COUNT_PARTTIME
     for m in (full_a, full_b):
-        assert m.drive_count >= config.MAX_DRIVES_FULLTIME
+        assert m.drive_count >= config.DEFAULT_TARGET_DRIVE_COUNT_FULLTIME
+
+
+def test_member_with_explicit_target_drive_count_overrides_type_default():
+    # A full-time member with an explicit override should be held to their
+    # own quota, not the type-based default.
+    custom = _member('CU')
+    custom.target_drive_count = 6
+    typical = _member('TY')
+    members = [custom, typical]
+    for m in members:
+        _present_every_day(m)
+
+    SolverService().calculate_driving_plan(members)
+
+    assert custom.drive_count >= 6
+    assert typical.drive_count >= config.DEFAULT_TARGET_DRIVE_COUNT_FULLTIME
 
 
 def test_floor_is_capped_by_available_days_not_infeasible():
@@ -84,4 +102,4 @@ def test_floor_is_capped_by_available_days_not_infeasible():
 
     assert plan is not None
     assert scarce.drive_count <= 2
-    assert plenty.drive_count >= config.MAX_DRIVES_FULLTIME
+    assert plenty.drive_count >= config.DEFAULT_TARGET_DRIVE_COUNT_FULLTIME

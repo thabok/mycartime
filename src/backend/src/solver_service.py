@@ -6,7 +6,7 @@ lets the solver optimize an explicit objective, rather than picking drivers
 pool-by-pool and reconciling fairness afterwards (the approach the retired
 greedy heuristic used - see doc/ALGORITHM_EVOLUTION.md). That matters because
 the objective couples days together - a member's `drive_count` across all ten
-half-days is what `MAX_DRIVES_*` and the over-4/5/6 quality metrics apply to,
+half-days is what each member's target drive count and the overflow3/2/1 quality metrics apply to,
 and the week A/B similarity goal couples each weekday to its counterpart five
 days later, so no per-day greedy pass can see the global picture.
 
@@ -151,7 +151,13 @@ class SolverService:
         self._validate_custom_days(members)
 
         for member in members:
-            member.max_drives = config.MAX_DRIVES_PARTTIME if member.is_part_time else config.MAX_DRIVES_FULLTIME
+            default_target = (
+                config.DEFAULT_TARGET_DRIVE_COUNT_PARTTIME if member.is_part_time
+                else config.DEFAULT_TARGET_DRIVE_COUNT_FULLTIME
+            )
+            member.max_drives = (
+                member.target_drive_count if member.target_drive_count is not None else default_target
+            )
             member.drive_count = 0
             member.driving_days = set()
 
@@ -368,8 +374,8 @@ class SolverService:
             overflow[initials] = over
 
             # Relative to this member's own quota (not a fixed absolute count),
-            # so it works the same for part-time members and stays correct if
-            # MAX_DRIVES_FULLTIME/PARTTIME are ever tuned.
+            # so it works the same for part-time members and per-member
+            # target-drive-count overrides alike.
             for offset in (1, 2, 3):
                 flag = model.NewBoolVar(f"overflow{offset}_{initials}")
                 model.Add(count >= member.max_drives + offset).OnlyEnforceIf(flag)
@@ -493,13 +499,13 @@ class SolverService:
         overflow first, then overflow3/2/1 (members driving 3+/2+/1+ times over
         their own quota - relative to each member's max_drives rather than a
         fixed absolute count, so it stays meaningful for part-time members and
-        for whatever MAX_DRIVES_FULLTIME/PARTTIME happen to be), then week A/B
+        for whatever each member's target drive count happens to be), then week A/B
         similarity.
 
         Nothing here rewards driving *more* than the quota. The quota itself
         (both the "at least" floor and the "at most" ceiling) is enforced as a
         constraint in `_build_model`, not the objective - keeping members
-        exactly at MAX_DRIVES is the whole quality story, so plans that differ
+        exactly at their target drive count is the whole quality story, so plans that differ
         only in total drives or car count beyond that are deliberately scored
         equal (see config's note).
         """
