@@ -1,5 +1,8 @@
 # My Cartime - Teacher's Ride Share
 
+[![Backend tests](https://github.com/thabok/mycartime/actions/workflows/backend-tests.yml/badge.svg)](https://github.com/thabok/mycartime/actions/workflows/backend-tests.yml)
+[![Frontend tests](https://github.com/thabok/mycartime/actions/workflows/frontend-tests.yml/badge.svg)](https://github.com/thabok/mycartime/actions/workflows/frontend-tests.yml)
+
 Calculates optimal school-run carpool driving plans for a group of teachers,
 based on their WebUntis timetables and per-member preferences/constraints. Powered by [Google’s CP-SAT Solver](https://developers.google.com/optimization/cp/cp_solver?hl=en), it treats your chaotic school schedules as a constraint satisfaction problem, crunching millions of permutations to deliver mathematically optimal routes in seconds.
 
