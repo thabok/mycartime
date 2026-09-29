@@ -471,8 +471,8 @@ def _drop_capacity_violating_move_passengers(actions: list[dict], plan: dict, me
     if not move_actions or not plan:
         return actions
 
-    seats_by_initials = {
-        m.get('initials', '').lower(): m.get('numberOfSeats')
+    seats_by_shorthand = {
+        m.get('shorthand', '').lower(): m.get('numberOfSeats')
         for m in members if isinstance(m, dict)
     }
 
@@ -493,7 +493,7 @@ def _drop_capacity_violating_move_passengers(actions: list[dict], plan: dict, me
         party = _is_valid_party_ref(plan, day_key, {'driver': driver, 'time': time})
         if not party:
             continue
-        seats = seats_by_initials.get((driver or '').lower())
+        seats = seats_by_shorthand.get((driver or '').lower())
         if seats is None:
             continue
         if len(party.get('passengers', [])) + change > seats - 1:

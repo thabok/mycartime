@@ -12,7 +12,7 @@ All data described below is stored **locally on your device**, in your operating
 
 We store the following categories of data, entered by you or your organization's administrator:
 
-- **Carpool member information**: first names, last names, initials, number of car seats, and part-time status of the people included in the carpool group.
+- **Carpool member information**: first names, last names, shorthand, number of car seats, and part-time status of the people included in the carpool group.
 - **Driving preferences**: per-day settings such as days off, "needs a car" flags, custom start/end times, and solo driving preferences.
 - **School timetable account credentials** (optional): if you connect a WebUntis account, your WebUntis username and password are stored so the App can retrieve class schedules used to determine pickup/drop-off times.
 - **Generated driving plans**: the schedules produced by the App, including who drives whom and at what times. You may export these plans as files (JSON or image) which are then saved wherever you choose on your device.

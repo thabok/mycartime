@@ -39,7 +39,18 @@ ROOM_NAME_FALLBACKS = {
 # Algorithm Configuration
 TIME_TOLERANCE_MINUTES = 30  # Maximum time deviation to group members together
 DEFAULT_TARGET_DRIVE_COUNT_FULLTIME = 4  # Target drive count for full-time members with no per-member override (floor and soft ceiling)
-DEFAULT_TARGET_DRIVE_COUNT_PARTTIME = 2  # Target drive count for part-time members with no per-member override (floor and soft ceiling)
+DEFAULT_TARGET_DRIVE_COUNT_PARTTIME = 3  # Target drive count for part-time members with no per-member override (floor and soft ceiling)
+# Schools with A/B weeks get a 10-day plan (Mon-Fri, weeks A and B); schools
+# without them (the default) get a 5-day plan that repeats every week.
+ALTERNATING_WEEKS = False
+# In a 5-day cycle the full-/part-time distinction is dropped - everyone
+# defaults to the same target.
+DEFAULT_TARGET_DRIVE_COUNT_NON_ALTERNATING = 2
+# Whether the solver must create extra driver parties for a member who would
+# otherwise fall short of their target drive count (see solver_service.py's
+# min_drives constraint). Off allows under-used members to stay below quota
+# instead of being assigned more driving to reach it.
+CREATE_PARTIES_FOR_UNDERUSED_DRIVERS = True
 
 # Server Configuration
 # Both are overridable so the Tauri shell can hand the sidecar a free port and
@@ -138,11 +149,12 @@ SOLVER_RANDOM_SEED = 0
 # Note what is deliberately *absent*: there is no term rewarding fewer total
 # drives or fewer cars on the road. Target drive count is a quota, not just a
 # ceiling - solver_service.py enforces driving *at least* that often (capped
-# at a member's available days) as a hard constraint, since driving noticeably
-# less than the target is a source of friction within the group, not a win. A
-# good plan is the one where the fewest members exceed the quota on the high
-# side, so the solver is left indifferent between two plans that both keep
-# everyone exactly at their quota.
+# at a member's available days) as a hard constraint by default (see
+# CREATE_PARTIES_FOR_UNDERUSED_DRIVERS above), since driving noticeably less
+# than the target is a source of friction within the group, not a win. A good
+# plan is the one where the fewest members exceed the quota on the high side,
+# so the solver is left indifferent between two plans that both keep everyone
+# exactly at their quota.
 SOLVER_OBJECTIVE_WEIGHTS = {
     'drives_despite_prefs': 10_000_000_000_000_000,  # driving on a drivingSkip day
     'overflow': 10_000_000_000_000,       # exceeding a member's target drive count

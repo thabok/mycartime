@@ -31,7 +31,11 @@ der UI so vorkommt.
   keine Mitfahrenden haben darf (durch "Skip AM"/"Skip PM").
 - **Hinweg** (Schoolbound): die morgendliche Fahrt zur Schule.
 - **Rückweg** (Homebound): die Fahrt nach Schulschluss nach Hause.
-- **Woche A / Woche B** (Week A / Week B): die zwei Wochen des Rotationszyklus.
+- **Woche A / Woche B** (Week A / Week B): die zwei Wochen des Rotationszyklus
+  (nur bei Schulen mit A/B-Wochen; sonst umfasst der Fahrplan eine einzige,
+  sich wiederholende Woche).
+- **Ziel-Fahrtenanzahl** (Target drive count): wie oft ein Mitglied pro
+  Zyklus fahren soll.
 - **Custom Prefs** (Custom Day / Custom Preferences):
   personenbezogene Ausnahmen vom stundenplanbasierten Zeitplan an
   einzelnen Tagen. Optionen: **Skip** (an diesem Tag komplett ausgenommen),

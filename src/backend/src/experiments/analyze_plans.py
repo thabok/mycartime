@@ -21,16 +21,16 @@ from pathlib import Path
 from statistics import mean, pstdev
 
 
-def _cluster_key(members_by_initials, driver, time_):
+def _cluster_key(members_by_shorthand, driver, time_):
     """Bucket a party's time into 30-min-tolerance clusters per (day, direction) for pool-level tightness."""
     return round(time_ / 100 * 2) / 2  # coarse half-hour bucket, good enough for grouping
 
 
 def analyze_plan(plan: dict) -> dict:
-    drive_days = defaultdict(set)  # initials -> set of unique day numbers driven
+    drive_days = defaultdict(set)  # shorthand -> set of unique day numbers driven
     parties_flat = []  # (day, direction, driver, seats_used, capacity)
 
-    seats_by_initials = {}
+    seats_by_shorthand = {}
 
     for day_key, day_plan in plan['dayPlans'].items():
         day_num = int(day_key)
@@ -47,7 +47,7 @@ def analyze_plan(plan: dict) -> dict:
                 'occupancy': occupancy,
             })
 
-    drive_counts = {initials: len(days) for initials, days in drive_days.items()}
+    drive_counts = {shorthand: len(days) for shorthand, days in drive_days.items()}
     total_drives = sum(drive_counts.values())
     num_gt4 = sum(1 for c in drive_counts.values() if c > 4)
     num_gt5 = sum(1 for c in drive_counts.values() if c > 5)

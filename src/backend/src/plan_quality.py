@@ -24,6 +24,8 @@ PlanViewer.tsx):
   ride with the same driver both weeks. Reflects how well
   plan_postprocessor.py's week A/B passenger-unification pass actually
   worked out for this plan. High is good.
+
+The two A/B metrics are omitted entirely for plans without alternating weeks.
 """
 from typing import Dict, List
 
@@ -81,7 +83,7 @@ def _compute_flexibility(members: Dict[str, Member], day_plans: Dict[int, DayPla
     covered = 0
 
     for day_key, day_plan in day_plans.items():
-        day_num = day_key - 1  # day_plans is keyed 1-10; solo/custom-day lookups need the 0-9 day_num
+        day_num = day_key - 1  # day_plans is keyed from 1; solo/custom-day lookups need the 0-based day_num
         for schoolbound in (True, False):
             parties = [p for p in day_plan.parties if p.schoolbound == schoolbound]
             for party in parties:
@@ -113,10 +115,10 @@ def _compute_packed_parties(day_plans: Dict[int, DayPlan], members: Dict[str, Me
                     'dayOfWeek': party.day_of_week_ab_combo.day_of_week,
                     'isWeekA': party.day_of_week_ab_combo.is_week_a,
                     'time': party.time,
-                    'driver': {'initials': party.driver, 'firstName': members[party.driver].first_name},
+                    'driver': {'shorthand': party.driver, 'firstName': members[party.driver].first_name},
                     'passengers': [
-                        {'initials': initials, 'firstName': members[initials].first_name}
-                        for initials in party.passengers
+                        {'shorthand': shorthand, 'firstName': members[shorthand].first_name}
+                        for shorthand in party.passengers
                     ],
                 })
 
@@ -156,8 +158,8 @@ def _compute_ab_driver_mismatch(day_plans: Dict[int, DayPlan], members: Dict[str
     2 drives, but Monday+Tuesday vs Monday+Tuesday+Thursday is just an
     unavoidable extra day and doesn't count.
     """
-    weekdays_a: Dict[str, set] = {initials: set() for initials in members}
-    weekdays_b: Dict[str, set] = {initials: set() for initials in members}
+    weekdays_a: Dict[str, set] = {shorthand: set() for shorthand in members}
+    weekdays_b: Dict[str, set] = {shorthand: set() for shorthand in members}
 
     for weekday in range(5):
         day_a, day_b = day_plans.get(weekday + 1), day_plans.get(weekday + 6)
@@ -170,13 +172,13 @@ def _compute_ab_driver_mismatch(day_plans: Dict[int, DayPlan], members: Dict[str
 
     mismatched_members = [
         {
-            'initials': initials,
-            'firstName': members[initials].first_name,
-            'weekdaysA': sorted(weekdays_a[initials]),
-            'weekdaysB': sorted(weekdays_b[initials]),
+            'shorthand': shorthand,
+            'firstName': members[shorthand].first_name,
+            'weekdaysA': sorted(weekdays_a[shorthand]),
+            'weekdaysB': sorted(weekdays_b[shorthand]),
         }
-        for initials in sorted(members)
-        if not _is_tolerated_swing(weekdays_a[initials], weekdays_b[initials])
+        for shorthand in sorted(members)
+        if not _is_tolerated_swing(weekdays_a[shorthand], weekdays_b[shorthand])
     ]
 
     total_members = len(members)
@@ -225,7 +227,7 @@ def _compute_passenger_ab_stability(day_plans: Dict[int, DayPlan]) -> dict:
                     matched += 1
                 else:
                     mismatches.append({
-                        'initials': passenger,
+                        'shorthand': passenger,
                         'weekday': weekday,
                         'schoolbound': schoolbound,
                         'driverA': driver_of_a[passenger],
@@ -241,20 +243,24 @@ def _compute_passenger_ab_stability(day_plans: Dict[int, DayPlan]) -> dict:
     }
 
 
-def compute_quality_metrics(members: Dict[str, Member], day_plans: Dict[int, DayPlan], tolerance: int) -> dict:
+def compute_quality_metrics(members: Dict[str, Member], day_plans: Dict[int, DayPlan], tolerance: int,
+                            alternating_weeks: bool = True) -> dict:
     """
     Builds the `qualityMetrics` block attached to DrivingPlan.to_dict().
 
     Args:
-        members: all members, keyed by initials, with drive_count/max_drives
+        members: all members, keyed by shorthand, with drive_count/max_drives
             already populated (see SolverService._apply_drive_counts).
-        day_plans: the finished plan's day plans, keyed 1-10 (as in
-            DrivingPlan.day_plans).
+        day_plans: the finished plan's day plans, keyed 1-10 (or 1-5 without
+            alternating weeks), as in DrivingPlan.day_plans.
         tolerance: the tolerance (minutes) the plan was solved with.
+        alternating_weeks: whether the plan has a week A and a week B.
     """
-    return {
+    metrics = {
         'flexibility': _compute_flexibility(members, day_plans, tolerance),
         'packedParties': _compute_packed_parties(day_plans, members),
-        'abDriverMismatch': _compute_ab_driver_mismatch(day_plans, members),
-        'passengerAbStability': _compute_passenger_ab_stability(day_plans),
     }
+    if alternating_weeks:
+        metrics['abDriverMismatch'] = _compute_ab_driver_mismatch(day_plans, members)
+        metrics['passengerAbStability'] = _compute_passenger_ab_stability(day_plans)
+    return metrics

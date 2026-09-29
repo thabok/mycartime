@@ -10,7 +10,7 @@ sys.path.insert(0, str(backend_src))
 
 from utils import summarize_period_variants, get_period_exclusion_reason  # type: ignore # noqa: E402
 
-INITIALS = 'TK'
+SHORTHAND = 'TK'
 
 
 def _period(date, start, end, su=None, te=None, ro=None, kl=None, code='', **extra):
@@ -20,7 +20,7 @@ def _period(date, start, end, su=None, te=None, ro=None, kl=None, code='', **ext
         'endTime': end,
         'code': code,
         'su': su if su is not None else [{'id': 1, 'name': 'MATH', 'longname': 'Mathematics'}],
-        'te': te or [{'name': INITIALS}],
+        'te': te or [{'name': SHORTHAND}],
         'ro': ro or [],
         'kl': kl or [],
         **extra,
@@ -30,7 +30,7 @@ def _period(date, start, end, su=None, te=None, ro=None, kl=None, code='', **ext
 def test_relevant_period_is_always_included_regardless_of_frequency():
     # Occurs on only 1 of 4 slot dates - still relevant, so still included.
     periods = [_period(20260907, 800, 845)]
-    relevant, excluded = summarize_period_variants(periods, INITIALS, total_dates=4)
+    relevant, excluded = summarize_period_variants(periods, SHORTHAND, total_dates=4)
 
     assert len(relevant) == 1
     assert relevant[0]['occurrences'] == 1
@@ -41,7 +41,7 @@ def test_relevant_period_is_always_included_regardless_of_frequency():
 def test_excluded_variant_below_one_third_is_dropped():
     # Irregular period occurring on 1 of 4 dates -> frequency 0.25 < 1/3.
     periods = [_period(20260907, 1400, 1445, code='irregular')]
-    relevant, excluded = summarize_period_variants(periods, INITIALS, total_dates=4)
+    relevant, excluded = summarize_period_variants(periods, SHORTHAND, total_dates=4)
 
     assert relevant == []
     assert excluded == []
@@ -53,7 +53,7 @@ def test_excluded_variant_at_or_above_one_third_is_kept():
         _period(20260907, 1400, 1445, code='irregular'),
         _period(20260921, 1400, 1445, code='irregular'),
     ]
-    relevant, excluded = summarize_period_variants(periods, INITIALS, total_dates=6)
+    relevant, excluded = summarize_period_variants(periods, SHORTHAND, total_dates=6)
 
     assert relevant == []
     assert len(excluded) == 1
@@ -69,7 +69,7 @@ def test_identical_relevant_periods_collapse_into_one_variant():
         _period(20260921, 800, 845),
         _period(20261005, 800, 845),
     ]
-    relevant, excluded = summarize_period_variants(periods, INITIALS, total_dates=3)
+    relevant, excluded = summarize_period_variants(periods, SHORTHAND, total_dates=3)
 
     assert len(relevant) == 1
     assert relevant[0]['occurrences'] == 3
@@ -82,7 +82,7 @@ def test_different_time_or_subject_variants_stay_distinct():
         _period(20260907, 800, 845),
         _period(20260921, 900, 945, su=[{'id': 2, 'name': 'GER', 'longname': 'German'}]),
     ]
-    relevant, excluded = summarize_period_variants(periods, INITIALS, total_dates=2)
+    relevant, excluded = summarize_period_variants(periods, SHORTHAND, total_dates=2)
 
     assert len(relevant) == 2
     subjects = {v['subject'] for v in relevant}
@@ -91,7 +91,7 @@ def test_different_time_or_subject_variants_stay_distinct():
 
 def test_on_call_substitution_excluded_with_reason():
     periods = [_period(20260907, 1000, 1045, su=[{'id': 255, 'name': 'VTR'}])] * 2
-    relevant, excluded = summarize_period_variants(periods, INITIALS, total_dates=3)
+    relevant, excluded = summarize_period_variants(periods, SHORTHAND, total_dates=3)
 
     assert relevant == []
     assert len(excluded) == 1
@@ -101,7 +101,7 @@ def test_on_call_substitution_excluded_with_reason():
 def test_cancelled_code_is_not_excluded():
     # 'cancelled' is deliberately not filtered - a single cancelled
     # occurrence shouldn't remove the slot from the regular schedule.
-    assert get_period_exclusion_reason(_period(20260907, 800, 845, code='cancelled'), INITIALS) is None
+    assert get_period_exclusion_reason(_period(20260907, 800, 845, code='cancelled'), SHORTHAND) is None
 
 
 def test_same_lesson_in_multiple_rooms_merges_into_one_variant():
@@ -112,7 +112,7 @@ def test_same_lesson_in_multiple_rooms_merges_into_one_variant():
         _period(20260907, 800, 845, ro=[{'id': 1, 'name': 'GYM', 'longname': 'Gym A'}]),
         _period(20260907, 800, 845, ro=[{'id': 2, 'name': 'POOL', 'longname': 'Pool'}]),
     ]
-    relevant, excluded = summarize_period_variants(periods, INITIALS, total_dates=1)
+    relevant, excluded = summarize_period_variants(periods, SHORTHAND, total_dates=1)
 
     assert len(relevant) == 1
     assert relevant[0]['occurrences'] == 1
@@ -128,7 +128,7 @@ def test_multi_room_lesson_occurring_on_several_dates_counts_dates_not_rows():
         _period(20260914, 800, 845, ro=[{'id': 1, 'name': 'GYM', 'longname': 'Gym A'}]),
         _period(20260914, 800, 845, ro=[{'id': 2, 'name': 'POOL', 'longname': 'Pool'}]),
     ]
-    relevant, _ = summarize_period_variants(periods, INITIALS, total_dates=2)
+    relevant, _ = summarize_period_variants(periods, SHORTHAND, total_dates=2)
 
     assert len(relevant) == 1
     assert relevant[0]['occurrences'] == 2
@@ -143,7 +143,7 @@ def test_subjectless_period_surfaces_name_candidates():
         20260907, 1000, 1015, su=[],
         lstype='bs', lstext='', info='Pausenaufsicht EG', activityType='', sg='',
     )]
-    relevant, _ = summarize_period_variants(periods, INITIALS, total_dates=1)
+    relevant, _ = summarize_period_variants(periods, SHORTHAND, total_dates=1)
 
     assert len(relevant) == 1
     variant = relevant[0]
@@ -160,6 +160,6 @@ def test_subjectless_period_surfaces_name_candidates():
 
 def test_period_with_subject_has_no_name_candidates():
     periods = [_period(20260907, 800, 845)]
-    relevant, _ = summarize_period_variants(periods, INITIALS, total_dates=1)
+    relevant, _ = summarize_period_variants(periods, SHORTHAND, total_dates=1)
 
     assert relevant[0]['nameCandidates'] is None

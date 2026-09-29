@@ -13,6 +13,7 @@ import webuntis_client
 from webuntis_client import AuthError, BadCredentialsError, RemoteError
 from models import DayOfWeekABCombo, Member, Timetable
 from utils import (
+    cycle_days,
     get_term_slot_dates,
     parse_time_to_hhmm,
     is_period_relevant,
@@ -71,11 +72,10 @@ class TimetableService:
                 why login failed (bad credentials, wrong server/school,
                 unreachable server, etc.) - see _describe_login_error.
         """
-        mock_mode = mock_webuntis.detect_mode(self.server)
-        if mock_mode:
-            self.session = mock_webuntis.MockSession(mock_mode, cache=self.cache)
+        if mock_webuntis.detect_mode(self.server):
+            self.session = mock_webuntis.MockSession()
             self.session.login()
-            logger.info(f"Connected to the mock WebUntis server ({mock_mode} mode)")
+            logger.info("Connected to the mock WebUntis server")
             return True
 
         self.session = webuntis_client.Session(
@@ -246,11 +246,11 @@ class TimetableService:
             self.cache.clear()
             logger.info("Timetable cache cleared")
     
-    def _get_cache_key(self, member_initials: str, start_date: datetime, end_date: datetime) -> str:
+    def _get_cache_key(self, member_shorthand: str, start_date: datetime, end_date: datetime) -> str:
         """Generate cache key for a timetable query."""
         start_str = start_date.strftime('%Y%m%d')
         end_str = end_date.strftime('%Y%m%d')
-        return f"timetable-{member_initials}-{start_str}-{end_str}"
+        return f"timetable-{member_shorthand}-{start_str}-{end_str}"
     
     def _query_timetable_raw(self, member: Member, start_date: datetime, end_date: datetime) -> List[dict]:
         """Query timetable from WebUntis API (bypasses cache)."""
@@ -262,36 +262,35 @@ class TimetableService:
             start_int = int(start_date.strftime('%Y%m%d'))
             end_int = int(end_date.strftime('%Y%m%d'))
             
-            logger.debug(f"Querying WebUntis API for {member.initials} from {start_int} to {end_int}")
+            logger.debug(f"Querying WebUntis API for {member.shorthand} from {start_int} to {end_int}")
             
             # Query timetable for the teacher
             periods = self.session.timetable_extended(
                 start=start_int,
                 end=end_int,
-                teacher=member.initials,
+                teacher=member.shorthand,
                 teacher_fields=["id", "name", "externalkey"],
                 is_part_time=member.is_part_time,
             )
 
-            logger.info(f"Retrieved {len(periods)} periods for {member.initials}")
+            logger.info(f"Retrieved {len(periods)} periods for {member.shorthand}")
             return periods
             
         except Exception as e:
-            logger.error(f"Error querying timetable for {member.initials}: {str(e)}")
+            logger.error(f"Error querying timetable for {member.shorthand}: {str(e)}")
             return []
     
     def _query_timetable(self, member: Member, start_date: datetime, end_date: datetime) -> List[dict]:
         """Query timetable with caching support."""
-        # The dynamic mock server fabricates a brand new schedule on every
-        # query by design (see mock_webuntis.py) - caching it would defeat
-        # that entirely, returning the same stale schedule until the TTL
-        # expires.
-        if mock_webuntis.detect_mode(self.server) == 'dynamic':
+        # The mock server fabricates a brand new schedule on every query by
+        # design (see mock_webuntis.py) - caching it would defeat that
+        # entirely, returning the same stale schedule until the TTL expires.
+        if mock_webuntis.detect_mode(self.server):
             return self._query_timetable_raw(member, start_date, end_date)
 
         # Check cache first
         if self.cache is not None:
-            cache_key = self._get_cache_key(member.initials, start_date, end_date)
+            cache_key = self._get_cache_key(member.shorthand, start_date, end_date)
             cached_data = self.cache.get(cache_key)
             
             if cached_data is not None:
@@ -301,12 +300,12 @@ class TimetableService:
             logger.debug(f"Cache miss for {cache_key}, fetching from API")
         
         # Fetch from API
-        logger.info(f"Fetching timetable for {member.initials} from {start_date.date()} to {end_date.date()}")
+        logger.info(f"Fetching timetable for {member.shorthand} from {start_date.date()} to {end_date.date()}")
         periods = self._query_timetable_raw(member, start_date, end_date)
         
         # Store in cache with TTL
         if self.cache is not None and periods:
-            cache_key = self._get_cache_key(member.initials, start_date, end_date)
+            cache_key = self._get_cache_key(member.shorthand, start_date, end_date)
             self.cache.set(cache_key, periods, expire=config.CACHE_TTL_SECONDS)
             logger.debug(f"Cached {len(periods)} periods for {cache_key}")
         
@@ -359,9 +358,10 @@ class TimetableService:
 
         Instead of reading two concrete weeks (which requires the user to find
         a week with no irregularities), this queries from start_date to the end
-        of the containing schoolyear, then for each of the 10 (weekday, A/B)
-        slots merges every matching date's periods across the whole range to
-        find the regular schedule. Makes ONE API call per member.
+        of the containing schoolyear, then for each slot of the cycle (10
+        weekday/A-B slots, or 5 weekday slots without alternating weeks)
+        merges every matching date's periods across the whole range to find
+        the regular schedule. Makes ONE API call per member.
 
         Args:
             members: List of carpool members
@@ -369,12 +369,13 @@ class TimetableService:
                 week containing this date is treated as week A
 
         Returns:
-            Dictionary mapping member initials to their daily timetables
-            Format: {initials: {day_num: Timetable}}
+            Dictionary mapping member shorthand to their daily timetables
+            Format: {shorthand: {day_num: Timetable}}
         """
         if not self.session:
             raise RuntimeError("Not connected to WebUntis. Call connect() first.")
 
+        alternating_weeks = config.ALTERNATING_WEEKS
         schoolyear = self._get_schoolyear(start_date)
         term_end = schoolyear.end
         # WebUntis rejects ranges that start before the containing schoolyear
@@ -391,18 +392,20 @@ class TimetableService:
             member.id = next(
                 (teacher.get('id') for period in all_periods
                  for teacher in period.get('te', [])
-                 if teacher.get('name') == member.initials),
+                 if teacher.get('name') == member.shorthand),
                 None
             )
 
             # Filter relevant periods
-            relevant_periods = [p for p in all_periods if is_period_relevant(p, member.initials)]
-            logger.debug(f"Found {len(relevant_periods)} relevant periods (of {len(all_periods)} total) for {member.initials}")
+            relevant_periods = [p for p in all_periods if is_period_relevant(p, member.shorthand)]
+            logger.debug(f"Found {len(relevant_periods)} relevant periods (of {len(all_periods)} total) for {member.shorthand}")
 
-            # Process each of the 10 (weekday, A/B) slots
             member_timetables = {}
-            for day_num in range(10):
-                slot_dates = {int(d.strftime('%Y%m%d')) for d in get_term_slot_dates(start_date, term_end, day_num)}
+            for day_num in range(cycle_days(alternating_weeks)):
+                slot_dates = {
+                    int(d.strftime('%Y%m%d'))
+                    for d in get_term_slot_dates(start_date, term_end, day_num, alternating_weeks)
+                }
                 slot_periods = [p for p in relevant_periods if p.get('date') in slot_dates]
                 timetable = self._extract_timetable_for_day(member, day_num, slot_periods)
 
@@ -430,7 +433,7 @@ class TimetableService:
                         
                 member_timetables[day_num] = timetable
             
-            timetables[member.initials] = member_timetables
+            timetables[member.shorthand] = member_timetables
             
             # Store timetable in the member object
             member.timetable = member_timetables
@@ -461,7 +464,7 @@ class TimetableService:
             if not day_periods:
                 # No lessons on this day
                 return Timetable(
-                    member_initials=member.initials,
+                    member_shorthand=member.shorthand,
                     day_number=day_num,
                     start_time=None,
                     end_time=None,
@@ -473,7 +476,7 @@ class TimetableService:
             end_time = max(p.get('endTime', 0) for p in day_periods)
             
             return Timetable(
-                member_initials=member.initials,
+                member_shorthand=member.shorthand,
                 day_number=day_num,
                 start_time=start_time,
                 end_time=end_time,
@@ -481,10 +484,10 @@ class TimetableService:
             )
             
         except Exception as e:
-            logger.error(f"Error extracting timetable for {member.initials} (day {day_num}): {str(e)}")
+            logger.error(f"Error extracting timetable for {member.shorthand} (day {day_num}): {str(e)}")
             # Return an absent timetable
             return Timetable(
-                member_initials=member.initials,
+                member_shorthand=member.shorthand,
                 day_number=day_num,
                 start_time=None,
                 end_time=None,
@@ -509,12 +512,14 @@ class TimetableService:
             start_date: Reference date (same meaning as get_timetables_for_members)
 
         Returns:
-            Dict with the member's initials, the queried date range, and a
-            list of 10 per-slot breakdowns (day_num order)
+            Dict with the member's shorthand, the queried date range, and a
+            list of per-slot breakdowns (day_num order; 10 or 5 depending on
+            config.ALTERNATING_WEEKS)
         """
         if not self.session:
             raise RuntimeError("Not connected to WebUntis. Call connect() first.")
 
+        alternating_weeks = config.ALTERNATING_WEEKS
         schoolyear = self._get_schoolyear(start_date)
         term_end = schoolyear.end
         query_start = max(start_date, schoolyear.start)
@@ -525,14 +530,14 @@ class TimetableService:
         klasse_names = self._get_element_names('klassen')
 
         slots = []
-        for day_num in range(10):
-            slot_dates = get_term_slot_dates(start_date, term_end, day_num)
+        for day_num in range(cycle_days(alternating_weeks)):
+            slot_dates = get_term_slot_dates(start_date, term_end, day_num, alternating_weeks)
             slot_date_ints = {int(d.strftime('%Y%m%d')) for d in slot_dates}
             total_dates = len(slot_dates)
             day_periods = [p for p in all_periods if p.get('date') in slot_date_ints]
 
             relevant_periods, excluded_periods = summarize_period_variants(
-                day_periods, member.initials, total_dates, subject_names, room_names, klasse_names
+                day_periods, member.shorthand, total_dates, subject_names, room_names, klasse_names
             )
 
             if relevant_periods:
@@ -585,7 +590,7 @@ class TimetableService:
             })
 
         return {
-            'initials': member.initials,
+            'shorthand': member.shorthand,
             'queryRangeStart': query_start.strftime('%Y-%m-%d'),
             'queryRangeEnd': term_end.strftime('%Y-%m-%d'),
             'slots': slots,

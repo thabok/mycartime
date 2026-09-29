@@ -86,7 +86,7 @@ class Member:
     """Represents a carpool party member."""
     first_name: str
     last_name: str
-    initials: str
+    shorthand: str
     number_of_seats: int
     is_part_time: bool = False
     custom_days: Dict[int, CustomDay] = field(default_factory=dict)
@@ -112,7 +112,7 @@ class Member:
         return cls(
             first_name=data['firstName'],
             last_name=data['lastName'],
-            initials=data['initials'],
+            shorthand=data['shorthand'],
             number_of_seats=data['numberOfSeats'],
             is_part_time=data.get('isPartTime', False),
             custom_days=custom_days,
@@ -268,9 +268,9 @@ class DayOfWeekABCombo:
 class Party:
     """Represents a carpool party (one direction, one time)."""
     day_of_week_ab_combo: DayOfWeekABCombo
-    driver: str  # initials
+    driver: str  # shorthand
     time: int  # HHMM format
-    passengers: List[str]  # list of initials
+    passengers: List[str]  # list of shorthand
     is_designated_driver: bool  # True if needsCar, or if no one else was a viable ride (no rides_with option existed)
     drives_despite_custom_prefs: bool
     schoolbound: bool
@@ -307,31 +307,32 @@ class DayPlan:
     """Represents the plan for a single day."""
     day_of_week_ab_combo: DayOfWeekABCombo
     parties: List[Party] = field(default_factory=list)
-    schoolbound_times_by_initials: Dict[str, int] = field(default_factory=dict)  # DEPRECATED: use schoolbound_time_info_by_initials
-    homebound_times_by_initials: Dict[str, int] = field(default_factory=dict)  # DEPRECATED: use homebound_time_info_by_initials
-    schoolbound_time_info_by_initials: Dict[str, TimeInfo] = field(default_factory=dict)  # Time information with sources
-    homebound_time_info_by_initials: Dict[str, TimeInfo] = field(default_factory=dict)  # Time information with sources
+    schoolbound_times_by_shorthand: Dict[str, int] = field(default_factory=dict)  # DEPRECATED: use schoolbound_time_info_by_shorthand
+    homebound_times_by_shorthand: Dict[str, int] = field(default_factory=dict)  # DEPRECATED: use homebound_time_info_by_shorthand
+    schoolbound_time_info_by_shorthand: Dict[str, TimeInfo] = field(default_factory=dict)  # Time information with sources
+    homebound_time_info_by_shorthand: Dict[str, TimeInfo] = field(default_factory=dict)  # Time information with sources
     
     def to_dict(self) -> dict:
         """Convert to dictionary."""
         return {
             'dayOfWeekABCombo': self.day_of_week_ab_combo.to_dict(),
             'parties': [p.to_dict() for p in self.parties],
-            'schoolboundTimesByInitials': self.schoolbound_times_by_initials,  # Keep for backward compat
-            'homeboundTimesByInitials': self.homebound_times_by_initials,  # Keep for backward compat
-            'schoolboundTimeInfoByInitials': {k: v.to_dict() for k, v in self.schoolbound_time_info_by_initials.items()},
-            'homeboundTimeInfoByInitials': {k: v.to_dict() for k, v in self.homebound_time_info_by_initials.items()}
+            'schoolboundTimesByShorthand': self.schoolbound_times_by_shorthand,  # Keep for backward compat
+            'homeboundTimesByShorthand': self.homebound_times_by_shorthand,  # Keep for backward compat
+            'schoolboundTimeInfoByShorthand': {k: v.to_dict() for k, v in self.schoolbound_time_info_by_shorthand.items()},
+            'homeboundTimeInfoByShorthand': {k: v.to_dict() for k, v in self.homebound_time_info_by_shorthand.items()}
         }
 
 
 @dataclass
 class DrivingPlan:
-    """Represents the complete driving plan for 2 weeks."""
+    """The complete driving plan for one cycle (weeks A and B, or a single week)."""
     summary: str
     day_plans: Dict[int, DayPlan] = field(default_factory=dict)
     member_id_map: Dict[str, Optional[int]] = field(default_factory=dict)
     schedule_url_template: str = config.SCHEDULE_URL_TEMPLATE
     quality_metrics: dict = field(default_factory=dict)
+    alternating_weeks: bool = True
 
     def to_dict(self) -> dict:
         """Convert to dictionary."""
@@ -340,15 +341,16 @@ class DrivingPlan:
             'dayPlans': {str(k): v.to_dict() for k, v in self.day_plans.items()},
             'memberIdMap': self.member_id_map,
             'scheduleUrlTemplate': self.schedule_url_template,
-            'qualityMetrics': self.quality_metrics
+            'qualityMetrics': self.quality_metrics,
+            'alternatingWeeks': self.alternating_weeks,
         }
 
 
 @dataclass
 class Timetable:
     """Represents a member's timetable for a day."""
-    member_initials: str
-    day_number: int  # 0-9 for the 10 days in the cycle
+    member_shorthand: str
+    day_number: int  # 0-9 with alternating weeks, 0-4 without
     start_time: Optional[int] = None  # HHMM format (may be overwritten by custom prefs)
     end_time: Optional[int] = None    # HHMM format (may be overwritten by custom prefs)
     scheduled_start_time: Optional[int] = None  # Original timetable start time (never overwritten)

@@ -98,7 +98,7 @@ Member configuration:
 - List of members (card view/list view, searchable)
 - For each member:
     - Name
-    - Initials
+    - Shorthand
     - Is Part Time (boolean)
     - Number of seats
     - Custom preferences

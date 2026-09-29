@@ -43,17 +43,17 @@ def load_test_data():
     return data
 
 
-def test_health_check():
-    """Test the health check endpoint"""
+def _check_health() -> bool:
+    """Check the health check endpoint"""
     logger.info("Testing health check endpoint...")
-    
+
     try:
         response = requests.get(f"{BASE_URL}/api/v1/check", timeout=5)
         response.raise_for_status()
-        
+
         result = response.json()
         assert result is True, f"Expected True, got {result}"
-        
+
         logger.info("✓ Health check passed")
         return True
     except requests.exceptions.ConnectionError:
@@ -64,7 +64,11 @@ def test_health_check():
         return False
 
 
-def test_calculate_drivingplan(test_data):
+def test_health_check():
+    assert _check_health()
+
+
+def _check_calculate_drivingplan(test_data) -> bool:
     """Test the driving plan calculation endpoint"""
     logger.info("Testing driving plan calculation endpoint...")
     
@@ -102,7 +106,7 @@ def test_calculate_drivingplan(test_data):
                 assert "schoolbound" in party, f"Day {day_num}, Party {i}: missing 'schoolbound'"
                 
                 # Validate types
-                assert isinstance(party["driver"], str), f"Driver should be string (initials)"
+                assert isinstance(party["driver"], str), f"Driver should be string (shorthand)"
                 assert isinstance(party["passengers"], str), f"Passengers should be string"
                 assert isinstance(party["time"], int), f"Time should be integer (HHMM format)"
                 assert isinstance(party["schoolbound"], bool), f"Schoolbound should be boolean"
@@ -162,12 +166,12 @@ def run_tests():
     results = []
     
     # Test 1: Health check
-    results.append(("Health Check", test_health_check()))
+    results.append(("Health Check", _check_health()))
     logger.info("")
-    
+
     # Test 2: Calculate driving plan
     if results[0][1]:  # Only run if health check passed
-        results.append(("Calculate Driving Plan", test_calculate_drivingplan(test_data)))
+        results.append(("Calculate Driving Plan", _check_calculate_drivingplan(test_data)))
     else:
         logger.warning("Skipping driving plan test due to failed health check")
         results.append(("Calculate Driving Plan", False))

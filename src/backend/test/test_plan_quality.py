@@ -14,8 +14,8 @@ from plan_quality import compute_quality_metrics  # type: ignore # noqa: E402
 TOLERANCE = 30
 
 
-def _member(initials, seats=4, is_part_time=False, drive_count=0, max_drives=4, first_name=None):
-    m = Member(first_name=first_name or initials, last_name=initials, initials=initials, number_of_seats=seats,
+def _member(shorthand, seats=4, is_part_time=False, drive_count=0, max_drives=4, first_name=None):
+    m = Member(first_name=first_name or shorthand, last_name=shorthand, shorthand=shorthand, number_of_seats=seats,
                is_part_time=is_part_time)
     m.drive_count = drive_count
     m.max_drives = max_drives
@@ -24,7 +24,7 @@ def _member(initials, seats=4, is_part_time=False, drive_count=0, max_drives=4, 
 
 def _set_time(member, day_num, start=None, end=None):
     member.timetable[day_num] = Timetable(
-        member_initials=member.initials, day_number=day_num,
+        member_shorthand=member.shorthand, day_number=day_num,
         start_time=start, end_time=end,
         scheduled_start_time=start, scheduled_end_time=end,
     )
@@ -115,10 +115,10 @@ def test_packed_parties_only_flags_full_five_seaters():
     assert packed_party['dayOfWeek'] == 'MONDAY'
     assert packed_party['isWeekA'] is True
     assert packed_party['time'] == 745
-    assert packed_party['driver'] == {'initials': 'D1', 'firstName': 'D1'}
+    assert packed_party['driver'] == {'shorthand': 'D1', 'firstName': 'D1'}
     assert packed_party['passengers'] == [
-        {'initials': 'P1', 'firstName': 'P1'}, {'initials': 'P2', 'firstName': 'P2'},
-        {'initials': 'P3', 'firstName': 'P3'}, {'initials': 'P4', 'firstName': 'P4'},
+        {'shorthand': 'P1', 'firstName': 'P1'}, {'shorthand': 'P2', 'firstName': 'P2'},
+        {'shorthand': 'P3', 'firstName': 'P3'}, {'shorthand': 'P4', 'firstName': 'P4'},
     ]
 
 
@@ -178,7 +178,7 @@ def test_ab_driver_mismatch_flags_genuinely_different_pattern():
     assert metrics['abDriverMismatch']['totalMembers'] == 2
     assert metrics['abDriverMismatch']['value'] == 50
     assert metrics['abDriverMismatch']['members'] == [
-        {'initials': 'M', 'firstName': 'Michel', 'weekdaysA': [0], 'weekdaysB': [1]}
+        {'shorthand': 'M', 'firstName': 'Michel', 'weekdaysA': [0], 'weekdaysB': [1]}
     ]
 
 
@@ -246,7 +246,7 @@ def test_passenger_ab_stability_flags_different_driver_between_weeks():
     assert metrics['passengerAbStability']['matchedCount'] == 0
     assert metrics['passengerAbStability']['totalComparableRides'] == 1
     assert metrics['passengerAbStability']['mismatches'] == [
-        {'initials': 'P', 'weekday': 0, 'schoolbound': True, 'driverA': 'D1', 'driverB': 'D2'}
+        {'shorthand': 'P', 'weekday': 0, 'schoolbound': True, 'driverA': 'D1', 'driverB': 'D2'}
     ]
 
 
@@ -262,3 +262,19 @@ def test_passenger_ab_stability_ignores_passenger_absent_one_week():
 
     assert metrics['passengerAbStability']['totalComparableRides'] == 0
     assert metrics['passengerAbStability']['value'] == 100
+
+
+def test_ab_metrics_are_omitted_without_alternating_weeks():
+    d1, p = _member('D1'), _member('P')
+    _set_time(d1, 0, start=745)
+    _set_time(p, 0, start=745)
+    members = {'D1': d1, 'P': p}
+
+    day_plans = {day_key: DayPlan(day_of_week_ab_combo=None, parties=[]) for day_key in range(1, 6)}
+    day_plans[1].parties = [_party('D1', 745, ['P'])]
+
+    metrics = compute_quality_metrics(members, day_plans, TOLERANCE, alternating_weeks=False)
+
+    assert 'abDriverMismatch' not in metrics
+    assert 'passengerAbStability' not in metrics
+    assert metrics['packedParties']['totalRides'] == 1

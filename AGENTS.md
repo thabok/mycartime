@@ -88,3 +88,6 @@ dependency on `python-webuntis` or similar.
 - Match the existing code style in whichever file you're editing
   (backend is flat-import Python/Flask; frontend is TypeScript/React with
   shadcn/ui components).
+- Frontend is `"type": "module"` — use ESM `import`, never `require()`
+  (including in config files like `tailwind.config.ts`); `require()` calls
+  fail the `@typescript-eslint/no-require-imports` lint rule.

@@ -47,9 +47,9 @@ comparing multiple people/days.
 ## Formatting
 
 When mentioning a member in `reply`, always use their first name followed
-by their initials in parentheses — e.g. a member with `firstName: "John"`
-and `initials: "Gh"` is written as "John (Gh)". Never use the last name or
-bare initials on their own.
+by their shorthand in parentheses — e.g. a member with `firstName: "John"`
+and `shorthand: "Gh"` is written as "John (Gh)". Never use the last name or
+bare shorthand on their own.
 
 `reply` is rendered as Markdown in the chat panel, so use it to make
 answers scannable: back-tick field/variable names, values, and booleans
@@ -80,24 +80,28 @@ exactly this shape, and nothing else outside the fence:
 ```
 
 `actions` is a list of zero or more of the following (omit fields not
-listed for a given type; `PartyRef` is `{"driver": "<initials>", "time": <HHMM int>}`):
+listed for a given type; `PartyRef` is `{"driver": "<shorthand>", "time": <HHMM int>}`):
 
 - `{"type": "createMember", "member": Member}`
-- `{"type": "updateMember", "initials": "<current initials>", "member": Member}`
-- `{"type": "deleteMember", "initials": "<initials>"}`
+- `{"type": "updateMember", "shorthand": "<current shorthand>", "member": Member}`
+- `{"type": "deleteMember", "shorthand": "<shorthand>"}`
 - `{"type": "importMembers", "members": Member[]}` — replaces the entire member list
 - `{"type": "exportMembers"}`
-- `{"type": "updateCustomDay", "initials": "<initials>", "dayKey": "0"-"9", "customDay": CustomDay}`
-- `{"type": "movePassenger", "dayUniqueNumber": <int>, "passenger": "<initials>", "fromParty": PartyRef, "toParty": PartyRef}`
+- `{"type": "updateCustomDay", "shorthand": "<shorthand>", "dayKey": "0"-"9" (or "0"-"4" without alternating weeks), "customDay": CustomDay}`
+- `{"type": "movePassenger", "dayUniqueNumber": <int>, "passenger": "<shorthand>", "fromParty": PartyRef, "toParty": PartyRef}`
 - `{"type": "deletePlan"}`
 - `{"type": "exportPlan"}`
 - `{"type": "navigate", "path": "/members" | "/plan"}`
 
 `Member` and `CustomDay` follow the app's schema (`schemas/members.json`):
-a `Member` has `firstName`, `lastName`, `initials`, `numberOfSeats`,
-optional `isPartTime`, optional `customDays` (a map of day-key `"0"`-`"9"`,
-where `0`-`4` are Monday-Friday week A and `5`-`9` are Monday-Friday week
-B, to `CustomDay`). A `CustomDay` has boolean flags `ignoreCompletely`,
+a `Member` has `firstName`, `lastName`, `shorthand`, `numberOfSeats`,
+optional `isPartTime`, optional `targetDriveCount` (how often they should
+drive per cycle; omit it to use the default), optional `customDays` (a map
+of day-key `"0"`-`"9"`, where `0`-`4` are Monday-Friday week A and `5`-`9`
+are Monday-Friday week B, to `CustomDay`). If the plan has
+`alternatingWeeks: false`, the school has no A/B weeks: the plan covers
+only Monday-Friday of a single repeating week, and only day-keys `"0"`-`"4"`
+are used. A `CustomDay` has boolean flags `ignoreCompletely`,
 `noWaitingAfternoon`, `needsCar`, `drivingSkip`, `skipMorning`,
 `skipAfternoon`, plus `customStart`/`customEnd` as `"HH:MM"` strings.
 

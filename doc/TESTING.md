@@ -39,7 +39,7 @@ This checks:
 `src/backend/test/test_full_term_scan.py` and `src/backend/test/test_only_base_timetable.py` are not part of routine testing — they're one-off scripts used to verify specific WebUntis behavior (full-term scheduling, `onlyBaseTimetable` semantics) against a live account. They require a stored credential:
 
 ```bash
-python -c "import keyring; keyring.set_password('webuntis', '<initials>', '<password>')"
+python -c "import keyring; keyring.set_password('webuntis', '<shorthand>', '<password>')"
 python src/backend/test/test_full_term_scan.py
 ```
 

@@ -29,10 +29,10 @@ def build_members(capture: dict) -> list:
     for person in capture['persons']:
         member = Member.from_dict(person)
         member.id = None
-        member_timetables = capture['timetables'].get(member.initials, {})
+        member_timetables = capture['timetables'].get(member.shorthand, {})
         member.timetable = {
             int(day_num): Timetable(
-                member_initials=member.initials,
+                member_shorthand=member.shorthand,
                 day_number=int(day_num),
                 start_time=t['startTime'],
                 end_time=t['endTime'],
@@ -46,10 +46,10 @@ def build_members(capture: dict) -> list:
     return members
 
 
-def build_engine(max_seconds=None, no_improvement_seconds=_UNSET):
+def build_engine(max_seconds=None, no_improvement_seconds=_UNSET, alternating_weeks=True):
     """Return a SolverService instance exposing calculate_driving_plan(members)."""
     from solver_service import SolverService  # type: ignore
-    kwargs = {}
+    kwargs = {'alternating_weeks': alternating_weeks}
     if no_improvement_seconds is not _UNSET:
         kwargs['stop_after_no_improvement_seconds'] = no_improvement_seconds
     return SolverService(max_time_in_seconds=max_seconds, **kwargs)
@@ -92,7 +92,10 @@ def main():
 
     members = build_members(capture)
 
-    driving_plan = build_engine(max_seconds, no_improvement_seconds).calculate_driving_plan(members)
+    # Captures from before the setting existed are all alternating-weeks plans.
+    alternating_weeks = capture.get('alternatingWeeks', True)
+    engine = build_engine(max_seconds, no_improvement_seconds, alternating_weeks)
+    driving_plan = engine.calculate_driving_plan(members)
 
     with open(output_path, 'w') as f:
         json.dump(driving_plan.to_dict(), f)

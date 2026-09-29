@@ -4,8 +4,9 @@ Use these terms consistently — they match the labels used in the UI.
 
 - **Member** (also "Carpool Party Member", "Person"): a teacher who
   participates in the carpool group.
-- **Driving Plan**: the full 2-week ("Week A" + "Week B") carpool
-  schedule, made up of one **Day Plan** per weekday per week.
+- **Driving Plan**: the full carpool schedule, made up of one **Day Plan**
+  per weekday per week - 2 weeks ("Week A" + "Week B") for schools with
+  alternating weeks, a single repeating week otherwise.
 - **Day Plan**: the schedule for a single weekday within one week (A or
   B) — the set of **Parties** for that day's schoolbound and homebound
   journeys.
@@ -24,7 +25,9 @@ Use these terms consistently — they match the labels used in the UI.
   PM` custom preference).
 - **Schoolbound**: the morning journey to school.
 - **Homebound**: the afternoon/evening journey home.
-- **Week A / Week B**: the two-week rotation the driving plan covers.
+- **Week A / Week B**: the two-week rotation the driving plan covers
+  (only for schools with alternating weeks).
+- **Target drive count**: how many times a member should drive per cycle.
 - **Custom Day / Custom Preferences**: per-member, per-day overrides of
   the timetable-derived schedule. Flags: **Skip** (excluded entirely that
   day), **Needs Car** (must drive), **Skip AM** / **Skip PM** (solo driver

@@ -18,23 +18,28 @@ logger = logging.getLogger(__name__)
 class PlanBuilder:
     """Builds validated DayPlan objects and the plan summary from decided parties."""
 
-    def __init__(self, members: Dict[str, Member], all_parties: Dict[int, Dict[str, List[Party]]]):
+    def __init__(self, members: Dict[str, Member], all_parties: Dict[int, Dict[str, List[Party]]],
+                 alternating_weeks: bool = True):
         self.members = members
         self.all_parties = all_parties
+        self.alternating_weeks = alternating_weeks
 
     def _get_day_name(self, day_num: int) -> str:
         """
         Convert day number to human-readable format.
 
         Args:
-            day_num: Day number (0-9)
+            day_num: Day number (0-9, or 0-4 without alternating weeks)
 
         Returns:
-            String like "Monday (A)" or "Wednesday (B)"
+            String like "Monday (A)" or "Wednesday (B)", or just "Monday"
+            without alternating weeks
         """
         day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-        week = "A" if day_num < 5 else "B"
         day_of_week = day_names[day_num % 5]
+        if not self.alternating_weeks:
+            return day_of_week
+        week = "A" if day_num < 5 else "B"
         return f"{day_of_week} ({week})"
 
     def build_day_plan(self, day_num: int, day_of_week_ab: DayOfWeekABCombo) -> DayPlan:
@@ -189,7 +194,7 @@ class PlanBuilder:
                 members_homebound.update(party.passengers)
 
         missing_members = []
-        for initials, member in self.members.items():
+        for shorthand, member in self.members.items():
             # Check if member should be present this day
             timetable = member.timetable.get(day_num)
 
@@ -204,11 +209,11 @@ class PlanBuilder:
             has_morning = timetable.get_start_time() is not None
             has_afternoon = timetable.get_end_time() is not None
 
-            if has_morning and initials not in members_schoolbound:
-                missing_members.append(f"{initials} (schoolbound)")
+            if has_morning and shorthand not in members_schoolbound:
+                missing_members.append(f"{shorthand} (schoolbound)")
 
-            if has_afternoon and initials not in members_homebound:
-                missing_members.append(f"{initials} (homebound)")
+            if has_afternoon and shorthand not in members_homebound:
+                missing_members.append(f"{shorthand} (homebound)")
 
         if missing_members:
             error_msg = f"VALIDATION ERROR on {self._get_day_name(day_num)}: Members missing from day plan: {missing_members}"
@@ -280,11 +285,11 @@ class PlanBuilder:
                             )
 
         # Check that members with needsCar are actually drivers
-        for initials, member in self.members.items():
+        for shorthand, member in self.members.items():
             if member.needs_car_on_day(day_num) and not member.should_ignore_on_day(day_num):
-                if initials not in drivers_on_day:
+                if shorthand not in drivers_on_day:
                     custom_validation_errors.append(
-                        f"{initials} has needsCar but is not a driver on {self._get_day_name(day_num)}"
+                        f"{shorthand} has needsCar but is not a driver on {self._get_day_name(day_num)}"
                     )
 
         if custom_validation_errors:
@@ -297,10 +302,10 @@ class PlanBuilder:
         return DayPlan(
             day_of_week_ab_combo=day_of_week_ab,
             parties=parties,
-            schoolbound_times_by_initials=schoolbound_times,
-            homebound_times_by_initials=homebound_times,
-            schoolbound_time_info_by_initials=schoolbound_time_info,
-            homebound_time_info_by_initials=homebound_time_info
+            schoolbound_times_by_shorthand=schoolbound_times,
+            homebound_times_by_shorthand=homebound_times,
+            schoolbound_time_info_by_shorthand=schoolbound_time_info,
+            homebound_time_info_by_shorthand=homebound_time_info
         )
 
     def generate_summary(self, members: List[Member]) -> str:
@@ -322,6 +327,6 @@ class PlanBuilder:
         )
 
         for member in sorted_members:
-            lines.append(f"- {member.first_name} ({member.initials}): {member.drive_count}")
+            lines.append(f"- {member.first_name} ({member.shorthand}): {member.drive_count}")
 
         return "\n".join(lines) + "\n"

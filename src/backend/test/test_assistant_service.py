@@ -154,7 +154,7 @@ def test_capacity_batch_allows_swap_that_nets_out():
             }
         }
     }
-    members = [{'initials': 'AB', 'numberOfSeats': 2}, {'initials': 'EF', 'numberOfSeats': 2}]
+    members = [{'shorthand': 'AB', 'numberOfSeats': 2}, {'shorthand': 'EF', 'numberOfSeats': 2}]
     actions = [
         {'type': 'movePassenger', 'dayUniqueNumber': 1, 'passenger': 'CD',
          'fromParty': {'driver': 'AB', 'time': 755}, 'toParty': {'driver': 'EF', 'time': 800}},
@@ -178,7 +178,7 @@ def test_capacity_batch_drops_when_net_result_overfills_a_car():
             }
         }
     }
-    members = [{'initials': 'AB', 'numberOfSeats': 2}, {'initials': 'EF', 'numberOfSeats': 2}]
+    members = [{'shorthand': 'AB', 'numberOfSeats': 2}, {'shorthand': 'EF', 'numberOfSeats': 2}]
     actions = [
         {'type': 'movePassenger', 'dayUniqueNumber': 1, 'passenger': 'GH',
          'fromParty': {'driver': 'EF', 'time': 800}, 'toParty': {'driver': 'AB', 'time': 755}},

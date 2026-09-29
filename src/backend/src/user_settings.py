@@ -28,6 +28,8 @@ EDITABLE_SETTINGS = {
     'WEBUNTIS_AUTH_MODE': lambda v: v in ('password', 'secret'),
     'WEBUNTIS_SECRET': lambda v: isinstance(v, str),
     'TIME_TOLERANCE_MINUTES': lambda v: isinstance(v, int) and not isinstance(v, bool) and v >= 0,
+    'ALTERNATING_WEEKS': lambda v: isinstance(v, bool),
+    'CREATE_PARTIES_FOR_UNDERUSED_DRIVERS': lambda v: isinstance(v, bool),
     'CLAUDE_CLI_PATH': lambda v: isinstance(v, str),
     'ASSISTANT_ENABLED': lambda v: isinstance(v, bool),
 }

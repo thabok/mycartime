@@ -19,16 +19,16 @@ DAY = 0
 TOLERANCE = 30
 
 
-def _member(initials, seats=4, custom_days=None):
+def _member(shorthand, seats=4, custom_days=None):
     return Member(
-        first_name=initials, last_name=initials, initials=initials,
+        first_name=shorthand, last_name=shorthand, shorthand=shorthand,
         number_of_seats=seats, custom_days=custom_days or {},
     )
 
 
 def _set_time(member, day_num, start=None, end=None):
     member.timetable[day_num] = Timetable(
-        member_initials=member.initials, day_number=day_num,
+        member_shorthand=member.shorthand, day_number=day_num,
         start_time=start, end_time=end,
         scheduled_start_time=start, scheduled_end_time=end,
     )
@@ -355,3 +355,24 @@ def test_optimize_passenger_placement_unifies_ab_after_balance_frees_a_seat():
     assert sorted(party_d1_b.passengers) == ['P', 'Y2']
     assert party_d2_b.passengers == []
     assert party_d3_b.passengers == ['Y1']
+
+
+def test_time_distance_is_measured_in_minutes_across_the_hour():
+    # 7:30 and 8:00 are both 15 minutes from 7:45 - a genuine tie, so the two
+    # passengers get split across the cars instead of crowding into one.
+    # Comparing raw HHMM values would see 800 - 745 = 55 and miss the tie.
+    d1, d2 = _member('D1'), _member('D2')
+    p1, p2 = _member('P1'), _member('P2')
+    _set_time(d1, DAY, start=730)
+    _set_time(d2, DAY, start=800)
+    for p in (p1, p2):
+        _set_time(p, DAY, start=745)
+    members = {m.shorthand: m for m in (d1, d2, p1, p2)}
+
+    heavy = _party('D1', 730, ['P1', 'P2'])
+    light = _party('D2', 800, [])
+
+    moved = _balance_even_distribution([heavy, light], members, DAY, True, TOLERANCE)
+
+    assert moved
+    assert len(heavy.passengers) == 1 and len(light.passengers) == 1

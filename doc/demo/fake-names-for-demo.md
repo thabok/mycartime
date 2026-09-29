@@ -72,7 +72,7 @@ function toggleAnonymousMode() {
   // Not anonymized -> build the fake identity mapping and apply it.
   const realMembers = JSON.parse(localStorage.getItem('carpool-members') || '[]');
   const used = new Set();
-  const initialsFor = (first, last) => {
+  const shorthandFor = (first, last) => {
     const base = (first[0] + last[0]).toUpperCase();
     let candidate = base, n = 1;
     while (used.has(candidate)) candidate = base + (n++);
@@ -83,8 +83,8 @@ function toggleAnonymousMode() {
   const identities = sorted.map((m, idx) => {
     const [fakeFirst, fakeLast] = FAKE_POOL[idx % FAKE_POOL.length];
     return {
-      realFirst: m.firstName, realLast: m.lastName, realInitials: m.initials,
-      fakeFirst, fakeLast, fakeInitials: initialsFor(fakeFirst, fakeLast),
+      realFirst: m.firstName, realLast: m.lastName, realShorthand: m.shorthand,
+      fakeFirst, fakeLast, fakeShorthand: shorthandFor(fakeFirst, fakeLast),
     };
   });
 
@@ -92,7 +92,7 @@ function toggleAnonymousMode() {
   for (const id of identities) {
     if (id.realLast) replacements.push([id.realLast, id.fakeLast]);
     if (id.realFirst) replacements.push([id.realFirst, id.fakeFirst]);
-    replacements.push([id.realInitials, id.fakeInitials]);
+    replacements.push([id.realShorthand, id.fakeShorthand]);
   }
 
   applyToDom(buildMatcher(replacements));

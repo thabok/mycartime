@@ -85,9 +85,10 @@ Content-Type: application/json
     {
       "firstName": "John",
       "lastName": "Doe",
-      "initials": "Jd",
+      "shorthand": "Jd",
       "numberOfSeats": 5,
       "isPartTime": false,
+      "targetDriveCount": 4,
       "customDays": {
         "0": {
           "ignoreCompletely": false,
@@ -121,8 +122,8 @@ Content-Type: application/json
         "uniqueNumber": 1
       },
       "parties": [...],
-      "schoolboundTimesByInitials": {...},
-      "homeboundTimesByInitials": {...}
+      "schoolboundTimesByShorthand": {...},
+      "homeboundTimesByShorthand": {...}
     }
   }
 }
@@ -136,7 +137,8 @@ See [internal_doc.md](internal_doc.md#algorithm) for the full functional spec (c
 
 Key configuration (`src/backend/src/config.py`):
 - `TIME_TOLERANCE_MINUTES` (default 30): max deviation in minutes to group members into the same time slot.
-- `MAX_DRIVES_FULLTIME` (default 4) / `MAX_DRIVES_PARTTIME` (default 3): max drives per member type over the 2-week cycle.
+- `ALTERNATING_WEEKS` (default `false`): whether the school alternates A/B weeks. Off, plans cover 5 days that repeat every week and the week A/B optimization is skipped; on, they cover 10 days (Mon-Fri, weeks A and B).
+- `DEFAULT_TARGET_DRIVE_COUNT_FULLTIME` (default 4) / `DEFAULT_TARGET_DRIVE_COUNT_PARTTIME` (default 2): how often a member is asked to drive per cycle when they have no `targetDriveCount` of their own. Without alternating weeks, `DEFAULT_TARGET_DRIVE_COUNT_NON_ALTERNATING` (default 2) applies to everyone.
 - `SOLVER_STOP_AFTER_NO_IMPROVEMENT_SECONDS` (default 5): stop searching once this many seconds pass without a better solution being found, and serve the best one so far — in practice the solver finds the true optimum within a few seconds and would otherwise keep searching for minutes just to *prove* it, which nobody is waiting for.
 - `SOLVER_MAX_TIME_SECONDS` / `SOLVER_BLOCKING_MAX_TIME_SECONDS`: wall-clock safety nets on top of the no-improvement timeout, for the streaming and plain endpoints respectively.
 

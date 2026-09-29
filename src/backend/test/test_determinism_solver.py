@@ -7,7 +7,7 @@ guards both:
 1. Python-side model building. CP-SAT itself doesn't care about
    PYTHONHASHSEED, but the code that *builds* the model does - a prior
    greedy-heuristic engine (see doc/ALGORITHM_EVOLUTION.md; retired) had
-   three separate places where iterating a `set` of member initials silently
+   three separate places where iterating a `set` of member shorthand silently
    changed real decisions. So the solver builds its model from sorted lists
    only, and this test replays a real capture under different hash seeds to
    prove it stays that way.

@@ -20,7 +20,7 @@ flaws:
 
 1. **Non-determinism.** Python randomizes string-hash order per process
    (`PYTHONHASHSEED`), and the algorithm iterated over `set`-typed
-   collections of member initials at several real decision points. The same
+   collections of member shorthand at several real decision points. The same
    input could silently produce a different plan just because the backend
    process happened to restart - 50 replays of one real capture produced 25
    distinct plans. This was fixed (see `algorithm-improvement-plan.md`) by

@@ -205,7 +205,7 @@ def update_settings():
 
     Expected JSON payload: a partial or full object of
     {WEBUNTIS_SERVER, WEBUNTIS_SCHOOL, WEBUNTIS_USERNAME, WEBUNTIS_PASSWORD,
-     TIME_TOLERANCE_MINUTES}.
+     TIME_TOLERANCE_MINUTES, ALTERNATING_WEEKS, CREATE_PARTIES_FOR_UNDERUSED_DRIVERS}.
 
     Returns:
         JSON response with the full set of current settings after the update
@@ -719,7 +719,7 @@ def _capture_plan_input(members, start_date_str):
 
         timetables = {}
         for member in members:
-            timetables[member.initials] = {
+            timetables[member.shorthand] = {
                 str(day_num): {
                     'startTime': t.start_time,
                     'endTime': t.end_time,
@@ -733,11 +733,12 @@ def _capture_plan_input(members, start_date_str):
         capture = {
             'capturedAt': datetime.now().isoformat(),
             'scheduleReferenceStartDate': start_date_str,
+            'alternatingWeeks': config.ALTERNATING_WEEKS,
             'persons': [
                 {
                     'firstName': m.first_name,
                     'lastName': m.last_name,
-                    'initials': m.initials,
+                    'shorthand': m.shorthand,
                     'numberOfSeats': m.number_of_seats,
                     'isPartTime': m.is_part_time,
                     'targetDriveCount': m.target_drive_count,
@@ -763,7 +764,7 @@ def _print_to_console(driving_plan, members):
     # Group members by drive count
     drive_count_groups = defaultdict(list)
     for m in members:
-        drive_count_groups[m.drive_count].append(f"{m.first_name} ({m.initials})")
+        drive_count_groups[m.drive_count].append(f"{m.first_name} ({m.shorthand})")
     
     logger.debug("Drive counts:")
     for count in sorted(drive_count_groups.keys()):

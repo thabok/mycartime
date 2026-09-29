@@ -1,14 +1,16 @@
 """
 CP-SAT based driving-plan engine.
 
-Builds a *single* OR-Tools CP-SAT model spanning the whole 10-day cycle and
+Builds a *single* OR-Tools CP-SAT model spanning the whole cycle (10 days
+with alternating A/B weeks, 5 days without - see config.ALTERNATING_WEEKS) and
 lets the solver optimize an explicit objective, rather than picking drivers
 pool-by-pool and reconciling fairness afterwards (the approach the retired
 greedy heuristic used - see doc/ALGORITHM_EVOLUTION.md). That matters because
-the objective couples days together - a member's `drive_count` across all ten
-half-days is what each member's target drive count and the overflow3/2/1 quality metrics apply to,
-and the week A/B similarity goal couples each weekday to its counterpart five
-days later, so no per-day greedy pass can see the global picture.
+the objective couples days together - a member's `drive_count` across the
+whole cycle is what their target drive count and the overflow3/2/1 terms
+apply to, and (with alternating weeks) the week A/B similarity goal couples each weekday
+to its counterpart five days later, so no per-day greedy pass can see the
+global picture.
 
 See algorithm-with-solver.md for the modeling rationale.
 
@@ -39,13 +41,13 @@ from models import DayOfWeekABCombo, DrivingPlan, Member, Party
 from plan_builder import PlanBuilder
 from plan_postprocessor import optimize_passenger_placement
 from plan_quality import compute_quality_metrics
-from utils import (WEEKDAY_NAMES, get_earliest_time, get_latest_time,
-                   times_within_tolerance)
+from utils import (WEEKDAY_NAMES, cycle_days, get_earliest_time,
+                   get_latest_time, times_within_tolerance)
 
 logger = logging.getLogger(__name__)
 
 DIRECTIONS = ("schoolbound", "homebound")
-DAY_NAMES_SHORT = ["mon", "tue", "wed", "thu", "fri", "mon", "tue", "wed", "thu", "fri"]
+DAY_NAMES_SHORT = ["mon", "tue", "wed", "thu", "fri"]
 
 # Distinguishes "caller said nothing, use the config default" from an explicit
 # `None`, which means "disable the no-improvement stall timeout entirely".
@@ -97,18 +99,19 @@ class _ProgressReporter(cp_model.CpSolverSolutionCallback):
                 self.Value(self._variables['is_driver'][k])
                 for k in sorted(self._variables['is_driver'])
             ),
-            'weekABMismatches': sum(
-                self.Value(self._variables['week_ab_mismatch'][k])
-                for k in sorted(self._variables['week_ab_mismatch'])
-            ),
-            'weekABCountImbalance': sum(
-                self.Value(self._variables['week_ab_excess'][i])
-                for i in sorted(self._variables['week_ab_excess'])
-            ),
             'objective': self.ObjectiveValue(),
             'bestObjectiveBound': self.BestObjectiveBound(),
             'elapsedSeconds': time.monotonic() - self._started_at,
         }
+        if self._variables['alternating_weeks']:
+            self.last_metrics['weekABMismatches'] = sum(
+                self.Value(self._variables['week_ab_mismatch'][k])
+                for k in sorted(self._variables['week_ab_mismatch'])
+            )
+            self.last_metrics['weekABCountImbalance'] = sum(
+                self.Value(self._variables['week_ab_excess'][i])
+                for i in sorted(self._variables['week_ab_excess'])
+            )
         try:
             self._report(self.last_metrics)
         except Exception:  # a broken progress sink must never abort the solve
@@ -121,7 +124,9 @@ class SolverService:
     def __init__(self, tolerance_minutes: int = None, max_time_in_seconds: float = None,
                  stop_after_no_improvement_seconds=_USE_CONFIG_DEFAULT,
                  progress_callback: Callable[[dict], None] = None,
-                 stop_event: 'threading.Event' = None):
+                 stop_event: 'threading.Event' = None,
+                 alternating_weeks: bool = None,
+                 create_parties_for_underused_drivers: bool = None):
         self.tolerance = tolerance_minutes or config.TIME_TOLERANCE_MINUTES
         self.max_time_in_seconds = max_time_in_seconds or config.SOLVER_MAX_TIME_SECONDS
         self.stop_after_no_improvement_seconds = (
@@ -132,8 +137,17 @@ class SolverService:
         self.progress_callback = progress_callback
         self.stop_event = stop_event
         self.weights = config.SOLVER_OBJECTIVE_WEIGHTS
+        self.alternating_weeks = (
+            config.ALTERNATING_WEEKS if alternating_weeks is None else alternating_weeks
+        )
+        self.create_parties_for_underused_drivers = (
+            config.CREATE_PARTIES_FOR_UNDERUSED_DRIVERS
+            if create_parties_for_underused_drivers is None
+            else create_parties_for_underused_drivers
+        )
+        self.days = range(cycle_days(self.alternating_weeks))
         self.members: Dict[str, Member] = {}
-        # (day_num, direction) -> {initials: effective time}, sorted by initials
+        # (day_num, direction) -> {shorthand: effective time}, sorted by shorthand
         self._times: Dict[Tuple[int, str], Dict[str, int]] = {}
         self.last_solve_stats: Dict[str, object] = {}
 
@@ -146,15 +160,17 @@ class SolverService:
         logger.info(f"STARTING CP-SAT DRIVING PLAN CALCULATION FOR {len(members)} MEMBERS")
         logger.info("=" * 80)
 
-        self.members = {m.initials: m for m in members}
+        self.members = {m.shorthand: m for m in members}
 
         self._validate_custom_days(members)
 
         for member in members:
-            default_target = (
-                config.DEFAULT_TARGET_DRIVE_COUNT_PARTTIME if member.is_part_time
-                else config.DEFAULT_TARGET_DRIVE_COUNT_FULLTIME
-            )
+            if not self.alternating_weeks:
+                default_target = config.DEFAULT_TARGET_DRIVE_COUNT_NON_ALTERNATING
+            elif member.is_part_time:
+                default_target = config.DEFAULT_TARGET_DRIVE_COUNT_PARTTIME
+            else:
+                default_target = config.DEFAULT_TARGET_DRIVE_COUNT_FULLTIME
             member.max_drives = (
                 member.target_drive_count if member.target_drive_count is not None else default_target
             )
@@ -167,7 +183,7 @@ class SolverService:
         solution = self._solve(model, variables)
 
         parties_by_day = self._extract_parties(solution, variables)
-        optimize_passenger_placement(self.members, parties_by_day, self.tolerance)
+        optimize_passenger_placement(self.members, parties_by_day, self.tolerance, self.alternating_weeks)
         self._apply_drive_counts(parties_by_day)
 
         driving_plan = self._build_driving_plan(members, parties_by_day)
@@ -185,10 +201,10 @@ class SolverService:
         """Same up-front custom-day validation the greedy engine does."""
         validation_errors = []
         for member in members:
-            for day_num in range(10):
+            for day_num in self.days:
                 errors = member.validate_custom_day(day_num)
                 if errors:
-                    validation_errors.extend([f"{member.initials}: {err}" for err in errors])
+                    validation_errors.extend([f"{member.shorthand}: {err}" for err in errors])
 
         if validation_errors:
             error_msg = "Custom day validation failed:\n" + "\n".join(validation_errors)
@@ -203,27 +219,27 @@ class SolverService:
         entirely) simply get no variables at all, which keeps the model small.
         """
         self._times = {}
-        for day_num in range(10):
+        for day_num in self.days:
             for direction in DIRECTIONS:
                 schoolbound = direction == "schoolbound"
                 times: Dict[str, int] = {}
-                for initials in sorted(self.members):
-                    member = self.members[initials]
+                for shorthand in sorted(self.members):
+                    member = self.members[shorthand]
                     if member.should_ignore_on_day(day_num):
                         continue
                     time = (member.get_effective_start_time(day_num) if schoolbound
                             else member.get_effective_end_time(day_num))
                     if time is None:
                         continue
-                    times[initials] = time
+                    times[shorthand] = time
                 self._times[(day_num, direction)] = times
 
         total = sum(len(t) for t in self._times.values())
-        logger.info(f"Presence collected: {total} member-legs across 10 days x 2 directions")
+        logger.info(f"Presence collected: {total} member-legs across {len(self.days)} days x 2 directions")
 
-    def _capacity(self, initials: str, day_num: int, schoolbound: bool) -> int:
+    def _capacity(self, shorthand: str, day_num: int, schoolbound: bool) -> int:
         """Passenger seats available if this member drives this leg (0 when driving solo)."""
-        member = self.members[initials]
+        member = self.members[shorthand]
         solo = (member.solo_am_on_day(day_num) if schoolbound
                 else member.solo_pm_on_day(day_num))
         if solo:
@@ -266,26 +282,26 @@ class SolverService:
     def _build_model(self):
         model = cp_model.CpModel()
 
-        # is_driver[(initials, day, direction)]
+        # is_driver[(shorthand, day, direction)]
         is_driver: Dict[Tuple[str, int, str], cp_model.IntVar] = {}
         # rides_with[(passenger, driver, day, direction)]
         rides_with: Dict[Tuple[str, str, int, str], cp_model.IntVar] = {}
-        # drives_on_day[(initials, day)]
+        # drives_on_day[(shorthand, day)]
         drives_on_day: Dict[Tuple[str, int], cp_model.IntVar] = {}
 
-        for day_num in range(10):
+        for day_num in self.days:
             for direction in DIRECTIONS:
                 schoolbound = direction == "schoolbound"
                 present = self._times[(day_num, direction)]
-                initials_list = sorted(present)
+                shorthand_list = sorted(present)
 
-                for initials in initials_list:
-                    is_driver[(initials, day_num, direction)] = model.NewBoolVar(
-                        f"drives_{initials}_{day_num}_{direction}"
+                for shorthand in shorthand_list:
+                    is_driver[(shorthand, day_num, direction)] = model.NewBoolVar(
+                        f"drives_{shorthand}_{day_num}_{direction}"
                     )
 
-                for passenger in initials_list:
-                    for driver in initials_list:
+                for passenger in shorthand_list:
+                    for driver in shorthand_list:
                         if passenger == driver:
                             continue
                         if self._capacity(driver, day_num, schoolbound) == 0:
@@ -297,14 +313,14 @@ class SolverService:
                         )
 
                 # Exactly-one-role: every present member either drives or rides along.
-                for initials in initials_list:
-                    options = [is_driver[(initials, day_num, direction)]]
+                for shorthand in shorthand_list:
+                    options = [is_driver[(shorthand, day_num, direction)]]
                     options += [rides_with[key] for key in sorted(rides_with)
-                                if key[0] == initials and key[2] == day_num and key[3] == direction]
+                                if key[0] == shorthand and key[2] == day_num and key[3] == direction]
                     model.AddExactlyOne(options)
 
                 # Capacity, and "you can only be ridden with if you actually drive".
-                for driver in initials_list:
+                for driver in shorthand_list:
                     carried = [rides_with[key] for key in sorted(rides_with)
                                if key[1] == driver and key[2] == day_num and key[3] == direction]
                     if not carried:
@@ -313,23 +329,23 @@ class SolverService:
                     model.Add(sum(carried) <= capacity * is_driver[(driver, day_num, direction)])
 
                 # needsCar: this member must drive every leg they are present for.
-                for initials in initials_list:
-                    if self.members[initials].needs_car_on_day(day_num):
-                        model.Add(is_driver[(initials, day_num, direction)] == 1)
+                for shorthand in shorthand_list:
+                    if self.members[shorthand].needs_car_on_day(day_num):
+                        model.Add(is_driver[(shorthand, day_num, direction)] == 1)
 
                 if not schoolbound:
                     self._add_no_waiting_afternoon_constraints(
-                        model, rides_with, day_num, initials_list
+                        model, rides_with, day_num, shorthand_list
                     )
 
         # A member who drives to school has their car there, so they must drive home
         # too - the greedy engine enforces the same thing (VALIDATION 1 rejects any
         # plan where someone is a driver in one direction and a passenger in the other
         # on the same day).
-        for initials in sorted(self.members):
-            for day_num in range(10):
-                sb = (initials, day_num, "schoolbound")
-                hb = (initials, day_num, "homebound")
+        for shorthand in sorted(self.members):
+            for day_num in self.days:
+                sb = (shorthand, day_num, "schoolbound")
+                hb = (shorthand, day_num, "homebound")
                 if sb in is_driver and hb in is_driver:
                     model.Add(is_driver[sb] == is_driver[hb])
 
@@ -338,55 +354,68 @@ class SolverService:
         overflow: Dict[str, cp_model.IntVar] = {}
         over_n: Dict[Tuple[str, int], cp_model.IntVar] = {}
 
-        for initials in sorted(self.members):
-            member = self.members[initials]
+        for shorthand in sorted(self.members):
+            member = self.members[shorthand]
             day_vars = []
-            for day_num in range(10):
-                legs = [is_driver[(initials, day_num, direction)]
+            eligible_day_vars = []  # excludes drivingSkip/off-entirely days - see quota comment below
+            for day_num in self.days:
+                legs = [is_driver[(shorthand, day_num, direction)]
                         for direction in DIRECTIONS
-                        if (initials, day_num, direction) in is_driver]
+                        if (shorthand, day_num, direction) in is_driver]
                 if not legs:
                     continue
-                day_var = model.NewBoolVar(f"drives_on_day_{initials}_{day_num}")
+                day_var = model.NewBoolVar(f"drives_on_day_{shorthand}_{day_num}")
                 model.AddMaxEquality(day_var, legs)
-                drives_on_day[(initials, day_num)] = day_var
+                drives_on_day[(shorthand, day_num)] = day_var
                 day_vars.append(day_var)
+                if member.can_drive_on_day(day_num):
+                    eligible_day_vars.append(day_var)
 
-            count = model.NewIntVar(0, len(day_vars), f"drive_count_{initials}")
+            count = model.NewIntVar(0, len(day_vars), f"drive_count_{shorthand}")
             model.Add(count == sum(day_vars))
-            drive_count[initials] = count
+            drive_count[shorthand] = count
 
-            # max_drives is a quota, not just a ceiling: a member must drive at
-            # least that often (capped at the days they're actually present for,
-            # so someone with fewer usable days than their quota can't make the
-            # model infeasible). This is what forces extra driver parties to be
-            # created for anyone who would otherwise be under-used - the week
-            # A/B similarity objective below then picks *which* days so those
-            # extra drives land on a symmetric weekday pattern where possible.
-            min_drives = min(member.max_drives, len(day_vars))
-            model.Add(count >= min_drives)
+            # max_drives is a quota, not just a ceiling: unless disabled via
+            # config.CREATE_PARTIES_FOR_UNDERUSED_DRIVERS, a member must drive
+            # at least that often (capped at the days they're actually eligible
+            # to drive on, so someone with fewer usable days than their quota
+            # can't make the model infeasible). This is what forces extra driver
+            # parties to be created for anyone who would otherwise be
+            # under-used - the week A/B similarity objective below then picks
+            # *which* days so those extra drives land on a symmetric weekday
+            # pattern where possible.
+            #
+            # The floor is placed on eligible_day_vars (days without a
+            # drivingSkip preference and where the member isn't off entirely),
+            # never on the full day_vars - otherwise this quota could force a
+            # drivingSkip day into service to hit the target, defeating the
+            # point of the preference. If a member doesn't have enough eligible
+            # days to reach their quota, they simply end up under quota instead.
+            if self.create_parties_for_underused_drivers:
+                min_drives = min(member.max_drives, len(eligible_day_vars))
+                model.Add(sum(eligible_day_vars) >= min_drives)
 
             # Soft max_drives ceiling: exceeding it is allowed but heavily
             # penalized, matching the greedy engine's "degrade rather than
             # fail" fallback.
-            over = model.NewIntVar(0, 10, f"overflow_{initials}")
+            over = model.NewIntVar(0, 10, f"overflow_{shorthand}")
             model.Add(over >= count - member.max_drives)
-            overflow[initials] = over
+            overflow[shorthand] = over
 
             # Relative to this member's own quota (not a fixed absolute count),
             # so it works the same for part-time members and per-member
             # target-drive-count overrides alike.
             for offset in (1, 2, 3):
-                flag = model.NewBoolVar(f"overflow{offset}_{initials}")
+                flag = model.NewBoolVar(f"overflow{offset}_{shorthand}")
                 model.Add(count >= member.max_drives + offset).OnlyEnforceIf(flag)
                 model.Add(count <= member.max_drives + offset - 1).OnlyEnforceIf(flag.Not())
-                over_n[(initials, offset)] = flag
+                over_n[(shorthand, offset)] = flag
 
         # Not part of the objective (the overflow3/2/1 tiers already drive fairness);
         # kept so the busiest member's load can be logged after each solve.
         max_drives_var = model.NewIntVar(0, 10, "max_drives")
-        for initials in sorted(drive_count):
-            model.Add(max_drives_var >= drive_count[initials])
+        for shorthand in sorted(drive_count):
+            model.Add(max_drives_var >= drive_count[shorthand])
 
         week_ab_mismatch, week_ab_excess = self._build_week_ab_similarity(model, drives_on_day)
 
@@ -403,6 +432,7 @@ class SolverService:
             'week_ab_mismatch': week_ab_mismatch,
             'week_ab_excess': week_ab_excess,
             'max_drives': max_drives_var,
+            'alternating_weeks': self.alternating_weeks,
         }
         logger.info(
             f"Model built: {len(is_driver)} driver vars, {len(rides_with)} ride vars, "
@@ -410,7 +440,7 @@ class SolverService:
         )
         return model, variables
 
-    def _add_no_waiting_afternoon_constraints(self, model, rides_with, day_num, initials_list) -> None:
+    def _add_no_waiting_afternoon_constraints(self, model, rides_with, day_num, shorthand_list) -> None:
         """
         A noWaitingAfternoon passenger must not be made to wait for *anyone* in
         their car, which is a three-way condition (passenger, driver, co-passenger)
@@ -418,17 +448,17 @@ class SolverService:
         later-finishing co-passenger from sharing the same driver.
         """
         times = self._times[(day_num, "homebound")]
-        no_wait = [i for i in initials_list
+        no_wait = [i for i in shorthand_list
                    if self.members[i].no_waiting_afternoon_on_day(day_num)]
         if not no_wait:
             return
 
-        for driver in initials_list:
+        for driver in shorthand_list:
             for passenger in no_wait:
                 key_p = (passenger, driver, day_num, "homebound")
                 if key_p not in rides_with:
                     continue
-                for other in initials_list:
+                for other in shorthand_list:
                     if other in (passenger, driver):
                         continue
                     if times[other] <= times[passenger]:
@@ -457,37 +487,39 @@ class SolverService:
         """
         mismatch: Dict[Tuple[str, int], cp_model.IntVar] = {}
         excess: Dict[str, cp_model.IntVar] = {}
+        if not self.alternating_weeks:
+            return mismatch, excess
 
-        for initials in sorted(self.members):
+        for shorthand in sorted(self.members):
             week_a_days, week_b_days = [], []
 
             for weekday in range(5):
-                a_var = drives_on_day.get((initials, weekday))
-                b_var = drives_on_day.get((initials, weekday + 5))
+                a_var = drives_on_day.get((shorthand, weekday))
+                b_var = drives_on_day.get((shorthand, weekday + 5))
                 if a_var is not None:
                     week_a_days.append(a_var)
                 if b_var is not None:
                     week_b_days.append(b_var)
                 if a_var is None or b_var is None:
                     continue
-                flag = model.NewBoolVar(f"week_ab_mismatch_{initials}_{weekday}")
+                flag = model.NewBoolVar(f"week_ab_mismatch_{shorthand}_{weekday}")
                 model.Add(a_var + b_var == 1).OnlyEnforceIf(flag)
                 model.Add(a_var == b_var).OnlyEnforceIf(flag.Not())
-                mismatch[(initials, weekday)] = flag
+                mismatch[(shorthand, weekday)] = flag
 
             if not week_a_days or not week_b_days:
                 continue  # travels in only one of the two weeks - nothing to balance
 
-            diff = model.NewIntVar(-5, 5, f"week_ab_diff_{initials}")
+            diff = model.NewIntVar(-5, 5, f"week_ab_diff_{shorthand}")
             model.Add(diff == sum(week_a_days) - sum(week_b_days))
-            abs_diff = model.NewIntVar(0, 5, f"week_ab_absdiff_{initials}")
+            abs_diff = model.NewIntVar(0, 5, f"week_ab_absdiff_{shorthand}")
             model.AddAbsEquality(abs_diff, diff)
 
             # Same hinge trick as `overflow`: a lower bound is all that's needed,
             # since minimizing pins the variable to max(0, abs_diff - 1).
-            over = model.NewIntVar(0, 4, f"week_ab_excess_{initials}")
+            over = model.NewIntVar(0, 4, f"week_ab_excess_{shorthand}")
             model.Add(over >= abs_diff - 1)
-            excess[initials] = over
+            excess[shorthand] = over
 
         return mismatch, excess
 
@@ -503,9 +535,10 @@ class SolverService:
         similarity.
 
         Nothing here rewards driving *more* than the quota. The quota itself
-        (both the "at least" floor and the "at most" ceiling) is enforced as a
-        constraint in `_build_model`, not the objective - keeping members
-        exactly at their target drive count is the whole quality story, so plans that differ
+        (both the "at least" floor, when config.CREATE_PARTIES_FOR_UNDERUSED_DRIVERS
+        is on, and the "at most" ceiling) is enforced as a constraint in
+        `_build_model`, not the objective - keeping members exactly at their
+        target drive count is the whole quality story, so plans that differ
         only in total drives or car count beyond that are deliberately scored
         equal (see config's note).
         """
@@ -519,8 +552,8 @@ class SolverService:
         # travelling alone), and the greedy engine allows it in that case too.
         despite_prefs = []
         for key in sorted(is_driver):
-            initials, day_num, _direction = key
-            custom = self.members[initials].get_custom_day(day_num)
+            shorthand, day_num, _direction = key
+            custom = self.members[shorthand].get_custom_day(day_num)
             if custom and custom.driving_skip and not custom.needs_car:
                 despite_prefs.append(is_driver[key])
         tiers.append(('drives_despite_prefs', despite_prefs))
@@ -641,7 +674,7 @@ class SolverService:
                 f"CP-SAT produced no usable solution (status={status_name})"
             )
         logger.info(
-            f"Busiest member drives {solver.Value(variables['max_drives'])} of 10 days"
+            f"Busiest member drives {solver.Value(variables['max_drives'])} of {len(self.days)} days"
         )
         if status == cp_model.FEASIBLE:
             reason = ("no improving solution found for "
@@ -675,21 +708,21 @@ class SolverService:
         # forced to drive themselves only in the morning (say) would show as a
         # designated driver on one leg but not the other, for the same day.
         forced_by_day: Dict[Tuple[str, int], bool] = {}
-        for day_num in range(10):
+        for day_num in self.days:
             for direction in DIRECTIONS:
                 times = self._times[(day_num, direction)]
-                for initials in sorted(times):
-                    key = (initials, day_num, direction)
+                for shorthand in sorted(times):
+                    key = (shorthand, day_num, direction)
                     if not solver.Value(is_driver[key]):
                         continue
                     if key not in has_alternative:
-                        forced_by_day[(initials, day_num)] = True
+                        forced_by_day[(shorthand, day_num)] = True
 
         parties_by_day: Dict[int, Dict[str, List[Party]]] = {
-            day_num: {"schoolbound": [], "homebound": []} for day_num in range(10)
+            day_num: {"schoolbound": [], "homebound": []} for day_num in self.days
         }
 
-        for day_num in range(10):
+        for day_num in self.days:
             for direction in DIRECTIONS:
                 schoolbound = direction == "schoolbound"
                 times = self._times[(day_num, direction)]
@@ -702,14 +735,14 @@ class SolverService:
                     if solver.Value(rides_with[key]):
                         passengers_by_driver.setdefault(driver, []).append(passenger)
 
-                for initials in sorted(times):
-                    key = (initials, day_num, direction)
+                for shorthand in sorted(times):
+                    key = (shorthand, day_num, direction)
                     if not solver.Value(is_driver[key]):
                         continue
 
-                    member = self.members[initials]
-                    passengers = sorted(passengers_by_driver.get(initials, []))
-                    driver_time = times[initials]
+                    member = self.members[shorthand]
+                    passengers = sorted(passengers_by_driver.get(shorthand, []))
+                    driver_time = times[shorthand]
 
                     member_times = [driver_time] + [times[p] for p in passengers]
                     party_time = (get_earliest_time(member_times) if schoolbound
@@ -721,11 +754,11 @@ class SolverService:
 
                     parties_by_day[day_num][direction].append(Party(
                         day_of_week_ab_combo=None,  # filled in when the DayPlan is built
-                        driver=initials,
+                        driver=shorthand,
                         time=party_time,
                         passengers=passengers,
                         is_designated_driver=(member.needs_car_on_day(day_num)
-                                               or forced_by_day.get((initials, day_num), False)),
+                                               or forced_by_day.get((shorthand, day_num), False)),
                         drives_despite_custom_prefs=bool(custom and custom.driving_skip),
                         schoolbound=schoolbound,
                         is_lonely_driver=solo,
@@ -737,8 +770,11 @@ class SolverService:
 
     def _pool_name(self, day_num: int, direction: str, time: int) -> str:
         """Builds a human-readable pool identifier for the Party's pool_name field."""
+        day = DAY_NAMES_SHORT[day_num % 5]
+        if not self.alternating_weeks:
+            return f"solver-{day}-{direction}-{time:04d}-tol{self.tolerance}"
         week = "a" if day_num < 5 else "b"
-        return f"solver-{DAY_NAMES_SHORT[day_num]}-{week}-{direction}-{time:04d}-tol{self.tolerance}"
+        return f"solver-{day}-{week}-{direction}-{time:04d}-tol{self.tolerance}"
 
     def _apply_drive_counts(self, parties_by_day) -> None:
         """Populate the runtime Member fields the summary and callers expect."""
@@ -746,13 +782,13 @@ class SolverService:
             member.drive_count = 0
             member.driving_days = set()
 
-        for day_num in range(10):
+        for day_num in self.days:
             drivers_today = set()
             for direction in DIRECTIONS:
                 for party in parties_by_day[day_num][direction]:
                     drivers_today.add(party.driver)
-            for initials in sorted(drivers_today):
-                member = self.members[initials]
+            for shorthand in sorted(drivers_today):
+                member = self.members[shorthand]
                 member.driving_days.add(day_num)
                 member.drive_count += 1
 
@@ -762,10 +798,10 @@ class SolverService:
         checks shared with (nothing else now, but previously also) the greedy
         engine, so downstream consumers see the same DrivingPlan shape.
         """
-        builder = PlanBuilder(self.members, parties_by_day)
+        builder = PlanBuilder(self.members, parties_by_day, self.alternating_weeks)
 
         day_plans = {}
-        for day_num in range(10):
+        for day_num in self.days:
             day_of_week_ab = DayOfWeekABCombo(
                 day_of_week=WEEKDAY_NAMES[day_num % 5],
                 is_week_a=day_num < 5,
@@ -774,8 +810,9 @@ class SolverService:
             day_plans[day_num + 1] = builder.build_day_plan(day_num, day_of_week_ab)
 
         summary = builder.generate_summary(members)
-        member_id_map = {m.initials: m.id for m in members if getattr(m, 'id', None) is not None}
-        quality_metrics = compute_quality_metrics(self.members, day_plans, self.tolerance)
+        member_id_map = {m.shorthand: m.id for m in members if getattr(m, 'id', None) is not None}
+        quality_metrics = compute_quality_metrics(self.members, day_plans, self.tolerance,
+                                                  self.alternating_weeks)
 
         return DrivingPlan(summary=summary, day_plans=day_plans, member_id_map=member_id_map,
-                            quality_metrics=quality_metrics)
+                            quality_metrics=quality_metrics, alternating_weeks=self.alternating_weeks)

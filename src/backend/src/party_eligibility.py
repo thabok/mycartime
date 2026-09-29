@@ -9,7 +9,7 @@ looser or stricter than the ones the solver itself enforced.
 from typing import Dict
 
 from models import Member, Party
-from utils import times_within_tolerance
+from utils import hhmm_to_minutes, times_within_tolerance
 
 
 def capacity(member: Member, day_num: int, schoolbound: bool) -> int:
@@ -32,7 +32,7 @@ def distance_minutes(passenger: str, party: Party, members: Dict[str, Member],
     (the driver's own time, not the possibly-drifted party.time), so the
     metric doesn't shift depending on who else is currently in the party."""
     p_time = desired_time(members[passenger], day_num, schoolbound)
-    return abs(p_time - party.original_driver_time)
+    return abs(hhmm_to_minutes(p_time) - hhmm_to_minutes(party.original_driver_time))
 
 
 def is_eligible(passenger: str, party: Party, members: Dict[str, Member],

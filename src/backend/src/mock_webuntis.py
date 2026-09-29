@@ -2,8 +2,8 @@
 Hidden mock/demo WebUntis backend, for testing and screenshots without a real
 school's credentials or student/staff data.
 
-Activated when the configured WebUntis server URL is exactly one of the two
-sentinel "Hogwarts" URLs (see MOCK_SERVER_MODES) - checked by
+Activated when the configured WebUntis server URL is exactly the sentinel
+"Hogwarts" URL (see MOCK_SERVER_URL) - checked by
 TimetableService.connect()/test_connection() before any real network Session
 would be created. From then on this module stands in for webuntis_client.Session
 entirely: it implements the same public methods (login, logout, schoolyears,
@@ -11,13 +11,8 @@ subjects, rooms, klassen, timetable_extended) and returns raw period dicts in
 the exact shape real WebUntis sends, so every downstream consumer (filtering,
 summarization, the solver, the UI) runs completely unmodified against it.
 
-- "static" always returns the same one of 30 pre-baked schedules for a given
-  member, assigned in the order members are first seen (persisted via the
-  TimetableService disk cache), cycling if more than 30 distinct members are
-  queried.
-- "dynamic" fabricates a brand new schedule on every query.
-
-Both modes follow the same generation rules (see generate_schedule):
+It fabricates a brand new schedule on every query (see generate_schedule),
+following these rules:
   - full-time: 12 double periods (90 min) + 1-2 supervisions/week, 0-3
     periods differing between the A and B week.
   - part-time: 8 double periods (90 min) + 1 supervision/week, 0-2 periods
@@ -31,11 +26,10 @@ slots (surrounding breaks don't count), no subject repeats on the same day,
 and every supervision duty sits directly before or after one of that day's
 lessons.
 
-Both modes are aware of the actual member's `is_part_time` flag (passed
+Generation is aware of the actual member's `is_part_time` flag (passed
 through from TimetableService via `timetable_extended`'s `is_part_time`
-argument) rather than guessing it: "dynamic" generates a schedule matching
-it on every query, "static" picks among the pre-baked schedules tagged with
-the matching `isPartTime` flag in hogwarts-schedules.json.
+argument) rather than guessing it, so the fabricated schedule always matches
+it.
 """
 import itertools
 import json
@@ -49,15 +43,10 @@ from webuntis_client import Element, SchoolYear
 
 logger = logging.getLogger(__name__)
 
-# Server URL -> mock mode. Deliberately not documented anywhere user-facing;
-# discoverable only by whoever types one of these exact URLs into the Server
-# URL field in Settings.
-MOCK_SERVER_MODES = {
-    'https://hogwarts.webuntis.com/static': 'static',
-    'https://hogwarts.webuntis.com/dynamic': 'dynamic',
-}
-
-MAX_MOCK_MEMBERS = 30
+# The sentinel mock/demo server URL. Deliberately not documented anywhere
+# user-facing; discoverable only by whoever types this exact URL into the
+# Server URL field in Settings.
+MOCK_SERVER_URL = 'https://hogwarts.webuntis.com'
 
 # A Monday, used purely as an arbitrary but fixed reference point to alternate
 # every real-world Monday..Friday between this module's own two internal week
@@ -130,15 +119,12 @@ _VALID_DAY_SLOT_PATTERNS: Dict[int, List[Tuple[int, ...]]] = {
 }
 
 
-def detect_mode(server: Optional[str]) -> Optional[str]:
-    """
-    Whether the given WebUntis server URL is one of the hidden mock/demo
-    sentinel URLs, and if so which mode ('static' or 'dynamic').
-    """
+def detect_mode(server: Optional[str]) -> bool:
+    """Whether the given WebUntis server URL is the hidden mock/demo sentinel URL."""
     if not server:
-        return None
+        return False
     normalized = server.strip().rstrip('/').lower()
-    return MOCK_SERVER_MODES.get(normalized)
+    return normalized == MOCK_SERVER_URL
 
 
 def _day_lesson_counts(rng: random.Random, usable_days: List[int], lesson_count: int, day_cap: int) -> Dict[int, int]:
@@ -267,12 +253,7 @@ class MockSession:
     relies on, so it's a drop-in replacement wherever a real Session would go.
     """
 
-    _static_schedules: Optional[List[dict]] = None
     _member_pool: Optional[List[dict]] = None
-
-    def __init__(self, mode: str, cache=None):
-        self.mode = mode
-        self.cache = cache
 
     # -- lifecycle -----------------------------------------------------
     def login(self) -> 'MockSession':
@@ -314,7 +295,7 @@ class MockSession:
     # -- timetable ---------------------------------------------------------
     def timetable_extended(self, start: int, end: int, teacher: str, teacher_fields: List[str],
                             is_part_time: bool = False) -> List[dict]:
-        schedule_days = self._schedule_for(teacher, is_part_time)
+        schedule_days = generate_schedule(random.Random(), is_part_time)
         teacher_id = (abs(hash(teacher)) % 900000) + 100000
 
         start_date = date(start // 10000, (start // 100) % 100, start % 100)
@@ -358,54 +339,6 @@ class MockSession:
             'ro': [{'id': hash(room) % 10000, 'name': room, 'longname': room}],
             'kl': [],
         }
-
-    # -- schedule assignment -----------------------------------------------
-    def _schedule_for(self, teacher: str, is_part_time: bool) -> Dict[str, List[dict]]:
-        if self.mode == 'dynamic':
-            rng = random.Random()
-            return generate_schedule(rng, is_part_time)
-        return self._static_schedule_for(teacher, is_part_time)
-
-    def _static_schedule_for(self, teacher: str, is_part_time: bool) -> Dict[str, List[dict]]:
-        schedules = self._load_static_schedules()
-        # Only pick among schedules matching the member's actual part-time
-        # status, so e.g. a part-time member never gets handed a full-time
-        # (12-lesson) pre-baked schedule just because of assignment order.
-        matching = [i for i, s in enumerate(schedules) if s.get('isPartTime', False) == is_part_time]
-        if not matching:
-            matching = list(range(len(schedules)))
-        index = self._assigned_index(teacher, len(matching))
-        return schedules[matching[index]]['days']
-
-    def _assigned_index(self, teacher: str, schedule_count: int) -> int:
-        """
-        The index a given member (by whatever initials they're queried under)
-        was first assigned, persisted across requests via the disk cache
-        (shared with TimetableService) so "the Nth member ever seen" keeps
-        getting the same fixed schedule forever, cycling past 30. Callers
-        pass the count of the subset of schedules actually eligible for that
-        member (e.g. matching part-time status), not the whole pool.
-        """
-        cache_key = 'mock_webuntis_static_assignments'
-        if self.cache is None:
-            # No persistence available (e.g. the Settings "Test connection"
-            # button uses use_cache=False) - fall back to a stable-enough
-            # per-name assignment for that one-off call.
-            return abs(hash(teacher)) % schedule_count
-
-        assignments = self.cache.get(cache_key) or {}
-        if teacher not in assignments:
-            assignments[teacher] = len(assignments) % MAX_MOCK_MEMBERS
-            self.cache.set(cache_key, assignments)
-        return assignments[teacher] % schedule_count
-
-    @classmethod
-    def _load_static_schedules(cls) -> List[dict]:
-        if cls._static_schedules is None:
-            path = resource_path('mock_data', 'hogwarts-schedules.json')
-            with open(path, 'r', encoding='utf-8') as f:
-                cls._static_schedules = json.load(f)
-        return cls._static_schedules
 
 
 def _as_datetime(d: date):

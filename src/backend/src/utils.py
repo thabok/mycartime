@@ -95,7 +95,7 @@ def times_within_tolerance(time1: int, time2: int, tolerance_minutes: int) -> bo
     return time_difference_minutes(time1, time2) <= tolerance_minutes
 
 
-def get_period_exclusion_reason(period: dict, initials: str) -> Optional[str]:
+def get_period_exclusion_reason(period: dict, shorthand: str) -> Optional[str]:
     """
     Check whether a period should be excluded for the given teacher, and why.
 
@@ -107,7 +107,7 @@ def get_period_exclusion_reason(period: dict, initials: str) -> Optional[str]:
 
     Args:
         period: Period data from WebUntis
-        initials: Teacher initials
+        shorthand: Teacher shorthand
 
     Returns:
         None if the period is relevant, otherwise a short reason string
@@ -133,13 +133,13 @@ def get_period_exclusion_reason(period: dict, initials: str) -> Optional[str]:
 
     for teacher in period.get('te', []):
         if 'orgname' in teacher:
-            if teacher['orgname'] == initials:
+            if teacher['orgname'] == shorthand:
                 # The period is handled by the specified teacher
                 matching_name = True
             else:
                 # The period is only handled temporarily by the specified teacher
                 different_orgid = True
-        elif 'name' in teacher and teacher['name'] == initials:
+        elif 'name' in teacher and teacher['name'] == shorthand:
             matching_name = True
 
     # Period is irrelevant if there's a different org ID without a matching name
@@ -148,19 +148,19 @@ def get_period_exclusion_reason(period: dict, initials: str) -> Optional[str]:
     return None
 
 
-def is_period_relevant(period: dict, initials: str) -> bool:
+def is_period_relevant(period: dict, shorthand: str) -> bool:
     """
     Check if a period is relevant for the given teacher.
     Filters out irregular periods and on-call substitutions.
 
     Args:
         period: Period data from WebUntis
-        initials: Teacher initials
+        shorthand: Teacher shorthand
 
     Returns:
         True if the period is relevant for this teacher
     """
-    return get_period_exclusion_reason(period, initials) is None
+    return get_period_exclusion_reason(period, shorthand) is None
 
 
 # A variant that was excluded on fewer than this fraction of the slot's real
@@ -194,7 +194,7 @@ _NAME_CANDIDATE_FIELDS = ['activityType', 'lstext', 'info', 'substText', 'lstype
 
 def summarize_period_variants(
     periods: List[dict],
-    initials: str,
+    shorthand: str,
     total_dates: int,
     subject_names: Optional[Dict[int, str]] = None,
     room_names: Optional[Dict[int, str]] = None,
@@ -213,7 +213,7 @@ def summarize_period_variants(
 
     Args:
         periods: Periods belonging to a single slot (already date-filtered)
-        initials: Teacher initials, used to determine relevance/reason
+        shorthand: Teacher shorthand, used to determine relevance/reason
         total_dates: Total number of real calendar dates in this slot across
             the queried range (the frequency denominator)
         subject_names, room_names, klasse_names: Optional id -> display name
@@ -231,7 +231,7 @@ def summarize_period_variants(
     """
     groups = {}
     for period in periods:
-        reason = get_period_exclusion_reason(period, initials)
+        reason = get_period_exclusion_reason(period, shorthand)
         subject = _resolve_element_name(period.get('su', []), subject_names)
         room = _resolve_element_name(period.get('ro', []), room_names)
         klasse = _resolve_element_name(period.get('kl', []), klasse_names)
@@ -337,38 +337,45 @@ def parse_date_yymmdd(date_str: str) -> datetime:
     return datetime.strptime(date_str, "%Y%m%d")
 
 
-def get_term_slot_dates(start_date: datetime, term_end: datetime, day_number: int) -> List[datetime]:
+def cycle_days(alternating_weeks: bool) -> int:
+    """Number of day slots in the plan cycle: 10 (weeks A and B) or 5."""
+    return 10 if alternating_weeks else 5
+
+
+def get_term_slot_dates(start_date: datetime, term_end: datetime, day_number: int,
+                        alternating_weeks: bool = True) -> List[datetime]:
     """
     Get every real calendar date between start_date and term_end that belongs to a
-    given (weekday, A/B-week) slot of the 10-slot cycle. The week containing
-    start_date is always treated as week A, regardless of which weekday start_date
-    itself falls on; dates before start_date are excluded (they belong to a
-    schedule that's no longer current).
+    given slot of the cycle. The week containing start_date is always treated as
+    week A, regardless of which weekday start_date itself falls on; dates before
+    start_date are excluded (they belong to a schedule that's no longer current).
 
     Args:
         start_date: Date marking the start of the current schedule (any weekday)
         term_end: Last date to consider (e.g. end of the containing schoolyear)
-        day_number: 0-9, where day_number % 5 is the weekday (0=Monday) and
-            day_number < 5 means week A, day_number >= 5 means week B
+        day_number: day_number % 5 is the weekday (0=Monday). With alternating
+            weeks it's 0-9 (< 5 means week A, >= 5 week B); without, 0-4 and
+            every week matches.
+        alternating_weeks: Whether slots recur fortnightly (A/B) or weekly
 
     Returns:
         List of matching dates, in chronological order
     """
     weekday_index = day_number % 5
-    target_is_week_a = day_number < 5
+    step = timedelta(days=14 if alternating_weeks else 7)
 
     start_monday = start_date - timedelta(days=start_date.weekday())
     anchor = start_monday + timedelta(days=weekday_index)
-    if not target_is_week_a:
+    if alternating_weeks and day_number >= 5:
         anchor += timedelta(days=7)
     while anchor < start_date:
-        anchor += timedelta(days=14)
+        anchor += step
 
     dates = []
     d = anchor
     while d <= term_end:
         dates.append(d)
-        d += timedelta(days=14)
+        d += step
     return dates
 
 

@@ -56,9 +56,9 @@ Add every teacher once, with their seat capacity and any day-specific quirks (pa
 ![Member custom preferences](doc/demo/screenshots/03-member-custom-prefs.png)
 ![Member schedule](doc/demo/screenshots/04-member-schedule.png)
 
-> **Initials matter.** A member's initials must exactly match their teacher
-> shorthand on your school's WebUntis server — the app uses them to look up
-> that person's timetable. Wrong or mismatched initials mean an empty or
+> **Shorthand matters.** A member's shorthand must exactly match their teacher
+> shorthand on your school's WebUntis server — the app uses it to look up
+> that person's timetable. A wrong or mismatched shorthand means an empty or
 > wrong schedule for that member.
 
 ### 2. Authenticating with WebUntis

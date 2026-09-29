@@ -193,7 +193,7 @@ def _balance_even_distribution(parties: List[Party], members: Dict[str, Member],
     carry several passengers (concern 3, lowest priority - only breaks
     genuine ties, never overrides a strictly closer-time placement).
 
-    `protected` holds passenger initials that _unify_week_ab just placed with
+    `protected` holds passenger shorthand that _unify_week_ab just placed with
     a matching A/B driver (concern 2 outranks concern 3) - they're skipped as
     movers so this pass can't undo that work; every time one would otherwise
     have been picked, it's logged so a real conflict between the two goals is
@@ -354,14 +354,15 @@ _MAX_UNIFY_BALANCE_ROUNDS = 5
 
 def optimize_passenger_placement(members: Dict[str, Member],
                                   parties_by_day: Dict[int, Dict[str, List[Party]]],
-                                  tolerance: int) -> None:
+                                  tolerance: int, alternating_weeks: bool = True) -> None:
     """
     Improves passenger-to-party placement after the solver has decided who
     drives, in priority order: closest-time placement, then week A/B
-    similarity, then even distribution as a tie-break. Mutates
-    `parties_by_day` in place; never changes who drives.
+    similarity (only with alternating weeks), then even distribution as a
+    tie-break. Mutates `parties_by_day` in place; never changes who drives.
     """
-    for day_num in range(10):
+    days = sorted(parties_by_day)
+    for day_num in days:
         for direction in DIRECTIONS:
             schoolbound = direction == "schoolbound"
             _rebalance_day_direction(parties_by_day[day_num][direction], members, day_num, schoolbound, tolerance)
@@ -372,14 +373,17 @@ def optimize_passenger_placement(members: Dict[str, Member],
     # so a single unify-then-balance pass can leave easy unifications on the
     # table purely because of pass ordering, not because they're infeasible.
     for round_num in range(_MAX_UNIFY_BALANCE_ROUNDS):
-        unified = _unify_week_ab(parties_by_day, members, tolerance)
+        if alternating_weeks:
+            unified = _unify_week_ab(parties_by_day, members, tolerance)
+            # Matched passengers get balanced as a synced pair first (both weeks
+            # move together, so goal #3 never splits a goal #2 match); only
+            # non-matched passengers are left for the plain per-week pass below.
+            any_balance_change = _balance_even_distribution_synced(parties_by_day, members, tolerance, unified)
+        else:
+            unified = set()
+            any_balance_change = False
 
-        # Matched passengers get balanced as a synced pair first (both weeks
-        # move together, so goal #3 never splits a goal #2 match); only
-        # non-matched passengers are left for the plain per-week pass below.
-        any_balance_change = _balance_even_distribution_synced(parties_by_day, members, tolerance, unified)
-
-        for day_num in range(10):
+        for day_num in days:
             for direction in DIRECTIONS:
                 schoolbound = direction == "schoolbound"
                 protected = {p for (d, dirn, p) in unified if d == day_num and dirn == direction}
@@ -387,11 +391,12 @@ def optimize_passenger_placement(members: Dict[str, Member],
                                                        schoolbound, tolerance, protected)
                 any_balance_change = any_balance_change or changed
 
-        if not any_balance_change:
+        # Without A/B unification there's nothing for a balance move to unblock.
+        if not any_balance_change or not alternating_weeks:
             break
         logger.info("[optimize] round %s: even-distribution moved passengers, re-running ab-unify", round_num + 1)
 
-    for day_num in range(10):
+    for day_num in days:
         for direction in DIRECTIONS:
             schoolbound = direction == "schoolbound"
             for party in parties_by_day[day_num][direction]:
