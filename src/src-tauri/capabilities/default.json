@@ -6,6 +6,7 @@
   "permissions": [
     "core:default",
     "dialog:allow-save",
-    "fs:allow-write-file"
+    "fs:allow-write-file",
+    "opener:default"
   ]
 }

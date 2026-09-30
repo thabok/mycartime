@@ -1,7 +1,7 @@
 {
   "name": "mycartime",
   "private": true,
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Tauri desktop shell bundling the frontend and the Python backend sidecar",
   "scripts": {
     "tauri": "tauri",

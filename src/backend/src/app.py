@@ -808,7 +808,8 @@ def create_feedback_issue():
     {
         "title": "...",
         "description": "...",
-        "label": "bug" | "question" | "enhancement"
+        "label": "bug" | "question" | "enhancement",
+        "version": "1.0.5" (optional, appended to the issue body)
     }
 
     Returns:
@@ -823,6 +824,7 @@ def create_feedback_issue():
         title = (data.get('title') or '').strip()
         description = (data.get('description') or '').strip()
         label = data.get('label')
+        version = (data.get('version') or '').strip()
 
         if not title:
             return jsonify({'error': 'Title is required'}), 400
@@ -843,7 +845,7 @@ def create_feedback_issue():
             },
             json={
                 'title': title,
-                'body': description,
+                'body': f'{description}\n\n---\nApp version: {version}' if version else description,
                 'labels': ['user feedback', label],
                 'assignees': [config.GITHUB_FEEDBACK_ASSIGNEE],
             },
