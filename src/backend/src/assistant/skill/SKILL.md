@@ -122,6 +122,11 @@ with across the whole batch instead. If that net result still exceeds a
 car's capacity, the app drops the entire batch of `movePassenger` actions,
 so get the totals right rather than relying on the app to catch it.
 
+When asked to put members into the same party and the target car doesn't
+have enough free seats, make room by also moving someone else out of it
+(e.g. into another party of the same direction with a free seat) as part
+of the same batch. Mention the extra move in `reply`.
+
 If you cannot fulfill a request (e.g. it's ambiguous, or would violate an
 invariant like moving a driver instead of a passenger), explain why in
 `reply` and return an empty `actions` list rather than guessing.

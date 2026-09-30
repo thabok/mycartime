@@ -280,35 +280,39 @@ class TimetableService:
             logger.error(f"Error querying timetable for {member.shorthand}: {str(e)}")
             return []
     
-    def _query_timetable(self, member: Member, start_date: datetime, end_date: datetime) -> List[dict]:
-        """Query timetable with caching support."""
-        # The mock server fabricates a brand new schedule on every query by
-        # design (see mock_webuntis.py) - caching it would defeat that
-        # entirely, returning the same stale schedule until the TTL expires.
-        if mock_webuntis.detect_mode(self.server):
-            return self._query_timetable_raw(member, start_date, end_date)
+    def _query_timetable(self, member: Member, start_date: datetime, end_date: datetime,
+                         refresh: bool = False) -> List[dict]:
+        """
+        Query timetable with caching support.
 
-        # Check cache first
-        if self.cache is not None:
-            cache_key = self._get_cache_key(member.shorthand, start_date, end_date)
+        refresh=True skips the cache read and overwrites the cached entry
+        (only used for the mock server, whose schedules are random).
+        """
+        is_mock = mock_webuntis.detect_mode(self.server)
+        cache_key = self._get_cache_key(member.shorthand, start_date, end_date)
+        if is_mock:
+            cache_key = f"mock-{cache_key}"
+
+        if self.cache is not None and not refresh:
             cached_data = self.cache.get(cache_key)
-            
+
             if cached_data is not None:
                 logger.debug(f"Cache hit for {cache_key}")
                 return cached_data
-            
+
             logger.debug(f"Cache miss for {cache_key}, fetching from API")
-        
-        # Fetch from API
+
         logger.info(f"Fetching timetable for {member.shorthand} from {start_date.date()} to {end_date.date()}")
         periods = self._query_timetable_raw(member, start_date, end_date)
-        
-        # Store in cache with TTL
+
         if self.cache is not None and periods:
-            cache_key = self._get_cache_key(member.shorthand, start_date, end_date)
-            self.cache.set(cache_key, periods, expire=config.CACHE_TTL_SECONDS)
+            # The mock schedule is random, so the copy used for the latest
+            # plan must outlive the TTL to keep the timetable dialog in sync
+            # with that plan; only the next plan generation replaces it.
+            expire = None if is_mock else config.CACHE_TTL_SECONDS
+            self.cache.set(cache_key, periods, expire=expire)
             logger.debug(f"Cached {len(periods)} periods for {cache_key}")
-        
+
         return periods
     
     def _get_element_names(self, session_method: str) -> Dict[int, str]:
@@ -386,7 +390,8 @@ class TimetableService:
         # Query once per member for the entire term (reduces API calls)
         for member in members:
             # Single API call for the whole term
-            all_periods = self._query_timetable(member, query_start, term_end)
+            all_periods = self._query_timetable(member, query_start, term_end,
+                                                refresh=mock_webuntis.detect_mode(self.server))
 
             # Extract member's ID from the data (needed for UI: web-link to schedule)
             member.id = next(

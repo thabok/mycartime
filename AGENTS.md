@@ -40,6 +40,12 @@ data and viewing/editing plans.
 - The backend sidecar build can take between 3 and 30 minutes, depending on caching. Ask before running it.
 - If a build.sh run fails in the frontend or tauri build phase, don't repeat build.sh but instead simply run the npm-based builds for the frontend and tauri.
 
+## Releasing
+
+- `./scripts/release.sh <version> <message>` bumps the version, commits
+  everything in the frontend and main repos, tags and pushes. **Never run it
+  (not even to test it) unless the user explicitly asks for a release.**
+
 ## Running / testing
 
 - `./scripts/run.sh` from repo root starts both backend (port 1338) and
