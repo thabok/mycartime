@@ -282,6 +282,10 @@ def _call_cli_stream(system_prompt: str, messages: list[dict], executable: str):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
+        # Explicit: a Finder-launched app has no UTF-8 locale, so the default
+        # decoding is ASCII and chokes on the CLI's non-ASCII output.
+        encoding='utf-8',
+        errors='replace',
         creationflags=_SUBPROCESS_FLAGS,
     )
     # An inactivity timeout, not a total-duration one: a real answer can take
@@ -360,7 +364,7 @@ def _test_cli(executable: str) -> str:
     try:
         result = subprocess.run(
             [executable, '-p', '--output-format', 'json', '--', 'Reply with only the word: ok'],
-            capture_output=True, text=True, timeout=20,
+            capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=20,
             creationflags=_SUBPROCESS_FLAGS,
         )
     except (OSError, subprocess.TimeoutExpired) as e:

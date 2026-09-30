@@ -53,15 +53,26 @@ jobs:
       # workspace lets actions/cache persist it, so only modules that actually
       # changed get recompiled instead of the whole dependency closure every
       # release.
+      # Restore and save are split (rather than one actions/cache step) for two
+      # reasons. actions/cache only saves in its post-job step when the whole
+      # job succeeded, so a failure in a later step (tauri build, upload)
+      # threw away a freshly populated cache and the next run started cold
+      # again. And cache entries are immutable: with a key derived only from
+      # requirements.txt, the first save wins forever and later runs (with
+      # changed app code) hit that stale entry and never update it. A
+      # per-run key plus a prefix restore-key always restores the newest entry
+      # and saves a fresh one.
       - name: Restore Nuitka compilation cache
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: ${{ github.workspace }}/.nuitka-cache
-          key: nuitka-${{ runner.os }}-${{ hashFiles('src/backend/requirements.txt') }}
+          key: nuitka-${{ runner.os }}-${{ hashFiles('src/backend/requirements.txt') }}-${{ github.run_id }}
           restore-keys: |
+            nuitka-${{ runner.os }}-${{ hashFiles('src/backend/requirements.txt') }}-
             nuitka-${{ runner.os }}-
 
       - name: Build the backend sidecar
+        id: nuitka-build
         shell: bash
         env:
           NUITKA_CACHE_DIR: ${{ github.workspace }}/.nuitka-cache
@@ -70,6 +81,13 @@ jobs:
           pip install -r src/backend/requirements.txt
           pip install nuitka
           bash src/backend/build_sidecar.sh
+
+      - name: Save Nuitka compilation cache
+        if: ${{ !cancelled() && steps.nuitka-build.outcome == 'success' }}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/.nuitka-cache
+          key: nuitka-${{ runner.os }}-${{ hashFiles('src/backend/requirements.txt') }}-${{ github.run_id }}
 
       - uses: actions/setup-node@v4
         with:
